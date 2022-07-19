@@ -40,7 +40,7 @@ $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-A
 
 #>
 
-class Updater {
+class Update {
     [string]hidden $FilePath_Local_AutomateSetup_Script                = "C:\Setup\_Automated_Setup\Automate-Setup.ps1"
     [string]hidden $FolderPath_Local_AutomatedSetup_Status             = "C:\Setup\_Automated_Setup\Status"
     [string]hidden $FilePath_Local_AutomateSetup_Module                = "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup\Automate-Setup.psm1"
@@ -48,7 +48,7 @@ class Updater {
     [string]hidden $FilePath_Local_InstallSoftware_Module              = "C:\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
     [string]hidden $FilePath_Local_TuneUpPC_Module                     = "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC\TuneUp-PC.psm1"
     
-    [void] UpdateScripts([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
+    [void] Scripts([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
         # Variables - edit as needed
         $Step = "Update Automated Setup Scripts"
 
@@ -63,29 +63,29 @@ class Updater {
             If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
         } else {
             $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
-            $this.RestoreScripts($Location,$Name)
+            $this.Spread($Location,$Name)
             New-Item $CompletionFile -ItemType File -Force | Out-Null
             Write-Host "`n$Step`: " -NoNewline; Write-Host "has been Completed" -ForegroundColor Green
         }
     }
 
-    [void] UpdateScripts([string]$Name,[string]$Author,[string]$Branch) {
+    [void] Scripts([string]$Name,[string]$Author,[string]$Branch) {
         [string]$Location = "c:\temp"
-        $this.UpdateScripts($Name,$Author,$Branch,$Location)
+        $this.Scripts($Name,$Author,$Branch,$Location)
     }
 
-    [void] UpdateScripts([string]$Name,[string]$Author) {
+    [void] Scripts([string]$Name,[string]$Author) {
         [string]$Branch = "master"
         [string]$Location = "c:\temp"
-        $this.UpdateScripts($Name,$Author,$Branch,$Location)
+        $this.Scripts($Name,$Author,$Branch,$Location)
     }
 
-    [void] UpdateScripts() {
+    [void] Scripts() {
         [string]$Name = "ImagingTool"
         [string]$Author = "PatrickSmith87"
         [string]$Branch = "master"
         [string]$Location = "c:\temp"
-        $this.UpdateScripts($Name,$Author,$Branch,$Location)
+        $this.Scripts($Name,$Author,$Branch,$Location)
     }
 
     [void]hidden DownloadGitHubRepository([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
@@ -111,64 +111,88 @@ class Updater {
         Remove-Item -Path $ZipFile -Force
     }
 
-    [void]hidden RestoreScripts([string]$Location,[string]$Name) {
+    [void]hidden Spread([string]$Location,[string]$Name) {
+        $Source = "$Location\$Name-main"
         $USB = [ImagingUSB]::new()
-
         $WinPEDrive = $USB.WinPE_Drive_Letter
         $ImagingDrive = $USB.Drive_Letter
-        $OriginalName = "$Name"
-        $Name = "$Name-main"
 
         if ($USB.Exists()) {
-            Move-Item -Path "$Location\$Name\WinPE-Menu.ps1" -Destination "$WinPEDrive\sources\WinPE-Menu.ps1" -Force
-            Move-Item -Path "$Location\$Name\Menu.ps1" -Destination "$ImagingDrive\sources\Menu.ps1" -Force
-            Move-Item -Path "$Location\$Name\Imaging_Tool_Menu-RAA.bat" -Destination "$ImagingDrive\Imaging_Tool_Menu-RAA.bat" -Force
+            $WinPEDrive                                         = $USB.WinPE_Drive_Letter
+            $ImagingDrive                                       = $USB.Drive_Letter
+
+            $FilePath_USB_WinPE_Menu                            = "$WinPEDrive\sources\WinPE-Menu.ps1"
+            
+            $FilePath_USB_Imaging_Menu_bat                      = "$ImagingDrive\Imaging_Tool_Menu-RAA.bat"
+            $FilePath_USB_Imaging_Menu_ps1                      = "$ImagingDrive\sources\Menu.ps1"
+            $FilePath_USB_AutomateSetup_ps1                     = "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\Automate-Setup.ps1"
+            $FilePath_USB_AutomateSetup_Module                  = "$ImagingDrive\sources\PC-Maintenance\_modules\Automate-Setup\Automate-Setup.psm1"
+            $FilePath_USB_ConfigurePC_Module                    = "$ImagingDrive\sources\PC-Maintenance\_modules\Configure-PC\Configure-PC.psm1"
+            $FilePath_USB_InstallSoftware_Module                = "$ImagingDrive\sources\PC-Maintenance\_modules\Install-Software\Install-Software.psm1"
+            $FilePath_USB_TuneUpPC_Module                       = "$ImagingDrive\sources\PC-Maintenance\_modules\TuneUp-PC\TuneUp-PC.psm1"
+            
+            Move-Item -Path "$Source\WinPE-Menu.ps1"            -Destination $FilePath_USB_WinPE_Menu -Force
+            Move-Item -Path "$Source\Imaging_Tool_Menu-RAA.bat" -Destination $FilePath_USB_Imaging_Menu_bat -Force
+            Move-Item -Path "$Source\Menu.ps1"                  -Destination $FilePath_USB_Imaging_Menu_ps1 -Force
+            Copy-Item -Path "$Source\Automate-Setup.ps1"        -Destination $FilePath_USB_AutomateSetup_ps1 -Force
+            Copy-Item -Path "$Source\Automate-Setup.psm1"       -Destination $FilePath_USB_AutomateSetup_Module -Force
+            Copy-Item -Path "$Source\Configure-PC.psm1"         -Destination $FilePath_USB_ConfigurePC_Module -Force
+            Copy-Item -Path "$Source\Install-Software.psm1"     -Destination $FilePath_USB_InstallSoftware_Module -Force
+            Copy-Item -Path "$Source\TuneUp-PC.psm1"            -Destination $FilePath_USB_TuneUpPC_Module -Force
         }
 
         If (Test-Path $Script:FilePath_Local_AutomateSetup_Script) {Remove-Item $Script:FilePath_Local_AutomateSetup_Script -Force}
-        Move-Item -Path "$Location\$Name\Automate-Setup.ps1" -Destination $Script:FilePath_Local_AutomateSetup_Script -Force
+        Move-Item -Path "$Source\Automate-Setup.ps1" -Destination $Script:FilePath_Local_AutomateSetup_Script -Force
         
         New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
         If (Test-Path $Script:FilePath_Local_AutomateSetup_Module) {Remove-Item $Script:FilePath_Local_AutomateSetup_Module -Force}
-        Move-Item -Path "$Location\$Name\Automate-Setup.psm1" -Destination $Script:FilePath_Local_AutomateSetup_Module -Force
+        Move-Item -Path "$Source\Automate-Setup.psm1" -Destination $Script:FilePath_Local_AutomateSetup_Module -Force
 
         New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Configure-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
         If (Test-Path $Script:FilePath_Local_ConfigurePC_Module) {Remove-Item $Script:FilePath_Local_ConfigurePC_Module -Force}
-        Move-Item -Path "$Location\$Name\Configure-PC.psm1" -Destination $Script:FilePath_Local_ConfigurePC_Module -Force
+        Move-Item -Path "$Source\Configure-PC.psm1" -Destination $Script:FilePath_Local_ConfigurePC_Module -Force
 
         New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Install-Software" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
         If (Test-Path $Script:FilePath_Local_InstallSoftware_Module) {Remove-Item $Script:FilePath_Local_InstallSoftware_Module -Force}
-        Move-Item -Path "$Location\$Name\Install-Software.psm1" -Destination $Script:FilePath_Local_InstallSoftware_Module -Force
+        Move-Item -Path "$Source\Install-Software.psm1" -Destination $Script:FilePath_Local_InstallSoftware_Module -Force
         
         New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
         If (Test-Path $Script:FilePath_Local_TuneUpPC_Module) {Remove-Item $Script:FilePath_Local_TuneUpPC_Module -Force}
-        Move-Item -Path "$Location\$Name\TuneUp-PC.psm1" -Destination $Script:FilePath_Local_TuneUpPC_Module -Force
+        Move-Item -Path "$Source\TuneUp-PC.psm1" -Destination $Script:FilePath_Local_TuneUpPC_Module -Force
         
         #Remove-Item -Path "$Location\$Name" -Force -Recurse
     }
 
-    [void] UploadGitHubRepository() {
-        $GitHubRepo = "C:\Git-Repositories\ImagingTool"
+    [void] GitHubRepo() {
+        $this.GitHubRepo("C:\Git-Repositories\ImagingTool")
+    }
+    
+    [void] GitHubRepo([string]$RepoPath) {
+        #$GitHubRepo = "C:\Git-Repositories\ImagingTool"
+        $GitHubRepo = $RepoPath
 
         $USB = [ImagingUSB]::new()
-        $WinPEDrive = $USB.WinPE_Drive_Letter
-        $ImagingDrive = $USB.Drive_Letter
-
         if ($USB.Exists()) {
+            $WinPEDrive                                         = $USB.WinPE_Drive_Letter
+            $FilePath_USB_WinPE_Menu                            = "$WinPEDrive\sources\WinPE-Menu.ps1"
+            $ImagingDrive                                       = $USB.Drive_Letter
+            $FilePath_USB_Imaging_Menu_bat                      = "$ImagingDrive\Imaging_Tool_Menu-RAA.bat"
+            $FilePath_USB_Imaging_Menu_ps1                      = "$ImagingDrive\sources\Menu.ps1"
+            $FilePath_USB_AutomateSetup_ps1                     = "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\Automate-Setup.ps1"
             $FilePath_USB_AutomateSetup_Module                  = "$ImagingDrive\sources\PC-Maintenance\_modules\Automate-Setup\Automate-Setup.psm1"
             $FilePath_USB_ConfigurePC_Module                    = "$ImagingDrive\sources\PC-Maintenance\_modules\Configure-PC\Configure-PC.psm1"
             $FilePath_USB_InstallSoftware_Module                = "$ImagingDrive\sources\PC-Maintenance\_modules\Install-Software\Install-Software.psm1"
             $FilePath_USB_TuneUpPC_Module                       = "$ImagingDrive\sources\PC-Maintenance\_modules\TuneUp-PC\TuneUp-PC.psm1"
 
-            Copy-Item -Path "$WinPEDrive\sources\WinPE-Menu.ps1" -Destination "$GitHubRepo\WinPE-Menu.ps1" -Force
-            Copy-Item -Path "$ImagingDrive\Imaging_Tool_Menu-RAA.bat" -Destination "$GitHubRepo\Imaging_Tool_Menu-RAA.bat" -Force
-            Copy-Item -Path "$ImagingDrive\sources\Menu.ps1" -Destination "$GitHubRepo\Menu.ps1" -Force
-            Copy-Item -Path "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\Automate-Setup.ps1" -Destination "$GitHubRepo\Automate-Setup.ps1" -Force
+            Copy-Item -Path $FilePath_USB_WinPE_Menu -Destination "$GitHubRepo\WinPE-Menu.ps1" -Force
+            Copy-Item -Path $FilePath_USB_Imaging_Menu_bat -Destination "$GitHubRepo\Imaging_Tool_Menu-RAA.bat" -Force
+            Copy-Item -Path $FilePath_USB_Imaging_Menu_ps1 -Destination "$GitHubRepo\Menu.ps1" -Force
+            Copy-Item -Path $FilePath_USB_AutomateSetup_ps1 -Destination "$GitHubRepo\Automate-Setup.ps1" -Force
             Copy-Item -Path $FilePath_USB_AutomateSetup_Module -Destination "$GitHubRepo\Automate-Setup.psm1" -Force
             Copy-Item -Path $FilePath_USB_ConfigurePC_Module -Destination "$GitHubRepo\Configure-PC.psm1" -Force
             Copy-Item -Path $FilePath_USB_InstallSoftware_Module -Destination "$GitHubRepo\Install-Software.psm1" -Force
             Copy-Item -Path $FilePath_USB_TuneUpPC_Module -Destination "$GitHubRepo\TuneUp-PC.psm1" -Force
-            Write-Host "Files Updated to GitHub Repo Folder"
+            Write-Host "Files Updated to GitHub Repo Folder: $GitHubRepo" -ForegroundColor Green
         }
     }
 }
