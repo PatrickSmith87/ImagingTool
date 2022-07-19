@@ -122,6 +122,8 @@ Start-AutomatedSetup_AtLogon
 Remove-StartAutomatedSetup_BatchFile
 Write-Host "Computername: " -NoNewline; Write-Host "$ComputerName" -ForegroundColor Cyan
 Write-Host ">Starting Automated Setup...`n" -ForegroundColor Yellow
+# -=[ Update Automated Setup Scripts ]=-
+$Update = [Update]::new(); $Update.Scripts()
 # -=[ LOAD CLIENT SETTINGS ]=-
 Write-Host "-=[ LOAD CLIENT SETTINGS ]=-" -ForegroundColor DarkGray
 Get-ClientSettings
@@ -135,8 +137,6 @@ Set-PCDefaultSettings
 Setup-LocalAdmin
 # -=[ Set Profile Default Settings ]=-
 Set-ProfileDefaultSettings
-# -=[ Update Automated Setup Scripts ]=-
-$Update = [Update]::new(); $Update.Scripts()
 # -=[ Determine if tech is setting up a single PC or building an image for capture ]=-
 Determine-SetupType
 # -=[ Rename PC\Image ]=-
