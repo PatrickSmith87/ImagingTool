@@ -7,7 +7,6 @@
 ##############################################################################
 ##############################################################################
 using module Configure-PC
-using module Automate-Setup
 
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
