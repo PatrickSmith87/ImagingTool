@@ -1,4 +1,4 @@
-#TESTTEST$this.UpdateScripts($Name,$Author,$Branch,$Location)
+#
 ##############################################################################
 ##############################################################################
 ###                                                                        ###
@@ -48,6 +48,25 @@ class Update {
     [string]hidden $FilePath_Local_InstallSoftware_Module              = "C:\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
     [string]hidden $FilePath_Local_TuneUpPC_Module                     = "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC\TuneUp-PC.psm1"
     
+    [void] Scripts() {
+        [string]$Name = "ImagingTool"
+        [string]$Author = "PatrickSmith87"
+        [string]$Branch = "master"
+        [string]$Location = "c:\temp"
+        $this.Scripts($Name,$Author,$Branch,$Location)
+    }
+
+    [void] Scripts([string]$Name,[string]$Author) {
+        [string]$Branch = "master"
+        [string]$Location = "c:\temp"
+        $this.Scripts($Name,$Author,$Branch,$Location)
+    }
+
+    [void] Scripts([string]$Name,[string]$Author,[string]$Branch) {
+        [string]$Location = "c:\temp"
+        $this.Scripts($Name,$Author,$Branch,$Location)
+    }
+
     [void] Scripts([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
         # Variables - edit as needed
         $Step = "Update Automated Setup Scripts"
@@ -67,25 +86,6 @@ class Update {
             New-Item $CompletionFile -ItemType File -Force | Out-Null
             Write-Host "`n$Step`: " -NoNewline; Write-Host "has been Completed" -ForegroundColor Green
         }
-    }
-
-    [void] Scripts([string]$Name,[string]$Author,[string]$Branch) {
-        [string]$Location = "c:\temp"
-        $this.Scripts($Name,$Author,$Branch,$Location)
-    }
-
-    [void] Scripts([string]$Name,[string]$Author) {
-        [string]$Branch = "master"
-        [string]$Location = "c:\temp"
-        $this.Scripts($Name,$Author,$Branch,$Location)
-    }
-
-    [void] Scripts() {
-        [string]$Name = "ImagingTool"
-        [string]$Author = "PatrickSmith87"
-        [string]$Branch = "master"
-        [string]$Location = "c:\temp"
-        $this.Scripts($Name,$Author,$Branch,$Location)
     }
 
     [void]hidden DownloadGitHubRepository([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
