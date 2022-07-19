@@ -106,31 +106,31 @@ class Updater {
         $Name = "$Name-main"
 
         if ($USB.Exists()) {
-            Copy-Item -Path "$Location\$Name\WinPE-Menu.ps1" -Destination "$WinPEDrive\sources\WinPE-Menu.ps1" -Force
-            Copy-Item -Path "$Location\$Name\Menu.ps1" -Destination "$ImagingDrive\sources\Menu.ps1" -Force
-            Copy-Item -Path "$Location\$Name\Imaging_Tool_Menu-RAA.bat" -Destination "$ImagingDrive\Imaging_Tool_Menu-RAA.bat" -Force
+            Move-Item -Path "$Location\$Name\WinPE-Menu.ps1" -Destination "$WinPEDrive\sources\WinPE-Menu.ps1" -Force
+            Move-Item -Path "$Location\$Name\Menu.ps1" -Destination "$ImagingDrive\sources\Menu.ps1" -Force
+            Move-Item -Path "$Location\$Name\Imaging_Tool_Menu-RAA.bat" -Destination "$ImagingDrive\Imaging_Tool_Menu-RAA.bat" -Force
         }
 
         If (Test-Path $Script:FilePath_Local_AutomateSetup_Script) {Remove-Item $Script:FilePath_Local_AutomateSetup_Script -Force}
-        Copy-Item -Path "$Location\$Name\Automate-Setup.ps1" -Destination $Script:FilePath_Local_AutomateSetup_Script -Force
+        Move-Item -Path "$Location\$Name\Automate-Setup.ps1" -Destination $Script:FilePath_Local_AutomateSetup_Script -Force
         
         New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
         If (Test-Path $Script:FilePath_Local_AutomateSetup_Module) {Remove-Item $Script:FilePath_Local_AutomateSetup_Module -Force}
-        Copy-Item -Path "$Location\$Name\Automate-Setup.psm1" -Destination $Script:FilePath_Local_AutomateSetup_Module -Force
+        Move-Item -Path "$Location\$Name\Automate-Setup.psm1" -Destination $Script:FilePath_Local_AutomateSetup_Module -Force
 
         New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Configure-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
         If (Test-Path $Script:FilePath_Local_ConfigurePC_Module) {Remove-Item $Script:FilePath_Local_ConfigurePC_Module -Force}
-        Copy-Item -Path "$Location\$Name\Configure-PC.psm1" -Destination $Script:FilePath_Local_ConfigurePC_Module -Force
+        Move-Item -Path "$Location\$Name\Configure-PC.psm1" -Destination $Script:FilePath_Local_ConfigurePC_Module -Force
 
         New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Install-Software" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
         If (Test-Path $Script:FilePath_Local_InstallSoftware_Module) {Remove-Item $Script:FilePath_Local_InstallSoftware_Module -Force}
-        Copy-Item -Path "$Location\$Name\Install-Software.psm1" -Destination $Script:FilePath_Local_InstallSoftware_Module -Force
+        Move-Item -Path "$Location\$Name\Install-Software.psm1" -Destination $Script:FilePath_Local_InstallSoftware_Module -Force
         
         New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
         If (Test-Path $Script:FilePath_Local_TuneUpPC_Module) {Remove-Item $Script:FilePath_Local_TuneUpPC_Module -Force}
-        Copy-Item -Path "$Location\$Name\TuneUp-PC.psm1" -Destination $Script:FilePath_Local_TuneUpPC_Module -Force
+        Move-Item -Path "$Location\$Name\TuneUp-PC.psm1" -Destination $Script:FilePath_Local_TuneUpPC_Module -Force
         
-        Remove-Item -Path "$Location\$OriginalName" -Force -Recurse
+        #Remove-Item -Path "$Location\$Name" -Force -Recurse
     }
 
     [void] UploadGitHubRepository() {
