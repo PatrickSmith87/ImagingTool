@@ -92,9 +92,9 @@ class Update {
         # Force to create a zip file 
         $ZipFile = "$Location\$Name.zip"
         New-Item $ZipFile -ItemType File -Force
- 
-        #$ZipUrl = "https://github.com/sandroasp/Microsoft-Integration-and-Azure-Stencils-Pack-for-Visio/archive/master.zip"
-        $ZipUrl = "https://github.com/PatrickSmith87/ImagingTool/archive/master.zip"
+
+        $ZipUrl = "https://github.com/$Author/$Name/archive/$Branch.zip"
+        #$ZipUrl = "https://github.com/PatrickSmith87/ImagingTool/archive/master.zip"
         #$ZipUrl = "https://api.github.com/repos/PatrickSmith87/Setup/zipball/master" 
         #$ZipUrl = "https://api.github.com/repos/$Author/$Name/zipball/$Branch" 
         # download the zip 
