@@ -15,6 +15,7 @@ $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-A
     $FilePath_Local_AutomateSetup_Module             = "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup\Automate-Setup.psm1"
     $FilePath_Local_ConfigurePC_Module               = "C:\Program Files\WindowsPowerShell\Modules\Configure-PC\Configure-PC.psm1"
     $FilePath_Local_InstallSoftware_Module           = "C:\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
+    $FilePath_Local_TuneUpPC_Module                  = "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC\TuneUp-PC.psm1"
 # 1. Automated Setup
     $FolderPath_Local_Setup                          = "C:\Setup"
     $FolderPath_Local_Client_Config                  = "C:\Setup\_Automated_Setup\_Client_Config"
@@ -40,14 +41,7 @@ $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-A
 
 #>
 
-class Update {
-    [string]hidden $FilePath_Local_AutomateSetup_Script                = "C:\Setup\_Automated_Setup\Automate-Setup.ps1"
-    [string]hidden $FolderPath_Local_AutomatedSetup_Status             = "C:\Setup\_Automated_Setup\Status"
-    [string]hidden $FilePath_Local_AutomateSetup_Module                = "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup\Automate-Setup.psm1"
-    [string]hidden $FilePath_Local_ConfigurePC_Module                  = "C:\Program Files\WindowsPowerShell\Modules\Configure-PC\Configure-PC.psm1"
-    [string]hidden $FilePath_Local_InstallSoftware_Module              = "C:\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
-    [string]hidden $FilePath_Local_TuneUpPC_Module                     = "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC\TuneUp-PC.psm1"
-    
+class Update {   
     [void] Scripts() {
         [string]$Name = "ImagingTool"
         [string]$Author = "PatrickSmith87"
