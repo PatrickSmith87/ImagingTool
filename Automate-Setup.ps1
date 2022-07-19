@@ -136,7 +136,7 @@ Setup-LocalAdmin
 # -=[ Set Profile Default Settings ]=-
 Set-ProfileDefaultSettings
 # -=[ Update Automated Setup Scripts ]=-
-$Updater = [Updater]::new(); $Updater.UpdateScripts()
+$Update = [Update]::new(); $Update.Scripts()
 # -=[ Determine if tech is setting up a single PC or building an image for capture ]=-
 Determine-SetupType
 # -=[ Rename PC\Image ]=-
