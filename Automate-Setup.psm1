@@ -41,28 +41,43 @@ $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-A
 #>
 
 class Updater {
-    $FilePath_Local_AutomateSetup_Script                = "C:\Setup\_Automated_Setup\Automate-Setup.ps1"
-    $FilePath_Local_AutomateSetup_Module                = "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup\Automate-Setup.psm1"
-    $FilePath_Local_ConfigurePC_Module                  = "C:\Program Files\WindowsPowerShell\Modules\Configure-PC\Configure-PC.psm1"
-    $FilePath_Local_InstallSoftware_Module              = "C:\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
-    $FilePath_Local_TuneUpPC_Module                     = "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC\TuneUp-PC.psm1"
+    [string]hidden $FilePath_Local_AutomateSetup_Script                = "C:\Setup\_Automated_Setup\Automate-Setup.ps1"
+    [string]hidden $FolderPath_Local_AutomatedSetup_Status             = "C:\Setup\_Automated_Setup\Status"
+    [string]hidden $FilePath_Local_AutomateSetup_Module                = "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup\Automate-Setup.psm1"
+    [string]hidden $FilePath_Local_ConfigurePC_Module                  = "C:\Program Files\WindowsPowerShell\Modules\Configure-PC\Configure-PC.psm1"
+    [string]hidden $FilePath_Local_InstallSoftware_Module              = "C:\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
+    [string]hidden $FilePath_Local_TuneUpPC_Module                     = "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC\TuneUp-PC.psm1"
     
     [void] UpdateScripts([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
-        $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
-        $this.RestoreScripts($Location,$Name)
+        # Variables - edit as needed
+        $Step = "Update Automated Setup Scripts"
+
+        # Static Variables - DO NOT EDIT
+        $StepStatus = "$Script:FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+
+        Write-Host ""
+        Write-Host "-=[ $Step ]=-" -ForegroundColor DarkGray
+        If (Test-Path "$StepStatus*") {
+            #Install-Basic_Softwares # Is this needed here? Removing for now
+            If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+        } else {
+            $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
+            $this.RestoreScripts($Location,$Name)
+            New-Item $CompletionFile -ItemType File -Force | Out-Null
+            Write-Host "`n$Step`: " -NoNewline; Write-Host "has been Completed" -ForegroundColor Green
+        }
     }
 
     [void] UpdateScripts([string]$Name,[string]$Author,[string]$Branch) {
         [string]$Location = "c:\temp"
-        $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
-        $this.RestoreScripts($Location,$Name)
+        $this.UpdateScripts($Name,$Author,$Branch,$Location)
     }
 
     [void] UpdateScripts([string]$Name,[string]$Author) {
         [string]$Branch = "master"
         [string]$Location = "c:\temp"
-        $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
-        $this.RestoreScripts($Location,$Name)
+        $this.UpdateScripts($Name,$Author,$Branch,$Location)
     }
 
     [void] UpdateScripts() {
@@ -70,8 +85,7 @@ class Updater {
         [string]$Author = "PatrickSmith87"
         [string]$Branch = "master"
         [string]$Location = "c:\temp"
-        $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
-        $this.RestoreScripts($Location,$Name)
+        $this.UpdateScripts($Name,$Author,$Branch,$Location)
     }
 
     [void]hidden DownloadGitHubRepository([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
