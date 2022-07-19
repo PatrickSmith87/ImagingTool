@@ -65,8 +65,8 @@ class Updater {
     }
 
     [void] UpdateScripts() {
-        [string]$Name = ""
-        [string]$Author = ""
+        [string]$Name = "System_Config"
+        [string]$Author = "PatrickSmith87"
         [string]$Branch = "master"
         [string]$Location = "c:\temp"
         $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
@@ -79,6 +79,8 @@ class Updater {
         New-Item $ZipFile -ItemType File -Force
  
         #$ZipUrl = "https://github.com/sandroasp/Microsoft-Integration-and-Azure-Stencils-Pack-for-Visio/archive/master.zip"
+        #$ZipUrl = "https://github.com/PatrickSmith87/System_Config/archive/master.zip"
+        #$ZipUrl = "https://api.github.com/repos/PatrickSmith87/Setup/zipball/master" 
         $ZipUrl = "https://api.github.com/repos/$Author/$Name/zipball/$Branch" 
         # download the zip 
         Write-Host 'Starting downloading the GitHub Repository'
@@ -87,7 +89,7 @@ class Updater {
  
         #Extract Zip File
         Write-Host 'Starting unzipping the GitHub Repository locally'
-        Expand-Archive -Path $ZipFile -DestinationPath "$Location\$Name" -Force
+        Expand-Archive -Path $ZipFile -DestinationPath "$Location" -Force
         Write-Host 'Unzip finished'
      
         # remove the zip file
@@ -99,6 +101,7 @@ class Updater {
 
         $WinPEDrive = $USB.WinPE_Drive_Letter
         $ImagingDrive = $USB.Drive_Letter
+        $Name = "$Name-main"
 
         if ($USB.Exists()) {
             Copy-Item -Path "$Location\$Name\WinPE-Menu.ps1" -Destination "$WinPEDrive\sources\WinPE-Menu.ps1" -Force
