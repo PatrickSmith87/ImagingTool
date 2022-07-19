@@ -6,6 +6,7 @@
 ##############################################################################
 ##############################################################################
 using module Configure-PC
+using module Automate-Setup
 Import-Module Automate-Setup -WarningAction SilentlyContinue -Force
 Import-Module Configure-PC -WarningAction SilentlyContinue -Force
 Import-Module Install-Software -WarningAction SilentlyContinue -Force
@@ -134,6 +135,8 @@ Set-PCDefaultSettings
 Setup-LocalAdmin
 # -=[ Set Profile Default Settings ]=-
 Set-ProfileDefaultSettings
+# -=[ Update Automated Setup Scripts ]=-
+$Updater = [Updater]::new(); $Updater.UpdateScripts()
 # -=[ Determine if tech is setting up a single PC or building an image for capture ]=-
 Determine-SetupType
 # -=[ Rename PC\Image ]=-
