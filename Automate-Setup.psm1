@@ -83,7 +83,7 @@ class Update {
         } else {
             $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
             $this.Spread($Location,$Name)
-            New-Item $CompletionFile -ItemType File -Force | Out-Null
+            #New-Item $CompletionFile -ItemType File -Force | Out-Null
             Write-Host "`n$Step`: " -NoNewline; Write-Host "has been Completed" -ForegroundColor Green
         }
     }
