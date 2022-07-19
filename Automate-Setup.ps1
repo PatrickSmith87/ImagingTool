@@ -123,7 +123,7 @@ Remove-StartAutomatedSetup_BatchFile
 Write-Host "Computername: " -NoNewline; Write-Host "$ComputerName" -ForegroundColor Cyan
 Write-Host ">Starting Automated Setup...`n" -ForegroundColor Yellow
 # -=[ Update Automated Setup Scripts ]=-
-$Update = [Update]::new(); $Update.Scripts()
+Update-Scripts
 # -=[ LOAD CLIENT SETTINGS ]=-
 Write-Host "-=[ LOAD CLIENT SETTINGS ]=-" -ForegroundColor DarkGray
 Get-ClientSettings

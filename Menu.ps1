@@ -349,6 +349,12 @@ function Image-Maintenance_submenu {
 ########################################################## Tool Maintenance #############################################################
 #########################################################################################################################################
 function ImagingTool-Maintenance_submenu {
+    # Import Automate-Setup module
+    New-Item -Path "$FolderPath_Local_Modules\Automate-Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    If (Test-Path $FilePath_Local_AutomateSetup_Module) {Remove-Item $FilePath_Local_AutomateSetup_Module -Force}
+    Copy-Item -Path $FilePath_USB_AutomateSetup_Module -Destination $FilePath_Local_AutomateSetup_Module -Force
+    Import-Module Automate-Setup -WarningAction SilentlyContinue -Force
+
     DO {
         Write-Host ""
         Write-Host "-=[ Tool Maintenance ]=-" -ForegroundColor DarkGray
@@ -360,11 +366,13 @@ function ImagingTool-Maintenance_submenu {
         Write-Host "5. " -NoNewline; Write-Host "TRANSFER " -NoNewline -ForegroundColor Cyan; Write-Host "WinPE USB Package to Axxys Storage"
         Write-Host "6. " -NoNewline; Write-Host "RESTORE " -NoNewline -ForegroundColor DarkCyan; Write-Host "Imaging Drive (Minus Images - Can save a lot of time and local disk space)"
         Write-Host "7. " -NoNewline; Write-Host "RESTORE " -NoNewline -ForegroundColor DarkCyan; Write-Host "Imaging Drive"
-        Write-Host "8. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
-        Write-Host "9. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "Enter a number, 1 thru 9"
+        Write-Host "8. " -NoNewline; Write-Host "UPDATE " -NoNewline -ForegroundColor DarkYellow; Write-Host "Imaging Tool"
+        Write-Host "9. " -NoNewline; Write-Host "UPDATE " -NoNewline -ForegroundColor DarkYellow; Write-Host "GitHub Repository"
+        Write-Host "10. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
+        Write-Host "11. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $input = Read-Host -Prompt "Enter a number, 1 thru 11"
         $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 9))
+    } UNTIL (($input -ge 1) -and ($input -le 11))
     Switch ($input) {
         1 {Clear-Host; & $FilePath_ToolMaintenance_BACKUP_Minus_Images}
         2 {Clear-Host; & $FilePath_ToolMaintenance_BACKUP}
@@ -373,8 +381,10 @@ function ImagingTool-Maintenance_submenu {
         5 {Clear-Host; ToolMaintenance_Transfer-Package}
         6 {Clear-Host; & $FilePath_ToolMaintenance_RESTORE_Minus_Images}
         7 {Clear-Host; & $FilePath_ToolMaintenance_RESTORE}
-        8 {Clear-Host; Main_Menu}
-        9 {EXIT}
+        8 {Clear-Host; Update-Scripts}
+        9 {Clear-Host; Update-GitHubRepo}
+        10 {Clear-Host; Main_Menu}
+        11 {EXIT}
     }
     ImagingTool-Maintenance_submenu
 } # End of Tool-Maintenance

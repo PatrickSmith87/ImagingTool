@@ -7,6 +7,7 @@
 ##############################################################################
 ##############################################################################
 using module Configure-PC
+using module Automate-Setup
 
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
@@ -197,6 +198,13 @@ class Update {
     }
 }
 
+function Update-Scripts {
+    $Update = [Update]::new(); $Update.Scripts()
+} Export-ModuleMember -Function Update-Scripts
+
+function Update-GitHubRepo {
+    $Update = [Update]::new(); $Update.GitHubRepo()
+} Export-ModuleMember -Function Update-GitHubRepo
 
 ##############################################################
 ############## START OF CLIENT CONFIG FUNCTIONS ##############
