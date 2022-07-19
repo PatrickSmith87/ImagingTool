@@ -65,12 +65,12 @@ class Updater {
     }
 
     [void] UpdateScripts() {
-        [string]$Name = "System_Config"
+        [string]$Name = "ImagingTool"
         [string]$Author = "PatrickSmith87"
         [string]$Branch = "master"
         [string]$Location = "c:\temp"
         $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
-        $this.RestoreScripts($Location,$Name)
+        #$this.RestoreScripts($Location,$Name)
     }
 
     [void]hidden DownloadGitHubRepository([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
@@ -79,9 +79,9 @@ class Updater {
         New-Item $ZipFile -ItemType File -Force
  
         #$ZipUrl = "https://github.com/sandroasp/Microsoft-Integration-and-Azure-Stencils-Pack-for-Visio/archive/master.zip"
-        #$ZipUrl = "https://github.com/PatrickSmith87/System_Config/archive/master.zip"
+        $ZipUrl = "https://github.com/PatrickSmith87/ImagingTool/archive/master.zip"
         #$ZipUrl = "https://api.github.com/repos/PatrickSmith87/Setup/zipball/master" 
-        $ZipUrl = "https://api.github.com/repos/$Author/$Name/zipball/$Branch" 
+        #$ZipUrl = "https://api.github.com/repos/$Author/$Name/zipball/$Branch" 
         # download the zip 
         Write-Host 'Starting downloading the GitHub Repository'
         Invoke-RestMethod -Uri $ZipUrl -OutFile $ZipFile
