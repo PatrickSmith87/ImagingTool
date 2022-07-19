@@ -1,3 +1,4 @@
+#TESTTEST
 ##############################################################################
 ##############################################################################
 ###                                                                        ###
@@ -70,7 +71,7 @@ class Updater {
         [string]$Branch = "master"
         [string]$Location = "c:\temp"
         $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
-        #$this.RestoreScripts($Location,$Name)
+        $this.RestoreScripts($Location,$Name)
     }
 
     [void]hidden DownloadGitHubRepository([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
@@ -93,7 +94,7 @@ class Updater {
         Write-Host 'Unzip finished'
      
         # remove the zip file
-        #Remove-Item -Path $ZipFile -Force
+        Remove-Item -Path $ZipFile -Force
     }
 
     [void]hidden RestoreScripts([string]$Location,[string]$Name) {
@@ -101,6 +102,7 @@ class Updater {
 
         $WinPEDrive = $USB.WinPE_Drive_Letter
         $ImagingDrive = $USB.Drive_Letter
+        $OriginalName = "$Name"
         $Name = "$Name-main"
 
         if ($USB.Exists()) {
@@ -128,7 +130,7 @@ class Updater {
         If (Test-Path $Script:FilePath_Local_TuneUpPC_Module) {Remove-Item $Script:FilePath_Local_TuneUpPC_Module -Force}
         Copy-Item -Path "$Location\$Name\TuneUp-PC.psm1" -Destination $Script:FilePath_Local_TuneUpPC_Module -Force
         
-        #Remove-Item -Path "$Location\$Name" -Force -Recurse
+        Remove-Item -Path "$Location\$OriginalName" -Force -Recurse
     }
 
     [void] UploadGitHubRepository() {
@@ -147,6 +149,7 @@ class Updater {
             Copy-Item -Path "$WinPEDrive\sources\WinPE-Menu.ps1" -Destination "$GitHubRepo\WinPE-Menu.ps1" -Force
             Copy-Item -Path "$ImagingDrive\Imaging_Tool_Menu-RAA.bat" -Destination "$GitHubRepo\Imaging_Tool_Menu-RAA.bat" -Force
             Copy-Item -Path "$ImagingDrive\sources\Menu.ps1" -Destination "$GitHubRepo\Menu.ps1" -Force
+            Copy-Item -Path "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\Automate-Setup.ps1" -Destination "$GitHubRepo\Automate-Setup.ps1" -Force
             Copy-Item -Path $FilePath_USB_AutomateSetup_Module -Destination "$GitHubRepo\Automate-Setup.psm1" -Force
             Copy-Item -Path $FilePath_USB_ConfigurePC_Module -Destination "$GitHubRepo\Configure-PC.psm1" -Force
             Copy-Item -Path $FilePath_USB_InstallSoftware_Module -Destination "$GitHubRepo\Install-Software.psm1" -Force
