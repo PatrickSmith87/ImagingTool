@@ -71,6 +71,7 @@ class Update {
 
         Write-Host ""
         Write-Host "-=[ $Step ]=-" -ForegroundColor DarkGray
+        Write-Host "Updating..."
         If (Test-Path "$StepStatus*") {
             #Install-Basic_Softwares # Is this needed here? Removing for now
             If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
@@ -78,7 +79,7 @@ class Update {
             $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
             $this.Spread($Location,$Name)
             #New-Item $CompletionFile -ItemType File -Force | Out-Null
-            Write-Host "`n$Step`: " -NoNewline; Write-Host "has been Completed" -ForegroundColor Green
+            Write-Host "$Step`: " -NoNewline; Write-Host "has been Completed" -ForegroundColor Green
         }
     }
 
@@ -92,14 +93,10 @@ class Update {
         #$ZipUrl = "https://api.github.com/repos/PatrickSmith87/Setup/zipball/master" 
         #$ZipUrl = "https://api.github.com/repos/$Author/$Name/zipball/$Branch" 
         # download the zip 
-        Write-Host 'Starting downloading the GitHub Repository'
         Invoke-RestMethod -Uri $ZipUrl -OutFile $ZipFile
-        Write-Host 'Download finished'
  
         #Extract Zip File
-        Write-Host 'Starting unzipping the GitHub Repository locally'
         Expand-Archive -Path $ZipFile -DestinationPath "$Location" -Force
-        Write-Host 'Unzip finished'
      
         # remove the zip file
         Remove-Item -Path $ZipFile -Force
@@ -125,36 +122,55 @@ class Update {
             $FilePath_USB_InstallSoftware_Module                = "$ImagingDrive\sources\PC-Maintenance\_modules\Install-Software\Install-Software.psm1"
             $FilePath_USB_TuneUpPC_Module                       = "$ImagingDrive\sources\PC-Maintenance\_modules\TuneUp-PC\TuneUp-PC.psm1"
             
-            Move-Item -Path "$Source\WinPE-Menu.ps1"            -Destination $FilePath_USB_WinPE_Menu -Force
-            Move-Item -Path "$Source\Imaging_Tool_Menu-RAA.bat" -Destination $FilePath_USB_Imaging_Menu_bat -Force
-            Move-Item -Path "$Source\Menu.ps1"                  -Destination $FilePath_USB_Imaging_Menu_ps1 -Force
-            Copy-Item -Path "$Source\Automate-Setup.ps1"        -Destination $FilePath_USB_AutomateSetup_ps1 -Force
-            Copy-Item -Path "$Source\Automate-Setup.psm1"       -Destination $FilePath_USB_AutomateSetup_Module -Force
-            Copy-Item -Path "$Source\Configure-PC.psm1"         -Destination $FilePath_USB_ConfigurePC_Module -Force
-            Copy-Item -Path "$Source\Install-Software.psm1"     -Destination $FilePath_USB_InstallSoftware_Module -Force
-            Copy-Item -Path "$Source\TuneUp-PC.psm1"            -Destination $FilePath_USB_TuneUpPC_Module -Force
+            $this.Restore("$Source\WinPE-Menu.ps1",$FilePath_USB_WinPE_Menu,"Move")
+            $this.Restore("$Source\Imaging_Tool_Menu-RAA.bat",$FilePath_USB_Imaging_Menu_bat,"Move")
+            $this.Restore("$Source\Menu.ps1",$FilePath_USB_Imaging_Menu_ps1,"Move")
+            $this.Restore("$Source\Automate-Setup.ps1",$FilePath_USB_AutomateSetup_ps1,"Copy")
+            $this.Restore("$Source\Automate-Setup.psm1",$FilePath_USB_AutomateSetup_Module,"Copy")
+            $this.Restore("$Source\Configure-PC.psm1",$FilePath_USB_ConfigurePC_Module,"Copy")
+            $this.Restore("$Source\Install-Software.psm1",$FilePath_USB_InstallSoftware_Module,"Copy")
+            $this.Restore("$Source\TuneUp-PC.psm1",$FilePath_USB_TuneUpPC_Module,"Copy")
         }
 
-        If (Test-Path $Script:FilePath_Local_AutomateSetup_Script) {Remove-Item $Script:FilePath_Local_AutomateSetup_Script -Force}
-        Move-Item -Path "$Source\Automate-Setup.ps1" -Destination $Script:FilePath_Local_AutomateSetup_Script -Force
-        
-        New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-        If (Test-Path $Script:FilePath_Local_AutomateSetup_Module) {Remove-Item $Script:FilePath_Local_AutomateSetup_Module -Force}
-        Move-Item -Path "$Source\Automate-Setup.psm1" -Destination $Script:FilePath_Local_AutomateSetup_Module -Force
+        $this.Restore("$Source\Automate-Setup.ps1",$Script:FilePath_Local_AutomateSetup_Script,"Move")
+        $this.Restore("$Source\Automate-Setup.psm1",$Script:FilePath_Local_AutomateSetup_Module,"Move")
+        $this.Restore("$Source\Configure-PC.psm1",$Script:FilePath_Local_ConfigurePC_Module,"Move")
+        $this.Restore("$Source\Install-Software.psm1",$Script:FilePath_Local_InstallSoftware_Module,"Move")
+        $this.Restore("$Source\TuneUp-PC.psm1",$Script:FilePath_Local_TuneUpPC_Module,"Move")
+    }
 
-        New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Configure-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-        If (Test-Path $Script:FilePath_Local_ConfigurePC_Module) {Remove-Item $Script:FilePath_Local_ConfigurePC_Module -Force}
-        Move-Item -Path "$Source\Configure-PC.psm1" -Destination $Script:FilePath_Local_ConfigurePC_Module -Force
-
-        New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Install-Software" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-        If (Test-Path $Script:FilePath_Local_InstallSoftware_Module) {Remove-Item $Script:FilePath_Local_InstallSoftware_Module -Force}
-        Move-Item -Path "$Source\Install-Software.psm1" -Destination $Script:FilePath_Local_InstallSoftware_Module -Force
-        
-        New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-        If (Test-Path $Script:FilePath_Local_TuneUpPC_Module) {Remove-Item $Script:FilePath_Local_TuneUpPC_Module -Force}
-        Move-Item -Path "$Source\TuneUp-PC.psm1" -Destination $Script:FilePath_Local_TuneUpPC_Module -Force
-        
-        #Remove-Item -Path "$Location\$Name" -Force -Recurse
+    [void]hidden Restore([string]$SourceFile,[string]$DestinationFile,[string]$CopyORMove) {
+    # Verify source file exists
+    # Remove Destination File if exists
+    # Move or Copy file
+        If (($CopyORMove -eq "Copy") -or ($CopyORMove -eq "Move")) {
+            If (Test-Path $SourceFile) {
+                If (Test-Path $DestinationFile) {Remove-Item $DestinationFile -Force}
+                $PathPieces = $DestinationFile.Split('\')
+                $FolderPath = $PathPieces[0]
+                $x=1
+                foreach ($Piece in $PathPieces) {
+                    If ($x -lt ($PathPieces.Count - 1)) {
+                        $FolderPath = $FolderPath + "\" + $PathPieces[$x]
+                        $x++
+                    }
+                }
+                If (!(Test-Path $FolderPath)) {New-Item $FolderPath -ItemType Directory}
+                If ($CopyORMove -eq "Copy") {
+                    Copy-Item -Path $SourceFile -Destination $DestinationFile -Force
+                    #Write-Host "Copied " -NoNewline; Write-Host "$SourceFile" -ForegroundColor Cyan -NoNewline; Write-Host " to " -NoNewline; Write-Host "$DestinationFile" -ForegroundColor Cyan
+                } elseif ($CopyORMove -eq "Move") {
+                    Move-Item -Path $SourceFile -Destination $DestinationFile -Force
+                    #Write-Host "Moved " -NoNewline; Write-Host "$SourceFile" -ForegroundColor Cyan -NoNewline; Write-Host " to " -NoNewline; Write-Host "$DestinationFile" -ForegroundColor Cyan
+                }
+            } else {
+                Write-Host "`n!!WARNING!!!" -ForegroundColor Red -NoNewline; Write-Host ' Source file not found'
+                Write-Host "-No Copy\Move action taken`n" -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "`n!!WARNING!!!" -ForegroundColor Red -NoNewline; Write-Host ' The 3rd parameter, "CopyorMove", MUST be defined as either "Copy" or "Move"'
+            Write-Host "-No Copy\Move action taken`n" -ForegroundColor Yellow
+        }
     }
 
     [void] GitHubRepo() {
