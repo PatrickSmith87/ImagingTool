@@ -1658,7 +1658,7 @@ function Join-Domain {
                 Add-Computer -DomainName $Global:ClientSettings.DNS_Domain_Name -Credential (($Global:ClientSettings.NETBIOS)+"\"+($Global:ClientSettings.Domain_Admin_Username)) -Force -Verbose
                 New-Item $CompletionFile -ItemType File -Force | Out-Null
                 Write-Host ""
-                Write-Host "$Step has been compeleted" -ForegroundColor Green
+                Write-Host "$Step has been completed" -ForegroundColor Green
                 Restart-Computer
                 Pause
             }
@@ -1708,7 +1708,7 @@ function Remove-AutoLogon {
         Remove-ItemProperty -Path $WinLogonKey -Name DefaultPassword -Force -ErrorAction SilentlyContinue
     
         If (!($Force)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step`: " -NoNewline; Write-Host "Compeleted" -ForegroundColor Green
+        Write-Host "$Step`: " -NoNewline; Write-Host "completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Remove-AutoLogon
 
