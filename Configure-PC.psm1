@@ -55,25 +55,23 @@ class ImagingUSB {
     [string]$Install_Software_Standard_Software
 
     [boolean]Exists() {
-        $this.Drive_Letter = @()
-        # Get The Imaing USB Drive Letter
+        $this.Drive_Letter = @() # Reset to empty list
+        $this.WinPE_Drive_Letter = @() # Reset to empty list
+        
         foreach ($letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+            # Get The Imaing USB Drive Letter
             $TestPath = "$letter" + ":\PC_Setup"
             If (Test-Path $TestPath) {
                 $this.Drive_Letter += "$letter" + ":"
             }
-        }
-
-        $this.WinPE_Drive_Letter = @()
-        # Get The WinPE USB Drive Letter
-        foreach ($letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+            # Get The WinPE USB Drive Letter
             $TestPath = "$letter" + ":\sources\WinPE-Menu.ps1"
             If (Test-Path $TestPath) {
                 $this.WinPE_Drive_Letter += "$letter" + ":"
             }
         }
         
-        # Set $Exists and USB related paths if it does exist
+        # Set\Remove USB related paths and send return value
         If ($this.Drive_Letter.count -eq 0) {
             $this.RemovePaths()
             return $false

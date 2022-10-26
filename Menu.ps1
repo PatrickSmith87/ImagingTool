@@ -20,14 +20,24 @@ function Main_Menu {
         Write-Host ""
         Write-Host "-=[ Main Menu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
-        Write-Host "1. Enter " -NoNewline; Write-Host "PC Maintenance " -NoNewline -ForegroundColor Cyan; Write-Host "submenu"
-        Write-Host "2. Enter " -NoNewline; Write-Host "Image Maintenance " -NoNewline -ForegroundColor DarkCyan; Write-Host "submenu"
-        Write-Host "3. Enter " -NoNewline; Write-Host "Imaging Tool Maintenance " -NoNewline -ForegroundColor DarkGray; Write-Host "submenu"
-        Write-Host "4. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "Enter a number, 1 thru 4"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 4))
-    Switch ($input) {
+        Write-Host "`n    1. Enter " -NoNewline; Write-Host "PC Maintenance " -NoNewline -ForegroundColor Cyan; Write-Host "menu"
+        Write-Host "        -Enter this menu to access several scripts that you can use to;" -ForegroundColor DarkGray
+        Write-Host "              +Setup a PC               +Install Software" -ForegroundColor DarkGray
+        Write-Host "              +Update the OS            +Cleanup System Drive" -ForegroundColor DarkGray
+        Write-Host "              +Migrate User Profiles    +Etc.." -ForegroundColor DarkGray
+        Write-Host "        -This is the menu you will use 99% of the time" -ForegroundColor Green
+        Write-Host "`n    2. Enter " -NoNewline; Write-Host "Image Maintenance " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "        -Enter this menu to create a fresh .wim file of the latest Win10 OS version" -ForegroundColor DarkGray
+        Write-Host "        -This should only need to be done every 6-12 months" -ForegroundColor DarkYellow
+        Write-Host "`n    3. Enter " -NoNewline; Write-Host "Imaging Tool Maintenance " -NoNewline -ForegroundColor DarkGray; Write-Host "menu"
+        Write-Host "        -Enter this menu for Maintenance tasks related to this USB Tool" -ForegroundColor DarkGray
+        Write-Host "        -This menu is intended for developers. An average tech should" -ForegroundColor DarkYellow
+        Write-Host "         not need to use this under normal circumstances" -ForegroundColor DarkYellow
+        Write-Host "`n    4. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "`nEnter a number, 1 thru 4"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 4))
+    Switch ($choice) {
         1 {Clear-Host; PC-Maintenance_submenu}
         2 {Clear-Host; Image-Maintenance_submenu}
         3 {Clear-Host; ImagingTool-Maintenance_submenu}
@@ -42,47 +52,53 @@ function Main_Menu {
 ############################################################ PC Maintenance #############################################################
 #########################################################################################################################################
 function PC-Maintenance_submenu {
+    # Import Automate-Setup module
+    New-Item -Path "$FolderPath_Local_Modules\Automate-Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    If (Test-Path $FilePath_Local_AutomateSetup_Module) {Remove-Item $FilePath_Local_AutomateSetup_Module -Force}
+    Copy-Item -Path $FilePath_USB_AutomateSetup_Module -Destination $FilePath_Local_AutomateSetup_Module -Force
+    Import-Module Automate-Setup -WarningAction SilentlyContinue -Force | Out-Null
+    
     # Import Configure-PC module
-    New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Configure-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    New-Item -Path "$FolderPath_Local_Modules\Configure-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
     If (Test-Path $FilePath_Local_ConfigurePC_Module) {Remove-Item $FilePath_Local_ConfigurePC_Module -Force}
     Copy-Item -Path $FilePath_USB_ConfigurePC_Module -Destination $FilePath_Local_ConfigurePC_Module -Force
-    Import-Module Configure-PC -WarningAction SilentlyContinue -Force
+    Import-Module Configure-PC -WarningAction SilentlyContinue -Force | Out-Null
 
     # Import Install-Software module
-    New-Item -Path "C:\Program Files\WindowsPowerShell\Modules\Install-Software" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    New-Item -Path "$FolderPath_Local_Modules\Install-Software" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
     If (Test-Path $FilePath_Local_InstallSoftware_Module) {Remove-Item $FilePath_Local_InstallSoftware_Module -Force}
     Copy-Item -Path $FilePath_USB_InstallSoftware_Module -Destination $FilePath_Local_InstallSoftware_Module -Force
-    Import-Module Install-Software -WarningAction SilentlyContinue -Force
+    Import-Module Install-Software -WarningAction SilentlyContinue -Force | Out-Null
 
     DO {
         Write-Host ""
         Write-Host "-=[ PC Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
-        Write-Host "1. Enter " -NoNewline; Write-Host "Automated Setup " -NoNewline -ForegroundColor DarkCyan; Write-Host "submenu"
-        Write-Host "2. Enter " -NoNewline; Write-Host "TuneUp PC " -NoNewline -ForegroundColor DarkYellow; Write-Host "submenu" -NoNewline; Write-Host " **WARNING - This is not fully functional yet" -ForegroundColor Red
-        Write-Host "3. Enter " -NoNewline; Write-Host "Configure Automatic Sign-in " -NoNewline -ForegroundColor DarkCyan; Write-Host "submenu"
-        Write-Host "4. Enter " -NoNewline; Write-Host "Standardize PC " -NoNewline -ForegroundColor DarkCyan; Write-Host "submenu"
-        Write-Host "5. Enter " -NoNewline; Write-Host "Install Software " -NoNewline -ForegroundColor DarkCyan; Write-Host "submenu"
-        Write-Host "6. Enter " -NoNewline; Write-Host "Update PC " -NoNewline -ForegroundColor DarkCyan; Write-Host "submenu"
-        Write-Host "7. Enter " -NoNewline; Write-Host "Cleanup Hard Drive " -NoNewline -ForegroundColor DarkCyan; Write-Host "submenu"
-        Write-Host "8. Enter " -NoNewline; Write-Host "Migrate User Profile " -NoNewline -ForegroundColor DarkCyan; Write-Host "submenu"
-        Write-Host "9. Enter " -NoNewline; Write-Host "Backup Folder " -NoNewline -ForegroundColor DarkCyan; Write-Host "submenu"
+        Write-Host "1. Enter " -NoNewline; Write-Host "Automated Setup " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "2. Enter " -NoNewline; Write-Host "TuneUp PC " -NoNewline -ForegroundColor DarkYellow; Write-Host "menu" -NoNewline; Write-Host " **WARNING - This is not fully functional yet" -ForegroundColor Red
+        Write-Host "3. Enter " -NoNewline; Write-Host "Configure Automatic Sign-in " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "4. Enter " -NoNewline; Write-Host "Standardize PC " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "5. Enter " -NoNewline; Write-Host "Install Software " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "6. Enter " -NoNewline; Write-Host "Update PC " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "7. Enter " -NoNewline; Write-Host "Cleanup Hard Drive " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "8. Enter " -NoNewline; Write-Host "Migrate User Profile " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "9. Enter " -NoNewline; Write-Host "Backup Folder " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
         Write-Host "10. Pull " -NoNewline; Write-Host "Intune " -NoNewline -ForegroundColor DarkYellow; Write-Host "Hardware ID " -ForegroundColor DarkCyan
         Write-Host "11. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
         Write-Host "12. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "Enter a number, 1 thru 12"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 12))
-    Switch ($input) {
+        $choice = Read-Host -Prompt "Enter a number, 1 thru 12"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 12))
+    Switch ($choice) {
         1 {Clear-Host; Automated_Setup_submenu}
         2 {Clear-Host; TuneUp-PC_submenu}
         3 {Clear-Host; Configure_Automatic_Sign_In_submenu}
         4 {Clear-Host; Standardize_PC_submenu}
         5 {Clear-Host; Install_Software_submenu}
         6 {Clear-Host; Update_PC_submenu}
-        7 {Clear-Host; Cleanup_Hard_Drive_submenu}
+        7 {Clear-Host; Start-Process "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -ArgumentList "-NoExit -Windowstyle maximized -ExecutionPolicy Bypass -File $FilePath_USB_Cleanup_HD"}
         8 {Clear-Host; Migrate_User_Profile_submenu}
-        9 {Clear-Host; Backup_Folder_submenu}
+        9 {Clear-Host; Start-Process $FilePath_USB_Backup_Folder_BACKUP}
         10 {Clear-Host; Pull_IntuneHWID}
         11 {Clear-Host; Main_Menu}
         12 {EXIT}
@@ -91,13 +107,7 @@ function PC-Maintenance_submenu {
     PC-Maintenance_submenu
 }
 
-function Automated_Setup_submenu {
-    # Import Automate-Setup module
-    New-Item -Path "$FolderPath_Local_Modules\Automate-Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-    If (Test-Path $FilePath_Local_AutomateSetup_Module) {Remove-Item $FilePath_Local_AutomateSetup_Module -Force}
-    Copy-Item -Path $FilePath_USB_AutomateSetup_Module -Destination $FilePath_Local_AutomateSetup_Module -Force
-    Import-Module Automate-Setup -WarningAction SilentlyContinue -Force
-    
+function Automated_Setup_submenu {    
     DO {
         Write-Host ""
         Write-Host "-=[ Automated Setup submenu ]=-" -ForegroundColor DarkGray
@@ -110,10 +120,10 @@ function Automated_Setup_submenu {
         Write-Host "6. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "Client Config"
         Write-Host "7. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "8. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "Enter a number, 1 thru 8"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 8))
-    Switch ($input) {
+        $choice = Read-Host -Prompt "Enter a number, 1 thru 8"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 8))
+    Switch ($choice) {
         1 {
             Clear-Host
             Write-Host ""
@@ -155,10 +165,10 @@ function TuneUp-PC_submenu {
         Write-Host "3. " -NoNewline; Write-Host "STOP " -NoNewline -ForegroundColor Red; Write-Host "TuneUp program on current OS"
         Write-Host "4. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "5. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "Enter a number, 1 thru 5"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 5))
-    Switch ($input) {
+        $choice = Read-Host -Prompt "Enter a number, 1 thru 5"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 5))
+    Switch ($choice) {
         2 {Clear-Host; Inject-TuneUp_PC} ### NEED TO MAKE THIS
         2 {Clear-Host; Start-TuneUp_PC}
         3 {Clear-Host; Stop-TuneUp_AtLogon}
@@ -179,10 +189,10 @@ function Configure_Automatic_Sign_In_submenu {
         Write-Host "2. " -NoNewline; Write-Host "DISABLE " -NoNewline -ForegroundColor Red; Write-Host "Automatic Sign-on"
         Write-Host "3. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "4. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "Enter a number, 1 thru 4"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 4))
-    Switch ($input) {
+        $choice = Read-Host -Prompt "Enter a number, 1 thru 4"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 4))
+    Switch ($choice) {
         1 {Clear-Host; Enable-AutoLogon}
         2 {Clear-Host; Remove-AutoLogon}
         3 {Clear-Host; PC-Maintenance_submenu}
@@ -200,10 +210,10 @@ function Standardize_PC_submenu {
         Write-Host "1. " -NoNewline; Write-Host "STANDARDIZE " -NoNewline -ForegroundColor Cyan; Write-Host "PC Settings"
         Write-Host "2. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "3. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "Enter a number, 1 thru 3"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 3))
-    Switch ($input) {
+        $choice = Read-Host -Prompt "Enter a number, 1 thru 3"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 3))
+    Switch ($choice) {
         1 {Clear-Host; Set-PCDefaultSettings}
         2 {Clear-Host; PC-Maintenance_submenu}
         3 {EXIT}
@@ -232,10 +242,10 @@ function Install_Software_submenu {
         Write-Host "11. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "Software Config"
         Write-Host "12. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "13. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "        Enter a number, 1 thru 13"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 13))
-    Switch ($input) {
+        $choice = Read-Host -Prompt "        Enter a number, 1 thru 13"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 13))
+    Switch ($choice) {
         1 {Clear-Host; Install-Image_Softwares}
         2 {Clear-Host; Choose-Browser}
         3 {Clear-Host; Choose-PDF_Viewer}
@@ -262,10 +272,10 @@ function Update_PC_submenu {
         Write-Host "1. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "Windows Updates"
         Write-Host "2. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "3. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "        Enter a number, 1 thru 3"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 3))
-    Switch ($input) {
+        $choice = Read-Host -Prompt "        Enter a number, 1 thru 3"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 3))
+    Switch ($choice) {
         1 {Clear-Host; Install-Windows_Updates}
         2 {Clear-Host; PC-Maintenance_submenu}
         3 {EXIT}
@@ -274,40 +284,20 @@ function Update_PC_submenu {
     Update_PC_submenu
 } # End of Update_PC_submenu
 
-function Cleanup_Hard_Drive_submenu {
-    DO {
-        Write-Host ""
-        Write-Host "-=[ Cleanup Hard Drive submenu ]=-" -ForegroundColor DarkGray
-        Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
-        Write-Host "1. " -NoNewline; Write-Host "CLEANUP " -NoNewline -ForegroundColor Cyan; Write-Host "Hard Drive"
-        Write-Host "2. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "3. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "        Enter a number, 1 thru 3"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 3))
-    Switch ($input) {
-        1 {Clear-Host; Start-Process "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -ArgumentList "-NoExit -Windowstyle maximized -ExecutionPolicy Bypass -File $FilePath_USB_Cleanup_HD"}
-        2 {Clear-Host; PC-Maintenance_submenu}
-        3 {EXIT}
-    }
-    #Recursivly call the submenu
-    Cleanup_Hard_Drive_submenu
-} # End of Cleanup_Hard_Drive_submenu
-
 function Migrate_User_Profile_submenu {
     DO {
         Write-Host ""
         Write-Host "-=[ Migrate User Profile submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
-        Write-Host "1. " -NoNewline; Write-Host "BACKUP " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Transwiz" -ForegroundColor DarkCyan
-        Write-Host "2. " -NoNewline; Write-Host "RESTORE " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Transwiz" -ForegroundColor DarkCyan
+        Write-Host "1. " -NoNewline; Write-Host "BACKUP " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Transwiz" -ForegroundColor DarkCyan -NoNewline; Write-Host "  -Not developed yet" -ForegroundColor DarkRed
+        Write-Host "2. " -NoNewline; Write-Host "RESTORE " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Transwiz" -ForegroundColor DarkCyan -NoNewline; Write-Host "  -Not developed yet" -ForegroundColor DarkRed
         Write-Host "3. " -NoNewline; Write-Host "SYNC " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Sync-UserProfileData script" -ForegroundColor Green
         Write-Host "4. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "5. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "Enter a number, 1 thru 5"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 5))
-    Switch ($input) {
+        $choice = Read-Host -Prompt "Enter a number, 1 thru 5"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 5))
+    Switch ($choice) {
         1 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_BACKUP}
         2 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_RESTORE}
         3 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_SYNC}
@@ -331,13 +321,13 @@ function Image-Maintenance_submenu {
         Write-Host "3. " -NoNewline; Write-Host "CREATE" -NoNewline -ForegroundColor Cyan; Write-Host " **MODDED** .WIM (Injects Automated Setup into basic .WIM)"
         Write-Host "4. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
         Write-Host "5. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "    Enter a number, 1 thru 5"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 5))
-    Switch ($input) {
+        $choice = Read-Host -Prompt "    Enter a number, 1 thru 5"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 5))
+    Switch ($choice) {
         1 {Clear-Host; & $FilePath_ImageMaintenance_DOWNLOAD_Latest_ESD_File}
         2 {Clear-Host; & $FilePath_ImageMaintenance_EXTRACT_WIM_from_ESD}
-        3 {Clear-Host; Start-Process $FilePath_ImageMaintenance_CREATE_Modded_WIM}
+        3 {Clear-Host; & $FilePath_ImageMaintenance_CREATE_Modded_WIM}
         4 {Clear-Host; Main_Menu}
         5 {EXIT}
     }
@@ -370,10 +360,10 @@ function ImagingTool-Maintenance_submenu {
         Write-Host "9. " -NoNewline; Write-Host "UPDATE " -NoNewline -ForegroundColor DarkYellow; Write-Host "GitHub Repository"
         Write-Host "10. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
         Write-Host "11. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $input = Read-Host -Prompt "Enter a number, 1 thru 11"
-        $input = $input -as [int]
-    } UNTIL (($input -ge 1) -and ($input -le 11))
-    Switch ($input) {
+        $choice = Read-Host -Prompt "Enter a number, 1 thru 11"
+        $choice = $choice -as [int]
+    } UNTIL (($choice -ge 1) -and ($choice -le 11))
+    Switch ($choice) {
         1 {Clear-Host; & $FilePath_ToolMaintenance_BACKUP_Minus_Images}
         2 {Clear-Host; & $FilePath_ToolMaintenance_BACKUP}
         3 {Clear-Host; & $FilePath_ToolMaintenance_CREATE_AutoDeploy_Package}
@@ -565,7 +555,7 @@ if ($psversiontable.PSversion.build -ne 17763) {
     [console]::BufferWidth=[console]::WindowWidth
     [console]::WindowHeight=40
 }
-Clear
+Clear-Host
 
 # Prompt to restart as administrator if not currently
 $CurrentSessionAdmin=([bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544"))
@@ -590,8 +580,7 @@ if (!$CurrentSessionAdmin) {
     }
 } else {
     #congratulate the user
-    Write-Host ""
-    write-host "Administrative permissions confirmed." -ForegroundColor Cyan
+    write-host "`nAdministrative permissions confirmed." -ForegroundColor Cyan
 }
 
 # Get USB Drive

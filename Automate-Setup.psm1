@@ -46,7 +46,7 @@ class Update {
         [string]$Name = "ImagingTool"
         [string]$Author = "PatrickSmith87"
         [string]$Branch = "master"
-        [string]$Location = "c:\temp"
+        [string]$Location = "C:\temp"
         $this.Scripts($Name,$Author,$Branch,$Location)
     }
 
@@ -84,7 +84,7 @@ class Update {
     }
 
     [void]hidden DownloadGitHubRepository([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
-        # Force to create a zip file 
+        # Force to create a zip file
         $ZipFile = "$Location\$Name.zip"
         New-Item $ZipFile -ItemType File -Force
 
@@ -140,16 +140,17 @@ class Update {
     }
 
     [void]hidden Restore([string]$SourceFile,[string]$DestinationFile,[string]$CopyORMove) {
-    # Verify source file exists
-    # Remove Destination File if exists
-    # Move or Copy file
+    <# This function does three things
+            1. Verify source file exists
+            2. Remove Destination File if exists
+            3. Move or Copy file #>
         If (($CopyORMove -eq "Copy") -or ($CopyORMove -eq "Move")) {
-            If (Test-Path $SourceFile) {
-                If (Test-Path $DestinationFile) {Remove-Item $DestinationFile -Force}
+            If (Test-Path $SourceFile) { #1. Verify source file exists
+                If (Test-Path $DestinationFile) {Remove-Item $DestinationFile -Force} #2. Remove Destination File if exists
                 $PathPieces = $DestinationFile.Split('\')
                 $FolderPath = $PathPieces[0]
                 $x=1
-                foreach ($Piece in $PathPieces) {
+                foreach ($Piece in $PathPieces) {  # Breaking down the destination file path and then rebuilding it without the filename so that we get a path to it's parent folder
                     If ($x -lt ($PathPieces.Count - 1)) {
                         $FolderPath = $FolderPath + "\" + $PathPieces[$x]
                         $x++
