@@ -5,6 +5,7 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
+using module Configure-PC
 
 # Variables may be defined from parent script. If not, they will be defined from here.
 # Child scripts should be able to see variables from the parent script...
@@ -310,27 +311,9 @@ function Choose-FileShareApp {
             2 {
                 $SoftwareName = "Dropbox"
                 $CompletionFile = "$StepStatus-2.txt"
-                $Working_Directory = $FolderPath_Local_Standard_Software
-
-                Write-Host "`nInstalling $SoftwareName"
-                # Make a copy and define that as the $Installer_Path
-                If (!(Test-Path "$Working_Directory\copy")) {New-Item -Path "$Working_Directory\copy" -ItemType Directory -Force | Out-Null}
-                Copy-Item -Path "$Working_Directory\DropboxInstaller.exe" -Destination "$Working_Directory\copy\DropboxInstaller.exe"
-                $Installer_Path = (Get-ChildItem -Path "$Working_Directory\copy\DropboxInstaller.exe").FullName
-
-                # Run Installer
-                Start-Process "$Installer_Path" -Wait -ArgumentList '/S'
                 
-                # Verify Installation > Report Status
-                Write-Host "Verifying if the software is now installed..."
-                If (Test-Path "C:\Program Files (x86)\Dropbox\Client\Dropbox.exe") {
-                    Write-Host "Installed - $Software" -ForegroundColor Green
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
-                } else {
-                    Write-Host "$Software is not installed" -ForegroundColor Red
-                    Write-Host "Reboot or just relog to re-attempt install"
-                    [int]$Global:InstallationErrorCount++
-                }
+                # Install
+                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
             }
         }
     }
