@@ -235,16 +235,17 @@ function Install_Software_submenu {
         Write-Host " 4. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "o365"
         Write-Host " 5. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "VPN"
         Write-Host " 6. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "Collaboration Software"
-        Write-Host " 7. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "HP or Dell Support Assistant"
-        Write-Host " 8. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "Post-Image\Client-Specific Software"
-        Write-Host " 9. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "Profile-Specific Software"
-        Write-Host "10. " -NoNewline; Write-Host "READ " -NoNewline -ForegroundColor Cyan; Write-Host "Software Config"
-        Write-Host "11. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "Software Config"
-        Write-Host "12. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "13. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "        Enter a number, 1 thru 13"
+        Write-Host " 7. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "File Share Software"
+        Write-Host " 8. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "HP or Dell Support Assistant"
+        Write-Host " 9. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "Post-Image\Client-Specific Software"
+        Write-Host "10. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "Profile-Specific Software"
+        Write-Host "11. " -NoNewline; Write-Host "READ " -NoNewline -ForegroundColor Cyan; Write-Host "Software Config"
+        Write-Host "12. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "Software Config"
+        Write-Host "13. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
+        Write-Host "14. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "        Enter a number, 1 thru 14"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 13))
+    } UNTIL (($choice -ge 1) -and ($choice -le 14))
     Switch ($choice) {
         1 {Clear-Host; Install-Image_Softwares}
         2 {Clear-Host; Choose-Browser}
@@ -252,13 +253,14 @@ function Install_Software_submenu {
         4 {Clear-Host; Choose-o365}
         5 {Clear-Host; Choose-VPN}
         6 {Clear-Host; Choose-Collaboration_Software}
-        7 {Clear-Host; Install-SupportAssistant}
-        8 {Clear-Host; Write-Host "This doesn't do anything yet"}
+        7 {Clear-Host; Choose-FileShareApp}
+        8 {Clear-Host; Install-SupportAssistant}
         9 {Clear-Host; Write-Host "This doesn't do anything yet"}
-        10 {Clear-Host; Read-SoftwareConfig}
-        11 {Clear-Host; Create-SoftwareConfig}
-        12 {Clear-Host; PC-Maintenance_submenu}
-        13 {EXIT}
+        10 {Clear-Host; Write-Host "This doesn't do anything yet"}
+        11 {Clear-Host; Read-SoftwareConfig}
+        12 {Clear-Host; Create-SoftwareConfig}
+        13 {Clear-Host; PC-Maintenance_submenu}
+        14 {EXIT}
     }
     #Recursivly call the submenu
     Install_Software_submenu

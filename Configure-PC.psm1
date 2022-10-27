@@ -548,7 +548,7 @@ function Toggle-UAC {
                 Write-Host "What UAC level should be set?"
                 Write-Host "1. Turn UAC UP all the way"
                 Write-Host "2. Turn UAC DOWN all the way"
-                Write-Host "3. Leave as default"
+                Write-Host "3. Leave as default" -NoNewline; Write-Host " <--- Choose this option if the PC Setup Guide does not specify otherwise" -ForegroundColor Cyan
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 3"
             } UNTIL (($choice -ge 1) -and ($choice -le 3))
             # Act on choice
