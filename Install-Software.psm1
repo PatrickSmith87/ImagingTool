@@ -271,28 +271,28 @@ function Choose-FileShareApp {
         } else {
         # Otherwise ask tech to choose action to take
             DO {
-                Write-Host ""
-                Write-Host "-=[ File Share App Choice ]=-" -ForegroundColor Yellow
+                Write-Host "`n-=[ $Step Choice ]=-" -ForegroundColor Yellow
                 Write-Host "Which File Share App(s) do you want to install?"
+                Write-Host "0. Skip"
                 Write-Host "1. Citrix Files for Windows"
-                #Write-Host "2. Citrix Files for Outlook"
-                #Write-Host "3. BOTH"
-                #Write-Host "4. NEITHER"
-                Write-Host "2. Skip"
-                [int]$choice = Read-Host -Prompt "Enter a number, 1 through 2"
-            } UNTIL (($choice -ge 1) -and ($choice -le 2))
+                Write-Host "2. Dropbox"
+                [int]$choice = Read-Host -Prompt "Enter a number, 0 through 2"
+            } UNTIL (($choice -ge 0) -and ($choice -le 2))
             # Update Client Config File with choice
             Add-ClientSetting -Name FileShareApp -Value $choice
             Save-ClientSettings
         }
         # Act on choice
         switch ($choice) {
+            0 {
+                New-Item "$StepStatus-0.txt" -ItemType File -Force | Out-Null
+                Write-Host "$Step has been skipped"
+            }
             1 {
                 $SoftwareName = "Citrix Files for Windows (ShareFile)"
                 $CompletionFile = "$StepStatus-1.txt"
 
-                Write-Host ""
-                Write-Host "Installing $SoftwareName"
+                Write-Host "`nInstalling $SoftwareName"
                 $InstallerPath = Get-ChildItem -Path "$FolderPath_Local_Standard_Software\CitrixFilesForWindows-*.exe"
                 $InstallerPath = $InstallerPath[-1]
                 $InstallerPath = $InstallerPath.FullName
@@ -300,7 +300,7 @@ function Choose-FileShareApp {
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path "C:\Program Files\Citrix\Citrix Files\CitrixFiles.exe") {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    New-Item "$StepStatus-1.txt" -ItemType File -Force | Out-Null
+                    New-Item $CompletionFile -ItemType File -Force | Out-Null
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -308,9 +308,29 @@ function Choose-FileShareApp {
                 }
             }
             2 {
-                Write-Host "Citrix Files for Windows (ShareFile) has been skipped"
-                #New-Item "$StepStatus-4.txt" -ItemType File -Force | Out-Null
-                New-Item "$StepStatus-2.txt" -ItemType File -Force | Out-Null
+                $SoftwareName = "Dropbox"
+                $CompletionFile = "$StepStatus-2.txt"
+                $Working_Directory = $FolderPath_Local_Standard_Software
+
+                Write-Host "`nInstalling $SoftwareName"
+                # Make a copy and define that as the $Installer_Path
+                If (!(Test-Path "$Working_Directory\copy")) {New-Item -Path "$Working_Directory\copy" -ItemType Directory -Force | Out-Null}
+                Copy-Item -Path "$Working_Directory\DropboxInstaller.exe" -Destination "$Working_Directory\copy\DropboxInstaller.exe"
+                $Installer_Path = (Get-ChildItem -Path "$Working_Directory\copy\DropboxInstaller.exe").FullName
+
+                # Run Installer
+                Start-Process "$Installer_Path" -Wait -ArgumentList '/S'
+                
+                # Verify Installation > Report Status
+                Write-Host "Verifying if the software is now installed..."
+                If (Test-Path "C:\Program Files (x86)\Dropbox\Client\Dropbox.exe") {
+                    Write-Host "Installed - $Software" -ForegroundColor Green
+                    New-Item $CompletionFile -ItemType File -Force | Out-Null
+                } else {
+                    Write-Host "$Software is not installed" -ForegroundColor Red
+                    Write-Host "Reboot or just relog to re-attempt install"
+                    [int]$Global:InstallationErrorCount++
+                }
             }
         }
     }
