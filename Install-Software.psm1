@@ -141,7 +141,7 @@ function Get-SoftwareSettings {
     If (Test-Path $Local_Software_Config_File) {
         $Global:Software_Settings = (Get-Content -Path $Local_Software_Config_File | ConvertFrom-Json)
     # Then, check for a Software Config file under $FolderPath_USB_Install_Software_Software_Configs
-    } elseif ($USB_Software_Config_File) {$Global:Software_Settings = (Get-Content -Path $USB_Software_Config_File | ConvertFrom-Json)}
+    } elseif (Test-Path $USB_Software_Config_File) {$Global:Software_Settings = (Get-Content -Path $USB_Software_Config_File | ConvertFrom-Json)}
 
     If ($Global:Software_Settings) {
         #Write-Host "$SoftwareName software config has been loaded"
@@ -823,7 +823,6 @@ function Install-Software {
         $FolderPath_USB_Install_Software_ODT               = $USB.Install_Software_ODT
         $FolderPath_USB_Install_Software_Profile_Software  = $USB.Install_Software_Profile_Software
         $FolderPath_USB_Install_Software_Standard_Software = $USB.Install_Software_Standard_Software
-        $Installer_USB_Path   = "$USB_Working_Dir\$Installer_Name"
     }
 
     if ($Installer_Source -eq "Standard_Software") {
@@ -839,6 +838,7 @@ function Install-Software {
         $Installer_Local_Path = "$Local_Working_Dir\$Installer_Name"
         if ($USB.Exists()) {$USB_Working_Dir = $FolderPath_USB_Install_Software_Profile_Software}
     }
+    if ($USB.Exists()) {$Installer_USB_Path   = "$USB_Working_Dir\$Installer_Name"}
     Search
 
     # First see if the software is already installed before running the installer
