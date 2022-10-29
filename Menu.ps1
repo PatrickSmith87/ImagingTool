@@ -75,6 +75,7 @@ function PC-Maintenance_submenu {
     Copy-Item -Path $FilePath_USB_TuneUpPC_Module -Destination $FilePath_Local_TuneUpPC_Module -Force
     Import-Module TuneUp-PC -WarningAction SilentlyContinue -Force
     
+    Clear-Host
 
     DO {
         Write-Host "`n-=[ PC Maintenance ]=-" -ForegroundColor DarkGray

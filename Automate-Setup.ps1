@@ -157,28 +157,31 @@ If ($ClientSettings.SetupType -eq "BuildImage") {
 # -=[ User Profile Setup ]=-
 Write-Host "-=[ User Profile Setup ]=-" -ForegroundColor DarkGray
 
-Login-User
-    check for complete file
-        If not already noted, should take note of the currently logged on user. 
-        When script runs again (After loging in as new user [ideally], or if just signs into same account), it will compare usernames again and if it is different, continues to next step
-            log completion
-
-Migrate-User_Profile_Data
-    check for complete file
+OLD PC Checklist:
+    1. STOP, sign into OneDrive, Enable Backup, Verify sync has started, Monitor progress (OneDrive Sync tends to get stuck if a large number of files are syncing and\or Files are being moved around at the same time).
+    2. Sign into browsers? or not needed?
+    3. Take screenshot of taskbar icons, printers, mapped drives, desktop icons, quick access in file explorer > save to desktop
+New PC Profile Setup:
+    Login-User
+        Check for complete file
+            If not already noted, should take note of the currently logged on user. 
+            When script runs again (After loging in as new user [ideally], or if just signs into same account), it will compare usernames again and if it is different, continues to next step
+                log completion
+    enable RDP and add user\group to allowed list?
+    make user a local admin...
+    Configure redirected profiles?
+    STOP, sign into Word (launch word) and sign in to license Office
+    STOP, sign into OneDrive, Enable Backup, Verify sync has started, Monitor progress (OneDrive Sync tends to get stuck if a large number of files are syncing and\or Files are being moved around at the same time).
+    STOP, sign into Outlook (or should we transfer the profile data first?)
+    Migrate-User_Profile_Data
+        check for complete file
         Should run the migrate user script
-            log completion
-
-Configure-Profile
-    This will likely call several other functions to:
-        enable RDP and add user\group to allowed list?
-        make user a local admin...
-        Configure redirected profiles?
-
-Install-Profile_Specific_Software
-    This will likely call several other functions to:
-        Install-DropBox
-        Install-OneNote (Is this actually profile specific? If not, needs added to script during PC Imaging)
-
+        log completion
+    Install-Profile_Specific_Software
+        Install profile specific softwares located under 
+        This will likely call several other functions to:
+            Install-DropBox
+            Install-OneNote (Is this actually profile specific? If not, needs added to script during PC Imaging)
 #>
 
 #############################
@@ -189,16 +192,13 @@ Cleanup-AutomatedSetup
 ####################################
 ##     -=[ Exiting Script ]=-     ##
 ####################################
-Write-Host ""
-Write-Host "End of Script" -ForegroundColor Red
+Write-Host "`nEnd of Script" -ForegroundColor Red
 Write-Host "Close this window at will" -ForegroundColor Yellow
 PAUSE
 EXIT
 
 <#
-
 These need to be added to the script
     Install-Skype (Not Skype for Business)
     Install-VLC Media Player
-    Install-Citrix ShareFile
 #>

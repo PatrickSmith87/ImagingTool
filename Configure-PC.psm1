@@ -5,6 +5,9 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
+Import-Module Install-Software -WarningAction SilentlyContinue -Force
+Import-Module TuneUp-PC -WarningAction SilentlyContinue -Force
+Clear-Host
 
 # Variables may be defined from parent script. If not, they will be defined from here.
 # Child scripts should be able to see variables from the parent script...
@@ -282,7 +285,7 @@ function Set-Clock {
 
         # Finished Message
         Write-Host "Timezone has been set to $Target_TimeZone & the clock has been reset" -ForeGroundColor Green
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
     }
 } Export-ModuleMember -Function Set-Clock
 
@@ -419,7 +422,7 @@ function Set-PowerSettings {
             Add-ClientSetting -Name "pwr_ACCLA" -Value $AC_Close_Lid_Action
             Add-ClientSetting -Name "pwr_DCCLA" -Value $DC_Close_Lid_Action
         }
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Set-PowerSettings
@@ -446,7 +449,7 @@ function Toggle-Hibernate {
         Add-ClientSetting -Name "Hibernate" -Value $Setting
     }
 
-    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
 } Export-ModuleMember -Function Toggle-Hibernate
 
 function Enable-Hibernate {
@@ -492,7 +495,7 @@ function Toggle-Hiberboot {
         Add-ClientSetting -Name "Hiberboot" -Value $Setting
     }
 
-    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
 } Export-ModuleMember -Function Toggle-Hiberboot
 
 function Enable-Hiberboot {
@@ -551,16 +554,16 @@ function Toggle-UAC {
                     # Update Client Config File with choice
                     if ($global:Automated_Setup) {
                         Add-ClientSetting -Name UAC -Value "Up"
-                        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                     }
+                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                     TurnUp-UAC
                 }
                 2 {
                     # Update Client Config File with choice
                     if ($global:Automated_Setup) {
                         Add-ClientSetting -Name UAC -Value "Down"
-                        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                     }
+                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                     TurnDown-UAC
                 }
                 3 {
@@ -568,8 +571,8 @@ function Toggle-UAC {
                     # Update Client Config File with choice
                     if ($global:Automated_Setup) {
                         Add-ClientSetting -Name UAC -Value "Skip"
-                        if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                     }
+                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 }
             }
         }
@@ -607,7 +610,7 @@ function Enable-FileSharing {
         cmd.exe /c 'REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f' | Out-Null
         cmd.exe /c 'netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes' | Out-Null
         cmd.exe /c 'netsh advfirewall firewall set rule group="Network Discovery" new enable=Yes' | Out-Null
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host " Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Enable-FileSharing
@@ -791,7 +794,7 @@ function Enable-AutoLogon {
         Set-ItemProperty -Path $WinLogonKey -Name AutoAdminLogon -Value "1"
         Set-ItemProperty -Path $WinLogonKey -Name ForceAutoLogon -Value "1"
         
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
         Ask-Logoff -Force
     }   
@@ -854,7 +857,7 @@ function Remove-UserAccount {
             Remove-LocalUser -Name User
             Start-Sleep 3
             Remove-Item -Path "C:\Users\User" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
             Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
         } else {
             Write-Host ""
@@ -999,7 +1002,7 @@ function Rename-PC {
                 Rename-Computer -NewName $NewName -Force -ErrorAction Continue
             }
         }
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "`n$Step has been completed" -ForegroundColor Green
         Write-Host "Rebooting in 3..."
         Start-Sleep 1
@@ -1120,7 +1123,7 @@ function Get-DomainJoinInfo {
                     }
                 }
                 # Mark this section as completed
-                if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step has been completed" -ForegroundColor Green
             } # End of Switch(1)
             2 {
@@ -1162,7 +1165,7 @@ function Get-DomainJoinInfo {
                     }
                     Write-Host "$Step has been completed" -ForegroundColor Green
                 }
-                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host ""
             } # End of Switch(2)
         } # End of Switch($choice)
@@ -1193,7 +1196,7 @@ function Sign-Into_VPN {
             }
             $choice = Read-Host -Prompt "Type in 'continue' move on to the next step"
         } UNTIL ($choice -eq "continue")
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Sign-Into_VPN
@@ -1214,7 +1217,7 @@ function Set-DefaultApps {
         Pause
         cmd.exe /c "dism /online /export-defaultappassociations:C:\Setup\appassoc.xml" | Out-Null
         cmd.exe /c "dism /online /import-defaultappassociations:C:\Setup\appassoc.xml" | Out-Null
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "Default apps have been set" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function Set-DefaultApps
@@ -1238,7 +1241,7 @@ function CheckPoint-Client_WiFi {
         Write-Host "  Start > Settings > Network & Internet > Wi-Fi > Manage known networks > Add a new network"
         PAUSE
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
-        if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
     }
 } Export-ModuleMember -Function CheckPoint-Client_WiFi
 
@@ -1262,7 +1265,7 @@ function CheckPoint-Public_Desktop {
         Write-Host "(Such as RDP links, Browser links, VPN Connection Guides, etc...)"
         PAUSE
         If (($items = Get-ChildItem $FolderPath_Local_Client_Public_Desktop).count -gt 0) {Copy-Item -Path (Get-ChildItem $FolderPath_Local_Client_Public_Desktop).FullName -Destination "$FolderPath_Local_PublicDesktop" -Recurse}
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Public_Desktop
@@ -1361,13 +1364,13 @@ function CheckPoint-CreateScansFolder {
                 Write-Host "shortcut to scans folder created and placed on public desktop" -ForegroundColor Green
 
                 # Mark this section as completed
-                if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
             } # End of Switch(1)
             2 {
                 Write-Host "$Step has been skipped" -ForegroundColor Green
                 
-                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host ""
             } # End of Switch(2)
         } # End of Switch($choice)
@@ -1387,7 +1390,7 @@ function CheckPoint-Client_AV {
     } else {
         Write-Host "`nIf needed, Install AV agent"
         PAUSE
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Client_AV
@@ -1406,7 +1409,7 @@ function CheckPoint-Bitlocker_Device {
         Write-Host ""
         Write-Host "If needed, Bitlocker Device"
         PAUSE
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Bitlocker_Device
@@ -1428,7 +1431,7 @@ function Transfer-RMM_Agent {
         # See if installer is already present
         If (Test-Path "$FolderPath_Local_Setup\*Agent_Install*.exe") {
             Write-Host "`nAutomate Agent Installer " -NoNewline; Write-Host "found in $FolderPath_Local_Setup" -ForegroundColor Green
-            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
         # Ask tech to move it there
             DO {
@@ -1448,11 +1451,11 @@ function Transfer-RMM_Agent {
                         PAUSE
                     } UNTIL (Test-Path "$FolderPath_Local_Setup\*Agent_Install*.exe")
                     Write-Host "The Automate Agent Installer under $FolderPath_Local_Setup has been detected" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 }
                 2 {
                     Write-Host "Placing the Automate Agent Installer under $FolderPath_Local_Setup has been skipped" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 }
             }
         }
@@ -1476,7 +1479,7 @@ function Transfer-Sophos_Agent {
         # See if installer is already present
         If (Test-Path "$FolderPath_Local_Setup\*SophosSetup*.exe") {
             Write-Host "`nSophos Agent Installer " -NoNewline; Write-Host "found in $FolderPath_Local_Setup" -ForegroundColor Green
-            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
         # Ask tech to move it there
             DO {
@@ -1495,11 +1498,11 @@ function Transfer-Sophos_Agent {
                         PAUSE
                     } UNTIL (Test-Path "$FolderPath_Local_Setup\*SophosSetup*.exe")
                     Write-Host "The Sophos Agent Installer under $FolderPath_Local_Setup has been detected" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 }
                 2 {
                     Write-Host "Placing the Sophos Agent Installer under $FolderPath_Local_Setup has been skipped" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 }
             }
         }
@@ -1551,7 +1554,7 @@ function Install-Windows_Updates {
                 If ($global:ClientSettings -and !($global:ClientSettings.WindowsUpdates) -and $global:Automated_Setup) {
                     Add-ClientSetting -Name WindowsUpdates -Value $choice
                 }
-                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step`: " -NoNewline; Write-Host "Skipped"
             }
         }
@@ -1568,7 +1571,7 @@ function Install-Windows_Updates {
                 Pause
             } else {
                 Remove-Item $InProgressFile | Out-Null
-                if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
             }
         }
@@ -1599,9 +1602,9 @@ function CheckPoint-Disk_Cleanup {
         } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
         If ($choice -eq 1) {
             Run-Disk_Cleanup
-            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
-            if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Yellow
         }
     }
@@ -1632,7 +1635,7 @@ function Join-Domain {
         Write-Host ""
         Write-Host "-=[ $Step ]=-" -ForegroundColor Yellow
         If ($Global:ClientSettings.DomainJoin -eq "2") {
-            if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             Write-Host "$Step has been skipped"
         } ElseIf ($Global:ClientSettings.DomainJoin -eq "1") {
             Write-Host "Make sure the VPN is connected if remote..." -ForegroundColor Red
@@ -1641,7 +1644,7 @@ function Join-Domain {
             
             Try {
                 Add-Computer -DomainName $Global:ClientSettings.DNS_Domain_Name -Credential (($Global:ClientSettings.NETBIOS)+"\"+($Global:ClientSettings.Domain_Admin_Username)) -Force -Verbose
-                if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host ""
                 Write-Host "$Step has been completed" -ForegroundColor Green
                 Restart-Computer
@@ -1660,7 +1663,7 @@ function Join-Domain {
                 If ($choice -eq 1) {
                     Join-Domain
                 } else {
-                    if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                     Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green
                 }
             }
@@ -1692,7 +1695,7 @@ function Remove-AutoLogon {
         Remove-ItemProperty -Path $WinLogonKey -Name DefaultUserName -Force -ErrorAction SilentlyContinue
         Remove-ItemProperty -Path $WinLogonKey -Name DefaultPassword -Force -ErrorAction SilentlyContinue
     
-        If (!($Force) -and $global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        If (!($Force) -and ($global:Automated_Setup -or $global:TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Remove-AutoLogon
@@ -1730,7 +1733,7 @@ function Activate-Windows {
         }
         PAUSE
 
-        If (!($Force) -and $global:AutomatedSetup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        If (!($Force) -and ($global:AutomatedSetup -or $global:TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Activate-Windows

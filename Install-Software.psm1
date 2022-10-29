@@ -6,6 +6,7 @@
 ##############################################################################
 ##############################################################################
 using module Configure-PC
+Clear-Host
 
 # Variables may be defined from parent script. If not, they will be defined from here.
 # Child scripts should be able to see variables from the parent script...
