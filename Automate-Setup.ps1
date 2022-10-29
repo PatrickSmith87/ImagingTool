@@ -19,7 +19,8 @@ Clear-Host
   $FilePath_Local_AutomateSetup_Script = "C:\Setup\_Automated_Setup\Automate-Setup.ps1"
   $ComputerName = Hostname
   $ClientSettings = $null
-
+  $Automated_Setup = $true
+  
 ################################################
 ##  CUSTOMIZABLE Variables - Edit as desired  ##
 ################################################
@@ -73,7 +74,7 @@ function Build-Image {
 ##     -=[ POST-Image Tasks ]=-     ##
 ######################################
     Write-Host "`n-=[ POST-Image Tasks ]=-" -ForegroundColor DarkGray
-    Set-ClockTimeZone
+    Set-ClockTimeZone -AutomatedSetup
     Reset-Clock
     Rename-PC -PostImage
     Install-RMM_Agent

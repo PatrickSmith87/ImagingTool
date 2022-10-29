@@ -241,7 +241,7 @@ function Install-Image_Softwares {
                     }
                 }
             } else {
-                New-Item $CompletionFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "`n$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
             }
         } Until ($Global:InstallationErrorCount -eq 0)
@@ -258,7 +258,7 @@ function Choose-FileShareApp {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt") {
+    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Citrix Files for Windows has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         #If (Test-Path "$StepStatus-2.txt") {Write-Host "Citrix Files for Outlook has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         #If (Test-Path "$StepStatus-3.txt") {Write-Host "Both Citrix Files for Windows " -NoNewline; Write-Host "and " -NoNewline -ForegroundColor Cyan; Write-Host "Citrix Files for Outlook have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -279,14 +279,15 @@ function Choose-FileShareApp {
                 Write-Host "2. Dropbox"
                 [int]$choice = Read-Host -Prompt "Enter a number, 0 through 2"
             } UNTIL (($choice -ge 0) -and ($choice -le 2))
-            # Update Client Config File with choice
-            Add-ClientSetting -Name FileShareApp -Value $choice
-            Save-ClientSettings
+            if ($global:Automated_Setup) {
+                # Update Client Config File with choice
+                Add-ClientSetting -Name FileShareApp -Value $choice
+            }
         }
         # Act on choice
         switch ($choice) {
             0 {
-                New-Item "$StepStatus-0.txt" -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item "$StepStatus-0.txt" -ItemType File -Force | Out-Null}
                 Write-Host "$Step has been skipped"
             }
             1 {
@@ -301,7 +302,7 @@ function Choose-FileShareApp {
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path "C:\Program Files\Citrix\Citrix Files\CitrixFiles.exe") {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -329,7 +330,7 @@ function Choose-Browser {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt") {
+    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Chrome has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "Firefox has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "Both Chrome " -NoNewline; Write-Host "and " -NoNewline -ForegroundColor Cyan; Write-Host "Firefox have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -352,39 +353,34 @@ function Choose-Browser {
                 Write-Host "4. NEITHER"
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 4"
             } UNTIL (($choice -ge 1) -and ($choice -le 4))
-            # Update Client Config File with choice
-            Add-ClientSetting -Name Browser -Value $choice
-            Save-ClientSettings
+            if ($global:Automated_Setup) {
+                # Update Client Config File with choice
+                Add-ClientSetting -Name Browser -Value $choice
+            }
         }
         # Act on choice
         switch ($choice) {
             1 {
                 $SoftwareName = "Chrome"
                 $CompletionFile = "$StepStatus-1.txt"
-
-                # Install
                 Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
             }
             2 {
                 $SoftwareName = "Firefox"
                 $CompletionFile = "$StepStatus-2.txt"
-
-                # Install
                 Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
             }
             3 {
                 $SoftwareName = "Chrome"
-                # Install
                 Install-Software -SoftwareName $SoftwareName -CompletionFile $null
 
                 $SoftwareName = "Firefox"
                 $CompletionFile = "$StepStatus-3.txt"
-                # Install
                 Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
             }
             4 {
                 Write-Host "Chrome and Firefox browser installs have been skipped"
-                New-Item "$StepStatus-4.txt" -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item "$StepStatus-4.txt" -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -399,7 +395,7 @@ function Choose-PDF_Viewer {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt") {
+    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Adobe Acrobat Reader DC has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "Adobe Acrobat Pro DC - Trial Installer has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "Adobe Acrobat Reader DC " -NoNewline; Write-Host "-AND- " -NoNewline -ForegroundColor Cyan; Write-Host "Adobe Acrobat Pro DC - Trial Installer have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -426,9 +422,10 @@ function Choose-PDF_Viewer {
                 Write-Host "6. NONE"
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 6"
             } UNTIL (($choice -ge 1) -and ($choice -le 6))
-            # Update Client Config File with choice
-            Add-ClientSetting -Name PDF_Viewer -Value $choice
-            Save-ClientSettings
+            if ($global:Automated_Setup) {
+                # Update Client Config File with choice
+                Add-ClientSetting -Name PDF_Viewer -Value $choice
+            }
         }
         # Act on choice
         switch ($choice) {
@@ -465,7 +462,7 @@ function Choose-PDF_Viewer {
             }
             6 {
                 Write-Host "All PDF Editor\Viewer installs have been skipped"
-                New-Item "$StepStatus-6.txt" -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item "$StepStatus-6.txt" -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -480,7 +477,7 @@ function Choose-o365 {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt") {
+    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "o365 Enterprise (64-bit) has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "o365 Business (64-bit) has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "o365 Enterprise (32-bit) has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -507,9 +504,10 @@ function Choose-o365 {
                 Write-Host "5. NONE"
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 5"
             } UNTIL (($choice -ge 1) -and ($choice -le 5))
-            # Update Client Config File with choice
-            Add-ClientSetting -Name o365 -Value $choice
-            Save-ClientSettings
+            if ($global:Automated_Setup) {
+                # Update Client Config File with choice
+                Add-ClientSetting -Name o365 -Value $choice
+            }
         }
         # Act on choice
         switch ($choice) {
@@ -525,7 +523,7 @@ function Choose-o365 {
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files\Microsoft Office\root\Office16\WINWORD.exe") {
                     Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -544,7 +542,7 @@ function Choose-o365 {
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files\Microsoft Office\root\Office16\WINWORD.exe") {
                     Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -563,7 +561,7 @@ function Choose-o365 {
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.exe") {
                     Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -582,7 +580,7 @@ function Choose-o365 {
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.exe") {
                     Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -591,7 +589,7 @@ function Choose-o365 {
             }
             5 {
                 Write-Host "o365 installation has been skipped"
-                New-Item "$StepStatus-5.txt" -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item "$StepStatus-5.txt" -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -606,7 +604,7 @@ function Choose-VPN {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt") {
+    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "WatchGuard VPN has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "VPN Installations have been " -NoNewline; Write-Host "skipped" -ForegroundColor Green}
     # Assuming no progress on this step yet
@@ -625,9 +623,10 @@ function Choose-VPN {
                 Write-Host "2. None"
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 2"
             } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
-            # Update Client Config File with choice
-            Add-ClientSetting -Name VPN -Value $choice
-            Save-ClientSettings
+            if ($global:Automated_Setup) {
+                # Update Client Config File with choice
+                Add-ClientSetting -Name VPN -Value $choice
+            }
         }
         # Act on choice
         switch ($choice) {
@@ -647,7 +646,7 @@ function Choose-VPN {
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files (x86)\WatchGuard\WatchGuard Mobile VPN with SSL\wgsslvpnc.exe") {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
+                    {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -656,7 +655,7 @@ function Choose-VPN {
             }
             2 {
                 Write-Host "VPN client installation has been skipped"
-                New-Item "$StepStatus-2.txt" -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item "$StepStatus-2.txt" -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -671,7 +670,7 @@ function Choose-Collaboration_Software {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt") {
+    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Cisco Jabber has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "ZAC has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "ZAC " -NoNewline; Write-Host "& " -NoNewline -ForegroundColor Cyan; Write-Host "Zulty's Fax Driver have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -694,9 +693,10 @@ function Choose-Collaboration_Software {
                 Write-Host "4. NONE"
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 4"
             } UNTIL (($choice -ge 1) -and ($choice -le 4))
-            # Update Client Config File with choice
-            Add-ClientSetting -Name Collab -Value $choice
-            Save-ClientSettings
+            if ($global:Automated_Setup) {
+                # Update Client Config File with choice
+                Add-ClientSetting -Name Collab -Value $choice
+            }
         }
         # Act on choice
         switch ($choice) {
@@ -706,8 +706,7 @@ function Choose-Collaboration_Software {
                 #Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
 
                 $Software = "Cisco Jabber"
-                Write-Host ""
-                Write-Host "Installing $Software"
+                Write-Host "`nInstalling $Software"
                 $JabberInstaller = Get-ChildItem -Path "$FolderPath_Local_Standard_Software\CiscoJabberSetup*.msi"
                 $JabberInstaller = $JabberInstaller[-1]
                 $JabberInstaller = $JabberInstaller.FullName
@@ -717,7 +716,7 @@ function Choose-Collaboration_Software {
                 $Global:WMI_Installed_Software = Get-WmiObject -Class Win32_Product
                 If ($Global:WMI_Installed_Software | Where-Object -FilterScript {$_.Name -match $Software}) {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -739,7 +738,7 @@ function Choose-Collaboration_Software {
             }
             4 {
                 Write-Host "Cisco Jabber, MXIE, ZAC, and Zulty's Fax Driver installs have been skipped"
-                New-Item "$StepStatus-4.txt" -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item "$StepStatus-4.txt" -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -775,7 +774,7 @@ function Install-Software {
             # Define $Working_Directory
             $Script:Working_Directory = $Local_Working_Dir
             # Make a copy and define that as the $Installer_Path
-            If (!(Test-Path "$Script:Working_Directory\copy")) {New-Item -Path "$Script:Working_Directory\copy" -ItemType Directory -Force | Out-Null}
+            If (!(Test-Path "$Script:Working_Directory\copy") -and $global:Automated_Setup) {New-Item -Path "$Script:Working_Directory\copy" -ItemType Directory -Force | Out-Null}
             $Script:Installer_Path = "$Script:Working_Directory\copy\$Installer_Name"
             Copy-Item -Path $Installer_Local_Path -Destination $Script:Installer_Path
         # If installer is found to be on USB...
@@ -783,7 +782,7 @@ function Install-Software {
             # Define $Working_Directory
             $Script:Working_Directory = $USB_Working_Dir
             # Make a copy and define that as the $Installer_Path
-            If (!(Test-Path "$Script:Working_Directory\copy")) {New-Item -Path "$Script:Working_Directory\copy" -ItemType Directory -Force | Out-Null}
+            If (!(Test-Path "$Script:Working_Directory\copy") -and $global:Automated_Setup) {New-Item -Path "$Script:Working_Directory\copy" -ItemType Directory -Force | Out-Null}
             $Script:Installer_Path = "$Script:Working_Directory\copy\$Installer_Name"
             Copy-Item -Path $Installer_USB_Path -Destination $Script:Installer_Path
         # Otherwise download the installer if possible
@@ -793,7 +792,7 @@ function Install-Software {
             # Define $Working_Directory
             $Script:Working_Directory = $Local_Working_Dir
             # Make a copy and define that as the $Installer_Path
-            If (!(Test-Path "$Script:Working_Directory\copy")) {New-Item -Path "$Script:Working_Directory\copy" -ItemType Directory -Force | Out-Null}
+            If (!(Test-Path "$Script:Working_Directory\copy") -and $global:Automated_Setup) {New-Item -Path "$Script:Working_Directory\copy" -ItemType Directory -Force | Out-Null}
             $Script:Installer_Path = "$Script:Working_Directory\copy\$Installer_Name"
             Copy-Item -Path $Installer_Local_Path -Destination $Script:Installer_Path
             # Copy to USB if USB is present
@@ -819,7 +818,7 @@ function Install-Software {
     # Produces $Installer_Path and $Working_Directory
     $USB = [ImagingUSB]::new()
     if ($USB.Exists()) {
-        $USB_Drive = $USB.Drive_Letter
+        #$USB_Drive = $USB.Drive_Letter
         $FolderPath_USB_Install_Software_ODT               = $USB.Install_Software_ODT
         $FolderPath_USB_Install_Software_Profile_Software  = $USB.Install_Software_Profile_Software
         $FolderPath_USB_Install_Software_Standard_Software = $USB.Install_Software_Standard_Software
@@ -924,7 +923,7 @@ function CheckPoint-Client_Software {
         Write-Host ""
         Write-Host "If needed, install Client Specific Software now"
         PAUSE
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Client_Software
@@ -969,7 +968,7 @@ function Install-RMM_Agent {
                 $input = Read-Host -Prompt "Type in 'continue' to move on to the next step"
             } UNTIL ($input -eq "continue")
         }
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     } 
 } Export-ModuleMember -Function Install-RMM_Agent
@@ -1002,7 +1001,7 @@ function Install-AV_Agent {
                 $input = Read-Host -Prompt "Type in 'continue' to move on to the next step"
             } UNTIL ($input -eq "continue")
         }
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Install-AV_Agent
@@ -1045,7 +1044,7 @@ function Reinstall-SupportAssistant {
                         Write-Host "Verifying if the software is now installed..."
                         $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
                         If (($Global:Installed_Software).DisplayName -match $Software) {
-                            New-Item $CompletionFile -ItemType File -Force | Out-Null
+                            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                             Write-Host "Installed - $Software" -ForegroundColor Green
                         } else {
                             Write-Host "$Software is not installed" -ForegroundColor Red
@@ -1060,7 +1059,7 @@ function Reinstall-SupportAssistant {
                         Start-Process "$HPInstallerPath" -Wait
                         Write-Host "Verifying if the software is now installed..."
                         If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
-                            New-Item $CompletionFile -ItemType File -Force | Out-Null
+                            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                             Write-Host "Installed - $Software" -ForegroundColor Green
                         } else {
                             Write-Host "$Software is not installed" -ForegroundColor Red
@@ -1077,7 +1076,7 @@ function Reinstall-SupportAssistant {
                 }
             }
             2 {
-                New-Item $SkippedFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host "Skipping - $Step" -ForegroundColor Green
             }
         }
@@ -1118,7 +1117,7 @@ function Install-SupportAssistant {
                 $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
                 If (($Global:Installed_Software).DisplayName -match $Software) {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -1134,7 +1133,7 @@ function Install-SupportAssistant {
                 Write-Host "Verifying if the software is now installed..."
                 If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -1142,7 +1141,7 @@ function Install-SupportAssistant {
             }
             3 {
                 Write-Host "Both Dell and HP Support Assistant Installations have been skipped" -ForegroundColor Green
-                New-Item $SkippedFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -1179,14 +1178,12 @@ function Install-SupportAssistant2 {
             # If ClientSetting doesn't exist, update Client Config File
             If (!($Global:ClientSettings.SupportAssistant)) {
                 Add-ClientSetting -Name SupportAssistant -Value $choice
-                Save-ClientSettings
             }
         }
         switch ($choice) {
             1 {
                 $Software = "Dell Support Assist"
-                Write-Host ""
-                Write-Host "Installing $Software"
+                Write-Host "`nInstalling $Software"
                 $InstallerPath = "$FolderPath_Local_Standard_Software\Dell_Support_Assist_Installer.exe"
                 Copy-Item -Path $InstallerPath -Destination $FolderPath_Local_Setup -Force
                 Start-Process "$InstallerPath" -Wait
@@ -1194,7 +1191,7 @@ function Install-SupportAssistant2 {
                 $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
                 If (($Global:Installed_Software).DisplayName -match $Software) {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -1223,7 +1220,7 @@ function Install-SupportAssistant2 {
                 Write-Host "Verifying if the software is now installed..."
                 If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -1231,7 +1228,7 @@ function Install-SupportAssistant2 {
             }
             3 {
                 Write-Host "Both Dell and HP Support Assistant Installations have been skipped" -ForegroundColor Green
-                New-Item $SkippedFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -1260,10 +1257,10 @@ function CheckPoint-DriverUpdates {
         } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
         If ($choice -eq 1) {
             Install-SupportAssistant
-            New-Item $CompletionFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
             Write-Host "$Step has been skipped"
-            New-Item $SkippedFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
         }
     }
 
@@ -1295,10 +1292,10 @@ function CheckPoint-DriverUpdates {
                 Write-Host "NOTE: Installing a BIOS update and then capturing the image does NOT add the BIOS update it to the image. BIOS updates are written directly to the machine hardware. This is not part of the Windows' System partition on the hard drive that is captured as an image" -ForeGroundColor Yellow
                 $input = Read-Host -Prompt "Type in 'continue' move on to the next step"
             } UNTIL ($input -eq "continue")
-            New-Item $CompletionFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
             Write-Host "$Step has been skipped"
-            New-Item $SkippedFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
         }
     }
 } Export-ModuleMember -Function CheckPoint-DriverUpdates

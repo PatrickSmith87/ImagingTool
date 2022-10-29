@@ -282,14 +282,14 @@ function Set-Clock {
 
         # Finished Message
         Write-Host "Timezone has been set to $Target_TimeZone & the clock has been reset" -ForeGroundColor Green
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
     }
 } Export-ModuleMember -Function Set-Clock
 
 function Set-ClockTimeZone {
     param(
         [Parameter(Mandatory=$false)]
-        [String] $Target_TimeZone = "Central Standard Time" #Default
+        [String] $Target_TimeZone = "Central Standard Time"
     )
 
     #Variables - Editable
@@ -325,9 +325,8 @@ function Set-ClockTimeZone {
     }
 
     # If ClientSetting doesn't exist, update Client Config File
-    If (!($global:ClientSettings.ClockTimeZone)) {
+    If (!($global:ClientSettings.ClockTimeZone) -and $global:Automated_Setup) {
         Add-ClientSetting -Name "ClockTimeZone" -Value $Target_TimeZone
-        Save-ClientSettings
     }
 } Export-ModuleMember -Function Set-ClockTimeZone
 
@@ -385,8 +384,7 @@ function Set-PowerSettings {
             $AC_Close_Lid_Action = $global:ClientSettings.pwr_ACCLA
             $DC_Close_Lid_Action = $global:ClientSettings.pwr_DCCLA
         }
-        Write-Host ""
-        Write-Host "Starting to $Step" -ForeGroundColor Yellow
+        Write-Host "`nStarting to $Step" -ForeGroundColor Yellow
         
         # Build commands
         $AC_Monitor_Timeout_cmd = "powercfg /change monitor-timeout-ac " + $AC_Monitor_Timeout
@@ -413,16 +411,15 @@ function Set-PowerSettings {
         Write-Host "Close lid actions... 0=Do Nothing, 1=Sleep, 2=Hibernate, 3=Shut Down" -ForegroundColor DarkGray
     
         # If ClientSetting doesn't exist, update Client Config File
-        If (!($global:ClientSettings.pwr_ACMT)) {
+        If (!($global:ClientSettings.pwr_ACMT) -and $global:Automated_Setup) {
             Add-ClientSetting -Name "pwr_ACMT" -Value $AC_Monitor_Timeout
             Add-ClientSetting -Name "pwr_ACST" -Value $AC_Standby_Timeout
             Add-ClientSetting -Name "pwr_DCMT" -Value $DC_Monitor_Timeout
             Add-ClientSetting -Name "pwr_DCST" -Value $DC_Standby_Timeout
             Add-ClientSetting -Name "pwr_ACCLA" -Value $AC_Close_Lid_Action
             Add-ClientSetting -Name "pwr_DCCLA" -Value $DC_Close_Lid_Action
-            Save-ClientSettings
         }
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Set-PowerSettings
@@ -445,12 +442,11 @@ function Toggle-Hibernate {
     If ($Setting = 0) {Disable-Hibernate} else {Enable-Hibernate}
 
     # If ClientSetting doesn't exist, update Client Config File
-    If (!($global:ClientSettings.Hibernate)) {
+    If (!($global:ClientSettings.Hibernate) -and $global:Automated_Setup) {
         Add-ClientSetting -Name "Hibernate" -Value $Setting
-        Save-ClientSettings
     }
 
-    New-Item $CompletionFile -ItemType File -Force | Out-Null
+    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
 } Export-ModuleMember -Function Toggle-Hibernate
 
 function Enable-Hibernate {
@@ -492,12 +488,11 @@ function Toggle-Hiberboot {
     If ($Setting = 0) {Disable-Hiberboot} else {Enable-Hiberboot}
 
     # If ClientSetting doesn't exist, update Client Config File
-    If (!($global:ClientSettings.Hiberboot)) {
+    If (!($global:ClientSettings.Hiberboot) -and $global:Automated_Setup) {
         Add-ClientSetting -Name "Hiberboot" -Value $Setting
-        Save-ClientSettings
     }
 
-    New-Item $CompletionFile -ItemType File -Force | Out-Null
+    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
 } Export-ModuleMember -Function Toggle-Hiberboot
 
 function Enable-Hiberboot {
@@ -543,8 +538,7 @@ function Toggle-UAC {
             If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
         } else {
             DO {
-                Write-Host ""
-                Write-Host "-=[ $Step ]=-" -ForegroundColor Yellow
+                Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
                 Write-Host "What UAC level should be set?"
                 Write-Host "1. Turn UAC UP all the way"
                 Write-Host "2. Turn UAC DOWN all the way"
@@ -555,24 +549,27 @@ function Toggle-UAC {
             switch ($choice) {
                 1 {
                     # Update Client Config File with choice
-                    Add-ClientSetting -Name UAC -Value "Up"
-                    Save-ClientSettings
+                    if ($global:Automated_Setup) {
+                        Add-ClientSetting -Name UAC -Value "Up"
+                        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    }
                     TurnUp-UAC
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
                 }
                 2 {
                     # Update Client Config File with choice
-                    Add-ClientSetting -Name UAC -Value "Down"
-                    Save-ClientSettings
+                    if ($global:Automated_Setup) {
+                        Add-ClientSetting -Name UAC -Value "Down"
+                        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    }
                     TurnDown-UAC
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
                 }
                 3 {
-                    # Update Client Config File with choice
-                    Add-ClientSetting -Name UAC -Value "Skip"
-                    Save-ClientSettings
                     If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
-                    New-Item $SkippedFile -ItemType File -Force | Out-Null
+                    # Update Client Config File with choice
+                    if ($global:Automated_Setup) {
+                        Add-ClientSetting -Name UAC -Value "Skip"
+                        if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                    }
                 }
             }
         }
@@ -610,7 +607,7 @@ function Enable-FileSharing {
         cmd.exe /c 'REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f' | Out-Null
         cmd.exe /c 'netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes' | Out-Null
         cmd.exe /c 'netsh advfirewall firewall set rule group="Network Discovery" new enable=Yes' | Out-Null
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host " Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Enable-FileSharing
@@ -661,8 +658,10 @@ function Set-LocalAdmin {
                 Write-Host "If you are already signed into the desired local administrator account, please enter the credentials anyway. (NOTE: In this case, make sure you enter the credentials correctly!)" -ForegroundColor Yellow
                 $Credentials = Get-Credential
             } UNTIL ($Credentials -ne $null)
-            Add-ClientSetting -Name LocalAdminName -Value $Credentials.UserName
-            Add-ClientSetting -Name LocalAdminPassword -Value ($Credentials.Password | ConvertFrom-SecureString -Key (Get-Content -Path $FilePath_Local_Automated_Setup_RegistryBackup))
+            if ($global:Automated_Setup) {
+                Add-ClientSetting -Name LocalAdminName -Value $Credentials.UserName
+                Add-ClientSetting -Name LocalAdminPassword -Value ($Credentials.Password | ConvertFrom-SecureString -Key (Get-Content -Path $FilePath_Local_Automated_Setup_RegistryBackup))
+            }
         }
         
         # Configure Local Admin Account
@@ -685,7 +684,7 @@ function Set-LocalAdmin {
         #$command = "wmic useraccount where Name='$LocalAdminName' set PasswordExpires=false"
         #cmd.exe /c $command # Set password to never expire
         
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }   
 } Export-ModuleMember -Function Set-LocalAdmin
@@ -792,7 +791,7 @@ function Enable-AutoLogon {
         Set-ItemProperty -Path $WinLogonKey -Name AutoAdminLogon -Value "1"
         Set-ItemProperty -Path $WinLogonKey -Name ForceAutoLogon -Value "1"
         
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
         Ask-Logoff -Force
     }   
@@ -855,7 +854,7 @@ function Remove-UserAccount {
             Remove-LocalUser -Name User
             Start-Sleep 3
             Remove-Item -Path "C:\Users\User" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-            New-Item $CompletionFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
             Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
         } else {
             Write-Host ""
@@ -965,8 +964,7 @@ function Rename-PC {
                     Write-Host "Image name suggestion: <Client Abbreviation>-Image" -ForegroundColor DarkYellow
                     Write-Host "Example: ATI-Image" -ForegroundColor DarkYellow
                     $NewName = Read-Host -Prompt "Please enter desired computer name, and then hit enter. The computer will be renamed and then rebooted."
-                    Add-ClientSetting -Name "ImageName" -Value $NewName
-                    Save-ClientSettings
+                    if ($global:Automated_Setup) {Add-ClientSetting -Name "ImageName" -Value $NewName}
                 }
             } ElseIf (($global:ClientSettings.SetupType -eq "SingleSetup") -or ($Force)) {
                 Write-Host ""
@@ -1001,9 +999,8 @@ function Rename-PC {
                 Rename-Computer -NewName $NewName -Force -ErrorAction Continue
             }
         }
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
-        Write-Host ""
-        Write-Host "$Step has been completed" -ForegroundColor Green
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "`n$Step has been completed" -ForegroundColor Green
         Write-Host "Rebooting in 3..."
         Start-Sleep 1
         Write-Host "Rebooting in 2..."
@@ -1046,9 +1043,8 @@ function Get-DomainJoinInfo {
         switch ($choice) {
             1 {
                 # Save the fact that we DO want to join the domain (either now or later)
-                If (!($global:ClientSettings.DomainJoin)) {
+                If (!($global:ClientSettings.DomainJoin -and $global:Automated_Setup)) {
                     Add-ClientSetting -Name "DomainJoin" -Value $choice
-                    Save-ClientSettings
                 }
                 
                 # Get NETBIOS
@@ -1062,8 +1058,7 @@ function Get-DomainJoinInfo {
                         Write-Host "Example: ATI"
                         $choice = Read-Host -Prompt "Enter the NETBIOS Domain name"
                     } UNTIL ($choice -ne $null)
-                    Add-ClientSetting -Name NETBIOS -Value $choice
-                    Save-ClientSettings
+                    if ($global:Automated_Setup) {Add-ClientSetting -Name NETBIOS -Value $choice}
                 }
 
                 # Get DNS Domain Name
@@ -1077,8 +1072,7 @@ function Get-DomainJoinInfo {
                         Write-Host "Example: ati.local"
                         $choice = Read-Host -Prompt "Enter the DNS Domain name"
                     } UNTIL ($choice -ne $null)
-                    Add-ClientSetting -Name DNS_Domain_Name -Value $choice
-                    Save-ClientSettings
+                    if ($global:Automated_Setup) {Add-ClientSetting -Name DNS_Domain_Name -Value $choice}
                 }
 
                 # Get Domain Admin Username
@@ -1092,8 +1086,7 @@ function Get-DomainJoinInfo {
                         Write-Host "Example: Axxys"
                         $choice = Read-Host -Prompt "Enter the domain admin username"
                     } UNTIL ($choice -ne $null)
-                    Add-ClientSetting -Name Domain_Admin_Username -Value $choice
-                    Save-ClientSettings
+                    if ($global:Automated_Setup) {Add-ClientSetting -Name Domain_Admin_Username -Value $choice}
                 }
 
                 # If building an image, need to get naming convention and example
@@ -1109,8 +1102,7 @@ function Get-DomainJoinInfo {
                             Write-Host "Example: ATI-[DT/LT]-XX"
                             $choice = Read-Host -Prompt "Enter the PC naming convention"
                         } UNTIL ($choice -ne $null)
-                        Add-ClientSetting -Name Naming_Convention -Value $choice
-                        Save-ClientSettings
+                        if ($global:Automated_Setup) {Add-ClientSetting -Name Naming_Convention -Value $choice}
                     }
 
                     # Get PC Name Example
@@ -1124,19 +1116,17 @@ function Get-DomainJoinInfo {
                             Write-Host "Example: ATI-DT-01"
                             $choice = Read-Host -Prompt "Enter the example PC name"
                         } UNTIL ($choice -ne $null)
-                        Add-ClientSetting -Name PC_Name_Example -Value $choice
-                        Save-ClientSettings
+                        if ($global:Automated_Setup) {Add-ClientSetting -Name PC_Name_Example -Value $choice}
                     }
                 }
                 # Mark this section as completed
-                New-Item $CompletionFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step has been completed" -ForegroundColor Green
             } # End of Switch(1)
             2 {
                 # Save the fact that we do NOT want to join the domain
-                If (!($global:ClientSettings.DomainJoin)) {
+                If (!($global:ClientSettings.DomainJoin) -and $global:Automated_Setup) {
                     Add-ClientSetting -Name "DomainJoin" -Value $choice
-                    Save-ClientSettings
                 }
                 Write-Host "$Step has been skipped" -ForegroundColor Green
                 
@@ -1154,8 +1144,7 @@ function Get-DomainJoinInfo {
                             Write-Host "Example: ATI-[DT/LT]-XX"
                             $choice = Read-Host -Prompt "Enter the PC naming convention"
                         } UNTIL ($choice -ne $null)
-                        Add-ClientSetting -Name Naming_Convention -Value $choice
-                        Save-ClientSettings
+                        if ($global:Automated_Setup) {Add-ClientSetting -Name Naming_Convention -Value $choice}
                     }
 
                     # Get PC Name Example
@@ -1169,12 +1158,11 @@ function Get-DomainJoinInfo {
                             Write-Host "Example: ATI-DT-01"
                             $choice = Read-Host -Prompt "Enter the example PC name"
                         } UNTIL ($choice -ne $null)
-                        Add-ClientSetting -Name PC_Name_Example -Value $choice
-                        Save-ClientSettings
+                        if ($global:Automated_Setup) {Add-ClientSetting -Name PC_Name_Example -Value $choice}
                     }
                     Write-Host "$Step has been completed" -ForegroundColor Green
                 }
-                New-Item $SkippedFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host ""
             } # End of Switch(2)
         } # End of Switch($choice)
@@ -1205,7 +1193,7 @@ function Sign-Into_VPN {
             }
             $choice = Read-Host -Prompt "Type in 'continue' move on to the next step"
         } UNTIL ($choice -eq "continue")
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Sign-Into_VPN
@@ -1226,7 +1214,7 @@ function Set-DefaultApps {
         Pause
         cmd.exe /c "dism /online /export-defaultappassociations:C:\Setup\appassoc.xml" | Out-Null
         cmd.exe /c "dism /online /import-defaultappassociations:C:\Setup\appassoc.xml" | Out-Null
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "Default apps have been set" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function Set-DefaultApps
@@ -1250,7 +1238,7 @@ function CheckPoint-Client_WiFi {
         Write-Host "  Start > Settings > Network & Internet > Wi-Fi > Manage known networks > Add a new network"
         PAUSE
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
-        New-Item $SkippedFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
     }
 } Export-ModuleMember -Function CheckPoint-Client_WiFi
 
@@ -1274,7 +1262,7 @@ function CheckPoint-Public_Desktop {
         Write-Host "(Such as RDP links, Browser links, VPN Connection Guides, etc...)"
         PAUSE
         If (($items = Get-ChildItem $FolderPath_Local_Client_Public_Desktop).count -gt 0) {Copy-Item -Path (Get-ChildItem $FolderPath_Local_Client_Public_Desktop).FullName -Destination "$FolderPath_Local_PublicDesktop" -Recurse}
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Public_Desktop
@@ -1308,9 +1296,8 @@ function CheckPoint-CreateScansFolder {
             }
         } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
         # Record choice, if needed
-        If (!($global:ClientSettings.ScansFolder)) {
+        If (!($global:ClientSettings.ScansFolder) -and $global:Automated_Setup) {
             Add-ClientSetting -Name "ScansFolder" -Value $choice
-            Save-ClientSettings
         }
         # Take action based on choice
         switch ($choice) {
@@ -1326,7 +1313,7 @@ function CheckPoint-CreateScansFolder {
                         Write-Host "Example: Scans"
                         [string]$choice = Read-Host -Prompt "Enter the Scans folder name"
                     } UNTIL ($choice -ne $null)
-                    Add-ClientSetting -Name ScansFolderName -Value $choice
+                    if ($global:Automated_Setup) {Add-ClientSetting -Name ScansFolderName -Value $choice}
                 }
 
 
@@ -1340,8 +1327,10 @@ function CheckPoint-CreateScansFolder {
                         Write-Host "Provide the credentials for the Scanner account."
                         $Credentials = Get-Credential
                     } UNTIL (($Credentials.UserName -ne $null) -and ($Credentials.Password -ne $null))
-                    Add-ClientSetting -Name ScannerAccount -Value $Credentials.UserName
-                    Add-ClientSetting -Name ScannerAccountPassword -Value ($Credentials.Password | ConvertFrom-SecureString -Key (Get-Content -Path $FilePath_Local_Automated_Setup_RegistryBackup))
+                    if ($global:Automated_Setup) {
+                        Add-ClientSetting -Name ScannerAccount -Value $Credentials.UserName
+                        Add-ClientSetting -Name ScannerAccountPassword -Value ($Credentials.Password | ConvertFrom-SecureString -Key (Get-Content -Path $FilePath_Local_Automated_Setup_RegistryBackup))
+                    }
                 }
 
                 # Configure Scanner Account
@@ -1372,13 +1361,13 @@ function CheckPoint-CreateScansFolder {
                 Write-Host "shortcut to scans folder created and placed on public desktop" -ForegroundColor Green
 
                 # Mark this section as completed
-                New-Item $CompletionFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
             } # End of Switch(1)
             2 {
                 Write-Host "$Step has been skipped" -ForegroundColor Green
                 
-                New-Item $SkippedFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host ""
             } # End of Switch(2)
         } # End of Switch($choice)
@@ -1398,7 +1387,7 @@ function CheckPoint-Client_AV {
     } else {
         Write-Host "`nIf needed, Install AV agent"
         PAUSE
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Client_AV
@@ -1417,7 +1406,7 @@ function CheckPoint-Bitlocker_Device {
         Write-Host ""
         Write-Host "If needed, Bitlocker Device"
         PAUSE
-        New-Item $CompletionFile -ItemType File -Force | Out-Null
+        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Bitlocker_Device
@@ -1439,7 +1428,7 @@ function Transfer-RMM_Agent {
         # See if installer is already present
         If (Test-Path "$FolderPath_Local_Setup\*Agent_Install*.exe") {
             Write-Host "`nAutomate Agent Installer " -NoNewline; Write-Host "found in $FolderPath_Local_Setup" -ForegroundColor Green
-            New-Item $CompletionFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
         # Ask tech to move it there
             DO {
@@ -1459,11 +1448,11 @@ function Transfer-RMM_Agent {
                         PAUSE
                     } UNTIL (Test-Path "$FolderPath_Local_Setup\*Agent_Install*.exe")
                     Write-Host "The Automate Agent Installer under $FolderPath_Local_Setup has been detected" -ForegroundColor Green
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 }
                 2 {
                     Write-Host "Placing the Automate Agent Installer under $FolderPath_Local_Setup has been skipped" -ForegroundColor Green
-                    New-Item $SkippedFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 }
             }
         }
@@ -1487,7 +1476,7 @@ function Transfer-Sophos_Agent {
         # See if installer is already present
         If (Test-Path "$FolderPath_Local_Setup\*SophosSetup*.exe") {
             Write-Host "`nSophos Agent Installer " -NoNewline; Write-Host "found in $FolderPath_Local_Setup" -ForegroundColor Green
-            New-Item $CompletionFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
         # Ask tech to move it there
             DO {
@@ -1506,11 +1495,11 @@ function Transfer-Sophos_Agent {
                         PAUSE
                     } UNTIL (Test-Path "$FolderPath_Local_Setup\*SophosSetup*.exe")
                     Write-Host "The Sophos Agent Installer under $FolderPath_Local_Setup has been detected" -ForegroundColor Green
-                    New-Item $CompletionFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 }
                 2 {
                     Write-Host "Placing the Sophos Agent Installer under $FolderPath_Local_Setup has been skipped" -ForegroundColor Green
-                    New-Item $SkippedFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 }
             }
         }
@@ -1551,20 +1540,18 @@ function Install-Windows_Updates {
             }
             If ($choice -eq 1) {
                 # If ClientSetting doesn't exist, update Client Config File
-                If (($global:ClientSettings) -and (!($global:ClientSettings.WindowsUpdates))) {
+                If ($global:ClientSettings -and !($global:ClientSettings.WindowsUpdates) -and $global:Automated_Setup) {
                     Add-ClientSetting -Name WindowsUpdates -Value $choice
-                    Save-ClientSettings
                 }
                 New-Item $InProgressFile -ItemType File -Force | Out-Null
                 Write-Host "Installing Windows Update Provider"
                 Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
                 Install-Module PSWindowsUpdate -Force
             } else {
-                If (($global:ClientSettings) -and (!($global:ClientSettings.WindowsUpdates))) {
+                If ($global:ClientSettings -and !($global:ClientSettings.WindowsUpdates) -and $global:Automated_Setup) {
                     Add-ClientSetting -Name WindowsUpdates -Value $choice
-                    Save-ClientSettings
                 }
-                New-Item $SkippedFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step`: " -NoNewline; Write-Host "Skipped"
             }
         }
@@ -1581,7 +1568,7 @@ function Install-Windows_Updates {
                 Pause
             } else {
                 Remove-Item $InProgressFile | Out-Null
-                New-Item $CompletionFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
             }
         }
@@ -1612,9 +1599,9 @@ function CheckPoint-Disk_Cleanup {
         } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
         If ($choice -eq 1) {
             Run-Disk_Cleanup
-            New-Item $CompletionFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
-            New-Item $SkippedFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Yellow
         }
     }
@@ -1645,7 +1632,7 @@ function Join-Domain {
         Write-Host ""
         Write-Host "-=[ $Step ]=-" -ForegroundColor Yellow
         If ($Global:ClientSettings.DomainJoin -eq "2") {
-            New-Item $SkippedFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             Write-Host "$Step has been skipped"
         } ElseIf ($Global:ClientSettings.DomainJoin -eq "1") {
             Write-Host "Make sure the VPN is connected if remote..." -ForegroundColor Red
@@ -1654,7 +1641,7 @@ function Join-Domain {
             
             Try {
                 Add-Computer -DomainName $Global:ClientSettings.DNS_Domain_Name -Credential (($Global:ClientSettings.NETBIOS)+"\"+($Global:ClientSettings.Domain_Admin_Username)) -Force -Verbose
-                New-Item $CompletionFile -ItemType File -Force | Out-Null
+                if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host ""
                 Write-Host "$Step has been completed" -ForegroundColor Green
                 Restart-Computer
@@ -1673,7 +1660,7 @@ function Join-Domain {
                 If ($choice -eq 1) {
                     Join-Domain
                 } else {
-                    New-Item $SkippedFile -ItemType File -Force | Out-Null
+                    if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                     Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green
                 }
             }
@@ -1705,7 +1692,7 @@ function Remove-AutoLogon {
         Remove-ItemProperty -Path $WinLogonKey -Name DefaultUserName -Force -ErrorAction SilentlyContinue
         Remove-ItemProperty -Path $WinLogonKey -Name DefaultPassword -Force -ErrorAction SilentlyContinue
     
-        If (!($Force)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        If (!($Force) -and $global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Remove-AutoLogon
@@ -1743,7 +1730,7 @@ function Activate-Windows {
         }
         PAUSE
 
-        If (!($Force)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        If (!($Force) -and $global:AutomatedSetup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Activate-Windows

@@ -5,6 +5,7 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
+using module Configure-PC
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 
 # Modules Folder
@@ -18,7 +19,28 @@ $RunOnceKey                                   = "HKLM:\Software\Microsoft\Window
     $FilePath_Local_TuneUp_PC_DellInstaller          = "C:\Setup\_TuneUp_PC\Dell_Support_Assist_Installer.exe"
     $FilePath_Local_TuneUp_PC_HPInstaller            = "C:\Setup\_TuneUp_PC\HP_Support_Assistant.exe"
     $FilePath_Local_TuneUp_PC_Win10Installer         = "C:\Setup\_TuneUp_PC\MediaCreationTool21H2.exe"
-    [string]$WindowsVersion_Latest                   = "21H2"
+    [string]$WindowsVersion_Latest                   = "22H2"
+
+function Inject-TuneUp_PC {
+    $what = '/COPY:DAT /DCOPY:DA /E'
+    $options = '/R:5 /W:6 /LOG+:C:\Setup\TuneUp_Log.log /TEE /V /XO /XX'
+    
+    $USB = [ImagingUSB]::new()
+    if ($USB.Exists()) {
+        $USB_Drive = $USB.Drive_Letter
+    }
+    $source = "$USB_Drive\sources\PC-Maintenance\2. TuneUp PC\Setup\_TuneUp_PC"
+    $dest = "C:\Setup\_TuneUp_PC"
+    if (!(Test-Path $dest)) {New-Item $dest -ItemType Directory | Out-Null}   
+    
+    Write-Host "`nTransferring " -NoNewline; Write-Host "$source" -ForegroundColor Cyan
+    Write-Host "to " -NoNewline; Write-Host "$dest" -ForegroundColor Cyan
+    Write-Host "now..."
+
+    $command = 'ROBOCOPY "' + $source + '" "' + $dest + '" ' + "$what $options"
+    Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+    Write-Host "`nTransfer is " -NoNewline; Write-Host "Complete!" -ForegroundColor Green
+} Export-ModuleMember -Function Inject-TuneUp_PC
 
 function Start-TuneUp_PC {
     Write-Host ""
@@ -111,7 +133,7 @@ function Install-Driver_Updates {
                         $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
                         If (($Global:Installed_Software).DisplayName -match $Software) {
                             Write-Host "Installed - $Software" -ForegroundColor Green
-                            New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null
+                            if ($global:Automated_Setup) {New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null}
                         } else {
                             Write-Host "$Software is not installed" -ForegroundColor Red
                             Write-Host "Reboot or just relog to re-attempt install"
@@ -126,7 +148,7 @@ function Install-Driver_Updates {
                         Write-Host "Verifying if the software is now installed..."
                         If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
                             Write-Host "Installed - $Software" -ForegroundColor Green
-                            New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null
+                            if ($global:Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
                         } else {
                             Write-Host "$Software is not installed" -ForegroundColor Red
                             Write-Host "Reboot or just relog to re-attempt install"
@@ -134,7 +156,7 @@ function Install-Driver_Updates {
                     }
                     3 {
                         Write-Host "Both Dell and HP Support Assistant Installations have been skipped" -ForegroundColor Green
-                        New-Item $SkippedFile -ItemType File -Force | Out-Null
+                        if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                     }
                 }
             }
@@ -151,10 +173,10 @@ function Install-Driver_Updates {
                 $input = Read-Host -Prompt "Type in 'continue' move on to the next step"
             } UNTIL ($input -eq "continue")
             Write-Host "$Step has been completed"
-            New-Item $CompletionFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
             Write-Host "$Step has been skipped"
-            New-Item $SkippedFile -ItemType File -Force | Out-Null
+            if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
         }
     }
 } Export-ModuleMember -Function Install-Driver_Updates

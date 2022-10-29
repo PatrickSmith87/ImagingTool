@@ -17,8 +17,7 @@ Write-Host $ScriptDir
 #########################################################################################################################################
 function Main_Menu {
     DO {
-        Write-Host ""
-        Write-Host "-=[ Main Menu ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ Main Menu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
         Write-Host "`n    1. Enter " -NoNewline; Write-Host "PC Maintenance " -NoNewline -ForegroundColor Cyan; Write-Host "menu"
         Write-Host "        -Enter this menu to access several scripts that you can use to;" -ForegroundColor DarkGray
@@ -70,10 +69,17 @@ function PC-Maintenance_submenu {
     Copy-Item -Path $FilePath_USB_InstallSoftware_Module -Destination $FilePath_Local_InstallSoftware_Module -Force
     Import-Module Install-Software -WarningAction SilentlyContinue -Force | Out-Null
 
+    # Import TuneUp-PC module
+    New-Item -Path "$FolderPath_Local_Modules\TuneUp-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    If (Test-Path $FilePath_Local_TuneUpPC_Module) {Remove-Item $FilePath_Local_TuneUpPC_Module -Force}
+    Copy-Item -Path $FilePath_USB_TuneUpPC_Module -Destination $FilePath_Local_TuneUpPC_Module -Force
+    Import-Module TuneUp-PC -WarningAction SilentlyContinue -Force
+    
+
     DO {
-        Write-Host ""
-        Write-Host "-=[ PC Maintenance ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ PC Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
+        Write-Host "0. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
         Write-Host "1. Enter " -NoNewline; Write-Host "Automated Setup " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
         Write-Host "2. Enter " -NoNewline; Write-Host "TuneUp PC " -NoNewline -ForegroundColor DarkYellow; Write-Host "menu" -NoNewline; Write-Host " **WARNING - This is not fully functional yet" -ForegroundColor Red
         Write-Host "3. Enter " -NoNewline; Write-Host "Configure Automatic Sign-in " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
@@ -84,12 +90,12 @@ function PC-Maintenance_submenu {
         Write-Host "8. Enter " -NoNewline; Write-Host "Migrate User Profile " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
         Write-Host "9. Enter " -NoNewline; Write-Host "Backup Folder " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
         Write-Host "10. Pull " -NoNewline; Write-Host "Intune " -NoNewline -ForegroundColor DarkYellow; Write-Host "Hardware ID " -ForegroundColor DarkCyan
-        Write-Host "11. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
-        Write-Host "12. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "Enter a number, 1 thru 12"
+        Write-Host "11. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "Enter a number, 0 thru 11"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 12))
+    } UNTIL (($choice -ge 0) -and ($choice -le 11))
     Switch ($choice) {
+        0 {Clear-Host; Main_Menu}
         1 {Clear-Host; Automated_Setup_submenu}
         2 {Clear-Host; TuneUp-PC_submenu}
         3 {Clear-Host; Configure_Automatic_Sign_In_submenu}
@@ -100,8 +106,7 @@ function PC-Maintenance_submenu {
         8 {Clear-Host; Migrate_User_Profile_submenu}
         9 {Clear-Host; Start-Process $FilePath_USB_Backup_Folder_BACKUP}
         10 {Clear-Host; Pull_IntuneHWID}
-        11 {Clear-Host; Main_Menu}
-        12 {EXIT}
+        11 {EXIT}
     }
     # Recursivly call the PC Maintenance Menu
     PC-Maintenance_submenu
@@ -109,25 +114,24 @@ function PC-Maintenance_submenu {
 
 function Automated_Setup_submenu {    
     DO {
-        Write-Host ""
-        Write-Host "-=[ Automated Setup submenu ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ Automated Setup submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
+        Write-Host "0. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "1. " -NoNewline; Write-Host "INJECT " -NoNewline -ForegroundColor Cyan; Write-Host "Automated Setup program into current OS"
         Write-Host "2. " -NoNewline; Write-Host "START " -NoNewline -ForegroundColor Green; Write-Host "Automated Setup program on current OS"
         Write-Host "3. " -NoNewline; Write-Host "STOP " -NoNewline -ForegroundColor Red; Write-Host "Automated Setup program on current OS"
         Write-Host "4. " -NoNewline; Write-Host "REMOVE " -NoNewline -ForegroundColor DarkCyan; Write-Host "Automated Setup program from current OS"
         Write-Host "5. " -NoNewline; Write-Host "READ " -NoNewline -ForegroundColor Cyan; Write-Host "Client Config"
         Write-Host "6. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "Client Config"
-        Write-Host "7. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "8. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "Enter a number, 1 thru 8"
+        Write-Host "7. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "Enter a number, 0 thru 7"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 8))
+    } UNTIL (($choice -ge 0) -and ($choice -le 7))
     Switch ($choice) {
+        0 {Clear-Host; PC-Maintenance_submenu}
         1 {
             Clear-Host
-            Write-Host ""
-            Write-Host "Injecting the Automated Setup program in the background..." -ForegroundColor Green
+            Write-Host "`nInjecting the Automated Setup program in the background..." -ForegroundColor Green
             Write-Host "Note: If the Automated Setup program is already on the current OS, it will be" -ForegroundColor Yellow
             Write-Host "      updated to the version on the Imaging Tool if it is newer" -ForegroundColor Yellow
             Write-Host "-To kick off the Automated Setup program, run the file on the desktop called"
@@ -141,8 +145,7 @@ function Automated_Setup_submenu {
         4 {Clear-Host; Remove-Automated_Setup_Files}
         5 {Clear-Host; Read-ClientConfig}
         6 {Clear-Host; Create-ClientConfig}
-        7 {Clear-Host; PC-Maintenance_submenu}
-        8 {EXIT}
+        7 {EXIT}
     }
     
     #Recursivly call the submenu
@@ -150,30 +153,23 @@ function Automated_Setup_submenu {
 } # End of Automated_Setup_submenu
 
 function TuneUp-PC_submenu {
-    # Import Automate-Setup module
-    New-Item -Path "$FolderPath_Local_Modules\TuneUp-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-    If (Test-Path $FilePath_Local_TuneUpPC_Module) {Remove-Item $FilePath_Local_TuneUpPC_Module -Force}
-    Copy-Item -Path $FilePath_USB_TuneUpPC_Module -Destination $FilePath_Local_TuneUpPC_Module -Force
-    Import-Module TuneUp-PC -WarningAction SilentlyContinue -Force
-    
     DO {
-        Write-Host ""
-        Write-Host "-=[ TuneUp PC submenu ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ TuneUp PC submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
+        Write-Host "0. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "1. " -NoNewline; Write-Host "INJECT " -NoNewline -ForegroundColor Cyan; Write-Host "TuneUp program into current OS"
         Write-Host "2. " -NoNewline; Write-Host "START " -NoNewline -ForegroundColor Green; Write-Host "TuneUp program on current OS"
         Write-Host "3. " -NoNewline; Write-Host "STOP " -NoNewline -ForegroundColor Red; Write-Host "TuneUp program on current OS"
-        Write-Host "4. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "5. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "Enter a number, 1 thru 5"
+        Write-Host "4. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "Enter a number, 0 thru 4"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 5))
+    } UNTIL (($choice -ge 0) -and ($choice -le 4))
     Switch ($choice) {
-        2 {Clear-Host; Inject-TuneUp_PC} ### NEED TO MAKE THIS
+        0 {Clear-Host; PC-Maintenance_submenu}
+        1 {Clear-Host; Inject-TuneUp_PC}
         2 {Clear-Host; Start-TuneUp_PC}
         3 {Clear-Host; Stop-TuneUp_AtLogon}
-        4 {Clear-Host; PC-Maintenance_submenu}
-        5 {EXIT}
+        4 {EXIT}
     }
 
     #Recursivly call the submenu
@@ -182,21 +178,20 @@ function TuneUp-PC_submenu {
 
 function Configure_Automatic_Sign_In_submenu {
     DO {
-        Write-Host ""
-        Write-Host "-=[ Configure Automatic Sign-In submenu ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ Configure Automatic Sign-In submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
+        Write-Host "0. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "1. " -NoNewline; Write-Host "CONFIGURE " -NoNewline -ForegroundColor Green; Write-Host "Automatic Sign-on"
         Write-Host "2. " -NoNewline; Write-Host "DISABLE " -NoNewline -ForegroundColor Red; Write-Host "Automatic Sign-on"
-        Write-Host "3. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "4. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "Enter a number, 1 thru 4"
+        Write-Host "3. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "Enter a number, 0 thru 3"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 4))
+    } UNTIL (($choice -ge 0) -and ($choice -le 3))
     Switch ($choice) {
+        0 {Clear-Host; PC-Maintenance_submenu}
         1 {Clear-Host; Enable-AutoLogon}
         2 {Clear-Host; Remove-AutoLogon}
-        3 {Clear-Host; PC-Maintenance_submenu}
-        4 {EXIT}
+        3 {EXIT}
     }
     #Recursivly call the submenu
     Configure_Automatic_Sign_In_submenu
@@ -204,19 +199,18 @@ function Configure_Automatic_Sign_In_submenu {
 
 function Standardize_PC_submenu {
     DO {
-        Write-Host ""
-        Write-Host "-=[ Standardize PC submenu ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ Standardize PC submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
+        Write-Host "0. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "1. " -NoNewline; Write-Host "STANDARDIZE " -NoNewline -ForegroundColor Cyan; Write-Host "PC Settings"
-        Write-Host "2. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "3. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "Enter a number, 1 thru 3"
+        Write-Host "2. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "Enter a number, 0 thru 2"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 3))
+    } UNTIL (($choice -ge 0) -and ($choice -le 2))
     Switch ($choice) {
+        0 {Clear-Host; PC-Maintenance_submenu}
         1 {Clear-Host; Set-PCDefaultSettings}
-        2 {Clear-Host; PC-Maintenance_submenu}
-        3 {EXIT}
+        2 {EXIT}
     }
     #Recursivly call the submenu
     Standardize_PC_submenu
@@ -224,9 +218,9 @@ function Standardize_PC_submenu {
 
 function Install_Software_submenu {
     DO {
-        Write-Host ""
-        Write-Host "-=[ Install Software submenu ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ Install Software submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
+        Write-Host "0. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host " 1. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "Image Compatible Software"
         Write-Host "    -Includes Browser, PDF Viewer, o365, VPN, -AND- Collaboration Software"
         Write-Host "    -Note: These are softwares that can be installed on an image"
@@ -241,12 +235,12 @@ function Install_Software_submenu {
         Write-Host "10. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "Profile-Specific Software"
         Write-Host "11. " -NoNewline; Write-Host "READ " -NoNewline -ForegroundColor Cyan; Write-Host "Software Config"
         Write-Host "12. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "Software Config"
-        Write-Host "13. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "14. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "        Enter a number, 1 thru 14"
+        Write-Host "13. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "        Enter a number, 0 thru 13"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 14))
+    } UNTIL (($choice -ge 0) -and ($choice -le 13))
     Switch ($choice) {
+        0 {Clear-Host; PC-Maintenance_submenu}
         1 {Clear-Host; Install-Image_Softwares}
         2 {Clear-Host; Choose-Browser}
         3 {Clear-Host; Choose-PDF_Viewer}
@@ -259,8 +253,7 @@ function Install_Software_submenu {
         10 {Clear-Host; Write-Host "This doesn't do anything yet"}
         11 {Clear-Host; Read-SoftwareConfig}
         12 {Clear-Host; Create-SoftwareConfig}
-        13 {Clear-Host; PC-Maintenance_submenu}
-        14 {EXIT}
+        13 {EXIT}
     }
     #Recursivly call the submenu
     Install_Software_submenu
@@ -268,19 +261,18 @@ function Install_Software_submenu {
 
 function Update_PC_submenu {
     DO {
-        Write-Host ""
-        Write-Host "-=[ Update PC submenu ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ Update PC submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
+        Write-Host "0. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "1. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "Windows Updates"
-        Write-Host "2. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "3. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "        Enter a number, 1 thru 3"
+        Write-Host "2. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "Enter a number, 0 thru 2"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 3))
+    } UNTIL (($choice -ge 0) -and ($choice -le 2))
     Switch ($choice) {
+        0 {Clear-Host; PC-Maintenance_submenu}
         1 {Clear-Host; Install-Windows_Updates}
-        2 {Clear-Host; PC-Maintenance_submenu}
-        3 {EXIT}
+        2 {EXIT}
     }
     #Recursivly call the submenu
     Update_PC_submenu
@@ -288,23 +280,22 @@ function Update_PC_submenu {
 
 function Migrate_User_Profile_submenu {
     DO {
-        Write-Host ""
-        Write-Host "-=[ Migrate User Profile submenu ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ Migrate User Profile submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
+        Write-Host "0. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
         Write-Host "1. " -NoNewline; Write-Host "BACKUP " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Transwiz" -ForegroundColor DarkCyan -NoNewline; Write-Host "  -Not developed yet" -ForegroundColor DarkRed
         Write-Host "2. " -NoNewline; Write-Host "RESTORE " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Transwiz" -ForegroundColor DarkCyan -NoNewline; Write-Host "  -Not developed yet" -ForegroundColor DarkRed
         Write-Host "3. " -NoNewline; Write-Host "SYNC " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Sync-UserProfileData script" -ForegroundColor Green
-        Write-Host "4. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "5. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "Enter a number, 1 thru 5"
+        Write-Host "4. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "Enter a number, 0 thru 4"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 5))
+    } UNTIL (($choice -ge 0) -and ($choice -le 4))
     Switch ($choice) {
+        0 {Clear-Host; PC-Maintenance_submenu}
         1 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_BACKUP}
         2 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_RESTORE}
         3 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_SYNC}
-        4 {Clear-Host; PC-Maintenance_submenu}
-        5 {EXIT}
+        4 {EXIT}
     }
     #Recursivly call the submenu
     Migrate_User_Profile_submenu
@@ -315,23 +306,22 @@ function Migrate_User_Profile_submenu {
 #########################################################################################################################################
 function Image-Maintenance_submenu {
     DO {
-        Write-Host ""
-        Write-Host "-=[ Image Maintenance ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ Image Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
+        Write-Host "0. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
         Write-Host "1. " -NoNewline; Write-Host "DOWNLOAD" -NoNewline -ForegroundColor Cyan; Write-Host " latest .esd file"
         Write-Host "2. " -NoNewline; Write-Host "EXTRACT" -NoNewline -ForegroundColor Cyan; Write-Host " basic .wim from .esd"
         Write-Host "3. " -NoNewline; Write-Host "CREATE" -NoNewline -ForegroundColor Cyan; Write-Host " **MODDED** .WIM (Injects Automated Setup into basic .WIM)"
-        Write-Host "4. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
-        Write-Host "5. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "    Enter a number, 1 thru 5"
+        Write-Host "4. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "    Enter a number, 0 thru 4"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 5))
+    } UNTIL (($choice -ge 0) -and ($choice -le 4))
     Switch ($choice) {
+        0 {Clear-Host; Main_Menu}
         1 {Clear-Host; & $FilePath_ImageMaintenance_DOWNLOAD_Latest_ESD_File}
         2 {Clear-Host; & $FilePath_ImageMaintenance_EXTRACT_WIM_from_ESD}
         3 {Clear-Host; & $FilePath_ImageMaintenance_CREATE_Modded_WIM}
-        4 {Clear-Host; Main_Menu}
-        5 {EXIT}
+        4 {EXIT}
     }
     # Recursivly call the Image Maintenance Menu
     Image-Maintenance_submenu
@@ -348,9 +338,9 @@ function ImagingTool-Maintenance_submenu {
     Import-Module Automate-Setup -WarningAction SilentlyContinue -Force
 
     DO {
-        Write-Host ""
-        Write-Host "-=[ Tool Maintenance ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ Tool Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
+        Write-Host "0. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
         Write-Host "1. " -NoNewline; Write-Host "BACKUP " -NoNewline -ForegroundColor Green; Write-Host "Imaging Drive (Minus Images - Can save a lot of time and local disk space)"
         Write-Host "2. " -NoNewline; Write-Host "BACKUP " -NoNewline -ForegroundColor Green; Write-Host "Imaging Drive"
         Write-Host "3. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "WinPE USB AutoDeploy Package"
@@ -360,12 +350,12 @@ function ImagingTool-Maintenance_submenu {
         Write-Host "7. " -NoNewline; Write-Host "RESTORE " -NoNewline -ForegroundColor DarkCyan; Write-Host "Imaging Drive"
         Write-Host "8. " -NoNewline; Write-Host "UPDATE " -NoNewline -ForegroundColor DarkYellow; Write-Host "Imaging Tool"
         Write-Host "9. " -NoNewline; Write-Host "UPDATE " -NoNewline -ForegroundColor DarkYellow; Write-Host "GitHub Repository"
-        Write-Host "10. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
-        Write-Host "11. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "Enter a number, 1 thru 11"
+        Write-Host "10. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "Enter a number, 0 thru 10"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 11))
+    } UNTIL (($choice -ge 0) -and ($choice -le 10))
     Switch ($choice) {
+        0 {Clear-Host; Main_Menu}
         1 {Clear-Host; & $FilePath_ToolMaintenance_BACKUP_Minus_Images}
         2 {Clear-Host; & $FilePath_ToolMaintenance_BACKUP}
         3 {Clear-Host; & $FilePath_ToolMaintenance_CREATE_AutoDeploy_Package}
@@ -375,8 +365,7 @@ function ImagingTool-Maintenance_submenu {
         7 {Clear-Host; & $FilePath_ToolMaintenance_RESTORE}
         8 {Clear-Host; Update-Scripts}
         9 {Clear-Host; Update-GitHubRepo}
-        10 {Clear-Host; Main_Menu}
-        11 {EXIT}
+        10 {EXIT}
     }
     ImagingTool-Maintenance_submenu
 } # End of Tool-Maintenance
@@ -562,10 +551,8 @@ Clear-Host
 # Prompt to restart as administrator if not currently
 $CurrentSessionAdmin=([bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544"))
 if (!$CurrentSessionAdmin) {
-    Write-Host ""
-    Write-Host "Script is not being run as an Administrator." -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Re-launch as Admin or exit"
+    Write-Host "`nScript is not being run as an Administrator." -ForegroundColor Red
+    Write-Host "`nRe-launch as Admin or exit"
     Write-Host "[ENTER]" -NoNewline -ForegroundColor Green; Write-Host " Re-launch, " -NoNewline; Write-Host "[N]" -NoNewline -ForegroundColor Red; Write-Host " Exit:" -NoNewline
     $choiceInput = Read-Host
     switch -Regex ($choiceInput) {
