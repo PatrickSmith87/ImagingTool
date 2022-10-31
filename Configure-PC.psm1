@@ -5,8 +5,6 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
-Import-Module Install-Software -WarningAction SilentlyContinue -Force
-Import-Module TuneUp-PC -WarningAction SilentlyContinue -Force
 Clear-Host
 
 # Variables may be defined from parent script. If not, they will be defined from here.
