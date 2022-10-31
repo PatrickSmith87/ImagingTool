@@ -5,7 +5,6 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
-using module Configure-PC
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 
 # Modules Folder
@@ -25,10 +24,15 @@ function Inject-TuneUp_PC {
     $what = '/COPY:DAT /DCOPY:DA /E'
     $options = '/R:5 /W:6 /LOG+:C:\Setup\TuneUp_Log.log /TEE /V /XO /XX'
     
-    $USB = [ImagingUSB]::new()
-    if ($USB.Exists()) {
-        $USB_Drive = $USB.Drive_Letter
+
+    # Get USB Drive
+    foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+        $Test_Path = "$Drive_Letter" + ":\PC_Setup"
+        If (Test-Path $Test_Path -ErrorAction SilentlyContinue) {
+            $USB_Drive = "$Drive_Letter" + ":"
+        }
     }
+
     $source = "$USB_Drive\sources\PC-Maintenance\2. TuneUp PC\Setup\_TuneUp_PC"
     $dest = "C:\Setup\_TuneUp_PC"
     if (!(Test-Path $dest)) {New-Item $dest -ItemType Directory | Out-Null}   
