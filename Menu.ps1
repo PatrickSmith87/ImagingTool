@@ -16,6 +16,32 @@ Write-Host $ScriptDir
 ############################################################### MAIN MENU ###############################################################
 #########################################################################################################################################
 function Main_Menu {
+    # Import Automate-Setup module
+    New-Item -Path "$FolderPath_Local_Modules\Automate-Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    If (Test-Path $FilePath_Local_AutomateSetup_Module) {Remove-Item $FilePath_Local_AutomateSetup_Module -Force}
+    Copy-Item -Path $FilePath_USB_AutomateSetup_Module -Destination $FilePath_Local_AutomateSetup_Module -Force
+    Import-Module Automate-Setup -WarningAction SilentlyContinue -Force | Out-Null
+    
+    # Import Configure-PC module
+    New-Item -Path "$FolderPath_Local_Modules\Configure-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    If (Test-Path $FilePath_Local_ConfigurePC_Module) {Remove-Item $FilePath_Local_ConfigurePC_Module -Force}
+    Copy-Item -Path $FilePath_USB_ConfigurePC_Module -Destination $FilePath_Local_ConfigurePC_Module -Force
+    Import-Module Configure-PC -WarningAction SilentlyContinue -Force | Out-Null
+
+    # Import Install-Software module
+    New-Item -Path "$FolderPath_Local_Modules\Install-Software" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    If (Test-Path $FilePath_Local_InstallSoftware_Module) {Remove-Item $FilePath_Local_InstallSoftware_Module -Force}
+    Copy-Item -Path $FilePath_USB_InstallSoftware_Module -Destination $FilePath_Local_InstallSoftware_Module -Force
+    Import-Module Install-Software -WarningAction SilentlyContinue -Force | Out-Null
+
+    # Import TuneUp-PC module
+    New-Item -Path "$FolderPath_Local_Modules\TuneUp-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    If (Test-Path $FilePath_Local_TuneUpPC_Module) {Remove-Item $FilePath_Local_TuneUpPC_Module -Force}
+    Copy-Item -Path $FilePath_USB_TuneUpPC_Module -Destination $FilePath_Local_TuneUpPC_Module -Force
+    Import-Module TuneUp-PC -WarningAction SilentlyContinue -Force
+    
+    Clear-Host
+    
     DO {
         Write-Host "`n-=[ Main Menu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -51,32 +77,6 @@ function Main_Menu {
 ############################################################ PC Maintenance #############################################################
 #########################################################################################################################################
 function PC-Maintenance_submenu {
-    # Import Automate-Setup module
-    New-Item -Path "$FolderPath_Local_Modules\Automate-Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-    If (Test-Path $FilePath_Local_AutomateSetup_Module) {Remove-Item $FilePath_Local_AutomateSetup_Module -Force}
-    Copy-Item -Path $FilePath_USB_AutomateSetup_Module -Destination $FilePath_Local_AutomateSetup_Module -Force
-    Import-Module Automate-Setup -WarningAction SilentlyContinue -Force | Out-Null
-    
-    # Import Configure-PC module
-    New-Item -Path "$FolderPath_Local_Modules\Configure-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-    If (Test-Path $FilePath_Local_ConfigurePC_Module) {Remove-Item $FilePath_Local_ConfigurePC_Module -Force}
-    Copy-Item -Path $FilePath_USB_ConfigurePC_Module -Destination $FilePath_Local_ConfigurePC_Module -Force
-    Import-Module Configure-PC -WarningAction SilentlyContinue -Force | Out-Null
-
-    # Import Install-Software module
-    New-Item -Path "$FolderPath_Local_Modules\Install-Software" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-    If (Test-Path $FilePath_Local_InstallSoftware_Module) {Remove-Item $FilePath_Local_InstallSoftware_Module -Force}
-    Copy-Item -Path $FilePath_USB_InstallSoftware_Module -Destination $FilePath_Local_InstallSoftware_Module -Force
-    Import-Module Install-Software -WarningAction SilentlyContinue -Force | Out-Null
-
-    # Import TuneUp-PC module
-    New-Item -Path "$FolderPath_Local_Modules\TuneUp-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-    If (Test-Path $FilePath_Local_TuneUpPC_Module) {Remove-Item $FilePath_Local_TuneUpPC_Module -Force}
-    Copy-Item -Path $FilePath_USB_TuneUpPC_Module -Destination $FilePath_Local_TuneUpPC_Module -Force
-    Import-Module TuneUp-PC -WarningAction SilentlyContinue -Force
-    
-    Clear-Host
-
     DO {
         Write-Host "`n-=[ PC Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -332,12 +332,6 @@ function Image-Maintenance_submenu {
 ########################################################## Tool Maintenance #############################################################
 #########################################################################################################################################
 function ImagingTool-Maintenance_submenu {
-    # Import Automate-Setup module
-    New-Item -Path "$FolderPath_Local_Modules\Automate-Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-    If (Test-Path $FilePath_Local_AutomateSetup_Module) {Remove-Item $FilePath_Local_AutomateSetup_Module -Force}
-    Copy-Item -Path $FilePath_USB_AutomateSetup_Module -Destination $FilePath_Local_AutomateSetup_Module -Force
-    Import-Module Automate-Setup -WarningAction SilentlyContinue -Force
-
     DO {
         Write-Host "`n-=[ Tool Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow

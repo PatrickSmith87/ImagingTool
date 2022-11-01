@@ -6,7 +6,8 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
-using module Configure-PC
+#using module Configure-PC
+Clear-Host
 
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
@@ -104,7 +105,7 @@ class Update {
 
     [void]hidden Spread([string]$Location,[string]$Name) {
         $Source = "$Location\$Name-main"
-        $USB = [ImagingUSB]::new()
+        $USB = New-ImagingUSB
         $WinPEDrive = $USB.WinPE_Drive_Letter
         $ImagingDrive = $USB.Drive_Letter
 
@@ -182,7 +183,7 @@ class Update {
         #$GitHubRepo = "C:\Git-Repositories\ImagingTool"
         $GitHubRepo = $RepoPath
 
-        $USB = [ImagingUSB]::new()
+        $USB = New-ImagingUSB
         if ($USB.Exists()) {
             $WinPEDrive                                         = $USB.WinPE_Drive_Letter
             $FilePath_USB_WinPE_Menu                            = "$WinPEDrive\sources\WinPE-Menu.ps1"
@@ -243,7 +244,7 @@ function Get-ClientSettings {
     #>
     
     # Get USB Paths
-    $USB = [ImagingUSB]::new()
+    $USB = New-ImagingUSB
     if ($USB.Exists()) {
         $USB_Drive = $USB.Drive_Letter
         $FolderPath_USB_Automated_Setup_Client_Folders = $USB.Automated_Setup_Client_Folders
@@ -369,7 +370,7 @@ function Save-ClientSettings {
     #>
 
     # Get USB Paths
-    $USB = [ImagingUSB]::new()
+    $USB = New-ImagingUSB
     if ($USB.Exists()) {
         $USB_Drive = $USB.Drive_Letter
         $FolderPath_USB_Automated_Setup_Client_Folders = $USB.Automated_Setup_Client_Folders
@@ -383,7 +384,7 @@ function Save-ClientSettings {
             Write-Host "If you want $ClientConfig_FileName to be saved to your Imaging Tool, " -NoNewline; Write-Host "plug it in now" -NoNewline -ForegroundColor Red; Write-Host " before continuing"
             Pause
             # Get USB Paths
-            $USB = [ImagingUSB]::new()
+            $USB = New-ImagingUSB
             if ($USB.Exists()) {
                 $USB_Drive = $USB.Drive_Letter
                 $FolderPath_USB_Automated_Setup_Client_Folders = $USB.Automated_Setup_Client_Folders
@@ -604,7 +605,7 @@ function Read-ClientConfig {
     #>
 
     # Get USB Paths
-    $USB = [ImagingUSB]::new()
+    $USB = New-ImagingUSB
     if ($USB.Exists()) {
         $USB_Drive = $USB.Drive_Letter
         $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Automated_Setup_Client_Configs
@@ -665,7 +666,7 @@ function Create-RegistryBackupFile {
         #>
 
         # Get USB Paths
-        $USB = [ImagingUSB]::new()
+        $USB = New-ImagingUSB
         if ($USB.Exists()) {
             $USB_Drive = $USB.Drive_Letter
             $FolderPath_USB_Automated_Setup_RegistryBackup = $USB.Automated_Setup_RegistryBackup_Folder

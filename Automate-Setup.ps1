@@ -5,8 +5,8 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
-using module Configure-PC
-using module Automate-Setup
+#using module Configure-PC
+#using module Automate-Setup
 Import-Module Automate-Setup -WarningAction SilentlyContinue -Force
 Import-Module Configure-PC -WarningAction SilentlyContinue -Force
 Import-Module Install-Software -WarningAction SilentlyContinue -Force

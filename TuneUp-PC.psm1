@@ -5,7 +5,8 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
-using module Configure-PC
+#using module Configure-PC
+Clear-Host
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 
 # Modules Folder
@@ -25,7 +26,7 @@ function Inject-TuneUp_PC {
     $what = '/COPY:DAT /DCOPY:DA /E'
     $options = '/R:5 /W:6 /LOG+:C:\Setup\TuneUp_Log.log /TEE /V /XO /XX'
     
-    $USB = [ImagingUSB]::new()
+    $USB = New-ImagingUSB
     if ($USB.Exists()) {
         $USB_Drive = $USB.Drive_Letter
     }

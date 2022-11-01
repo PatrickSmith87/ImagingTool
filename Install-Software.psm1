@@ -5,7 +5,7 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
-using module Configure-PC
+#using module Configure-PC
 Clear-Host
 
 # Variables may be defined from parent script. If not, they will be defined from here.
@@ -67,7 +67,7 @@ function Create-SoftwareConfig {
 
 function Read-SoftwareConfig {
     $SoftwareConfig = $null
-    $USB = [ImagingUSB]::new()
+    $USB = New-ImagingUSB
     if ($USB.Exists()) {
         $FolderPath_USB_Install_Software_Software_Configs  = $USB.Install_Software_Software_Configs
     }
@@ -132,7 +132,7 @@ function Get-SoftwareSettings {
     $Global:Software_Settings = $null
     $Local_Software_Config_File = "$FolderPath_Local_Software_Configs\$SoftwareName.SoftwareConfig"
     # Get USB Paths
-    $USB = [ImagingUSB]::new()
+    $USB = New-ImagingUSB
     if ($USB.Exists()) {
         $FolderPath_USB_Install_Software_Software_Configs  = $USB.Install_Software_Software_Configs
         $USB_Software_Config_File = "$FolderPath_USB_Install_Software_Software_Configs\$SoftwareName.SoftwareConfig"
@@ -157,7 +157,7 @@ function Save-SoftwareSettings {
     $Global:Software_Settings | ConvertTo-Json -depth 1 | Set-Content -Path $Local_Software_Config_File -Force
     
     # Save to USB if plugged in
-    $USB = [ImagingUSB]::new()
+    $USB = New-ImagingUSB
     if ($USB.Exists()) {
         $FolderPath_USB_Install_Software_Software_Configs  = $USB.Install_Software_Software_Configs
         $USB_Software_Config_File = "$FolderPath_USB_Install_Software_Software_Configs\$SoftwareName.SoftwareConfig"
@@ -817,7 +817,7 @@ function Install-Software {
     
     # Define installer parameters that are dependant on installer type, then Search to locate the installer
     # Produces $Installer_Path and $Working_Directory
-    $USB = [ImagingUSB]::new()
+    $USB = New-ImagingUSB
     if ($USB.Exists()) {
         #$USB_Drive = $USB.Drive_Letter
         $FolderPath_USB_Install_Software_ODT               = $USB.Install_Software_ODT
