@@ -74,7 +74,7 @@ function Build-Image {
 ##     -=[ POST-Image Tasks ]=-     ##
 ######################################
     Write-Host "`n-=[ POST-Image Tasks ]=-" -ForegroundColor DarkGray
-    Set-ClockTimeZone -AutomatedSetup
+    Set-ClockTimeZone
     Reset-Clock
     Rename-PC -PostImage
     Install-RMM_Agent

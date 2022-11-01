@@ -302,10 +302,10 @@ function Choose-FileShareApp {
                 Start-Process "$InstallerPath" -Wait -ArgumentList '/install /quiet /norestart'
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path "C:\Program Files\Citrix\Citrix Files\CitrixFiles.exe") {
-                    Write-Host "Installed - $Software" -ForegroundColor Green
+                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
                     if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
-                    Write-Host "$Software is not installed" -ForegroundColor Red
+                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
                     [int]$Global:InstallationErrorCount++
                 }
@@ -409,6 +409,7 @@ function Choose-PDF_Viewer {
         $choice = $null
         If ($Global:ClientSettings.PDF_Viewer) {
             $choice = $Global:ClientSettings.PDF_Viewer
+            if ($choice -eq 3) {$choice = 1}
         } else {
         # Otherwise ask tech to choose action to take
             DO {
@@ -417,7 +418,7 @@ function Choose-PDF_Viewer {
                 Write-Host "Which PDF Viewer(s) do you want to install?"
                 Write-Host "1. Adobe Acrobat Reader DC"
                 Write-Host "2. Adobe Acrobat Pro DC - Trial Installer"
-                Write-Host "3. Adobe Acrobat Reader DC -AND- Adobe Acrobat Pro DC - Trial Installer"
+                Write-Host "3. Adobe Acrobat Reader DC -AND- Adobe Acrobat Pro DC - Trial Installer" -NoNewline; Write-Host " <--- No longer possible - Do Not Choose" -ForegroundColor Red
                 Write-Host "4. CutePDF Writer (and converter)"
                 Write-Host "5. Adobe Acrobat Reader DC -AND- CutePDF Writer (and converter)"
                 Write-Host "6. NONE"
@@ -441,12 +442,11 @@ function Choose-PDF_Viewer {
                 Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
             }
             3 {
-                $SoftwareName = "Adobe Acrobat Reader DC"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $null
-
-                $SoftwareName = "Adobe Acrobat Pro DC - Trial Installer"
-                $CompletionFile = "$StepStatus-3.txt"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                Write-Host "Option 3 is no longer possible, please remove this choice from your client config file and then relog to start the Automated Setup script again"
+                $ClientConfigFile = (Get-ChildItem -Path "$FolderPath_Local_Client_Config\*.ClientConfig" -ErrorAction SilentlyContinue).FullName
+                Write-Host "Client Config File: $ClientConfigFile"
+                PAUSE
+                Choose-PDF_Viewer
             }
             4 {
                 $SoftwareName = "CutePDF Writer"

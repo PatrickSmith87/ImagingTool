@@ -1262,8 +1262,9 @@ function CheckPoint-Public_Desktop {
         Write-Host "  to:" -NoNewline -ForegroundColor Cyan; Write-Host " $FolderPath_Local_PublicDesktop"
         Write-Host "`nPlease take a moment to populate the client's " -NoNewline; Write-Host "$FolderPath_Local_Client_Public_Desktop " -ForegroundColor Cyan -NoNewline; Write-Host "folder, before continuing..."
         Write-Host "(Such as RDP links, Browser links, VPN Connection Guides, etc...)"
+        New-Item -Path $FolderPath_Local_Client_Public_Desktop -ItemType Directory -Force | Out-Null
         PAUSE
-        If (($items = Get-ChildItem $FolderPath_Local_Client_Public_Desktop).count -gt 0) {Copy-Item -Path (Get-ChildItem $FolderPath_Local_Client_Public_Desktop).FullName -Destination "$FolderPath_Local_PublicDesktop" -Recurse}
+        If (($items = Get-ChildItem $FolderPath_Local_Client_Public_Desktop).count -gt 0) {Copy-Item -Path $items.FullName -Destination "$FolderPath_Local_PublicDesktop" -Recurse}
         if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
