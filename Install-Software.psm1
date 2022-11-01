@@ -259,7 +259,7 @@ function Choose-FileShareApp {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
+    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Citrix Files for Windows has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         #If (Test-Path "$StepStatus-2.txt") {Write-Host "Citrix Files for Outlook has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         #If (Test-Path "$StepStatus-3.txt") {Write-Host "Both Citrix Files for Windows " -NoNewline; Write-Host "and " -NoNewline -ForegroundColor Cyan; Write-Host "Citrix Files for Outlook have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -331,7 +331,7 @@ function Choose-Browser {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
+    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Chrome has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "Firefox has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "Both Chrome " -NoNewline; Write-Host "and " -NoNewline -ForegroundColor Cyan; Write-Host "Firefox have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -396,7 +396,7 @@ function Choose-PDF_Viewer {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
+    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Adobe Acrobat Reader DC has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "Adobe Acrobat Pro DC - Trial Installer has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "Adobe Acrobat Reader DC " -NoNewline; Write-Host "-AND- " -NoNewline -ForegroundColor Cyan; Write-Host "Adobe Acrobat Pro DC - Trial Installer have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -478,7 +478,7 @@ function Choose-o365 {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
+    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "o365 Enterprise (64-bit) has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "o365 Business (64-bit) has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "o365 Enterprise (32-bit) has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -605,7 +605,7 @@ function Choose-VPN {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
+    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "WatchGuard VPN has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "VPN Installations have been " -NoNewline; Write-Host "skipped" -ForegroundColor Green}
     # Assuming no progress on this step yet
@@ -671,7 +671,7 @@ function Choose-Collaboration_Software {
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If (Test-Path "$StepStatus*.txt" -and $global:Automated_Setup) {
+    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Cisco Jabber has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "ZAC has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "ZAC " -NoNewline; Write-Host "& " -NoNewline -ForegroundColor Cyan; Write-Host "Zulty's Fax Driver have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
