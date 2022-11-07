@@ -23,165 +23,389 @@ $FolderPath_Local_Software_Configs      = "C:\Setup\_Software_Collection\_Softwa
 $FolderPath_Local_ODT_Software          = "C:\Setup\_Software_Collection\ODT"
 $FolderPath_Local_Profile_Software      = "C:\Setup\_Software_Collection\Profile_Specific_Software"
 $FolderPath_Local_Standard_Software     = "C:\Setup\_Software_Collection\Standard_Software"
+$Software                               = New-Software
 
-##############################################################
-############## START OF CLIENT CONFIG FUNCTIONS ##############
-##############################################################
+function New-Software {
+    [Software]::new()
+} Export-ModuleMember -Function New-Software
 
-function Create-SoftwareConfig {
-    $in = $null
-    Do {$in = Read-Host -Prompt "Input Software Name"} Until ($in -ne "")
-    $Global:Software_Settings = [PSCustomObject]@{
-        Name = $in
-    }
-    Save-SoftwareSettings
+class Software {
+    [System.Object]$Config
 
-    $in = $null
-    Do {$in = Read-Host -Prompt "Input Installer Name (Example: Setup.exe)"} Until ($in -ne "")
-    Add-SoftwareSetting -Name Installer_Name -Value $in
-
-    $in = $null
-    Do {$in = Read-Host -Prompt "Input Installer Source { ODT | Profile_Specific_Software | Standard_Software}"} Until ($in -ne "")
-    Add-SoftwareSetting -Name Installer_Source -Value $in
-
-    Write-Host "`nThe next two settings are for a DIRECT DOWNLOAD URL and for the general Installer Download Page"
-    Write-Host "Only one of the two should be entered, ideally the Direct Download URL..."
-    Write-Host "It is also ok to provide neither"
-
-    $in = $null
-    $in = Read-Host -Prompt 'Input Installer DIRECT DOWNLOAD URL (Example: www.DIRECTdownloadlink.com)'
-    If ($in -ne "") {Add-SoftwareSetting -Name URL -Value $in}
-
-    $in = $null
-    $in = Read-Host -Prompt 'Input Installer Download Page (Example: https://get.adobe.com/reader/)'
-    If ($in -ne "") {Add-SoftwareSetting -Name Manual_URL -Value $in}
-
-    $in = $null
-    $in = Read-Host -Prompt 'Input Installation Arguments (Example: "/qn" if .msi, maybe "" or "$null" or "/S /v/qn" or "/silent","/install" if .exe)'
-    If ($in -ne "") {Add-SoftwareSetting -Name Arguments -Value $in}
-
-    $in = $null
-    $in = Read-Host -Prompt "Input Installer Verification Path (Example: C:\Program Files\Google\Chrome\Application\chrome.exe)"
-    If ($in -ne "") {Add-SoftwareSetting -Name Verification_Path -Value $in}
-} Export-ModuleMember -Function Create-SoftwareConfig
-
-function Read-SoftwareConfig {
-    $SoftwareConfig = $null
-    $USB = New-ImagingUSB
-    if ($USB.Exists()) {
-        $FolderPath_USB_Install_Software_Software_Configs  = $USB.Install_Software_Software_Configs
+    Software() {
+        $this.Load_Configs()
     }
 
-    If ($USB.Exists()) {
-        $SoftwareConfigs = (Get-ChildItem -Path "$FolderPath_USB_Install_Software_Software_Configs\*.SoftwareConfig" -ErrorAction SilentlyContinue)
-        Write-Host "Imaging Tool Software Config Repository found. Loading Software Config files.." -ForegroundColor Green
-    } else {
-        $SoftwareConfigs = (Get-ChildItem -Path "$FolderPath_Local_Software_Configs\*.SoftwareConfig" -ErrorAction SilentlyContinue)
-        Write-Host "Local Software Config Repository found. Loading Software Config files.." -ForegroundColor Green
-    }
-    If ($SoftwareConfigs.Count -gt 0) {
-        Write-Host ""
-        Do {
-            Write-Host "   -=[ Available Software Config Files ]=-"
-            $Count = 1
-            $Line = "   $Count" + ": Read ALL"
-            Write-Host $Line
-            $Count++
-            ForEach ($SoftwareConfig in $SoftwareConfigs) {
-                $Line = "   $Count" + ": " + $SoftwareConfig.Name
-                Write-Host $Line
-                $Count++
+    [void]hidden Load_Configs() {
+        $this.Config = $null
+
+        function Add-SoftwareHash {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true)]
+                [string] $Name,
+        
+                [Parameter(Mandatory = $true)]
+                [string] $Installer_Name,
+                
+                [Parameter(Mandatory = $true)]
+                [string] $Verification_Path,
+                
+                [Parameter(Mandatory = $true)]
+                [string] $Installer_Source,
+                
+                [Parameter(Mandatory = $false)]
+                [string] $Manual_URL,
+                
+                [Parameter(Mandatory = $false)]
+                [string] $URL,
+                
+                [Parameter(Mandatory = $false)]
+                [string] $Arguments
+            )
+        
+            $Hash = @{
+                    "Name"=$Name;
+                    "Installer_Name"=$Installer_Name;
+                    "Verification_Path"=$Verification_Path;
+                    "Installer_Source"=$Installer_Source;
             }
-            $Line = "   $Count" + ": " + "OR, Go Back..."
-            Write-Host $Line
-            Write-Host ""
-            [int]$choice = Read-Host -Prompt "Which Client Config file would you like to read the properties of? (Enter a number from 1 to $Count)"
-        } Until (($choice -gt 0) -and ($choice -le $Count))
-        If (($choice -gt 1) -and ($choice -lt $Count)) {
-            $SoftwareConfig = $SoftwareConfigs[$choice-2]
-            Write-Host ">Loading"$SoftwareConfig.Name -ForegroundColor Yellow
-            $SoftwareConfigFile = $SoftwareConfig.FullName
-            Get-Member -InputObject (Get-Content -Path $SoftwareConfigFile | ConvertFrom-Json) -MemberType NoteProperty | Format-Table -Property Name,Definition -AutoSize
-        } elseif ($choice -eq 1) {
-            ForEach ($SoftwareConfig in $SoftwareConfigs) {
-                Write-Host ""
-                Write-Host ">Loading"$SoftwareConfig.Name -ForegroundColor Yellow
-                $SoftwareConfigFile = $SoftwareConfig.FullName
-                Get-Member -InputObject (Get-Content -Path $SoftwareConfigFile | ConvertFrom-Json) -MemberType NoteProperty | Format-Table -Property Name,Definition -AutoSize    
-            }
+            if ($Manual_URL) {$Hash.Add("Manual_URL",$Manual_URL)}
+            if ($URL) {$Hash.Add("URL",$URL)}
+            if ($Arguments) {$Hash.Add("Arguments",$Arguments)}
+            
+            $Software_Settings.Add($Name,$Hash)
         }
-    } else {
-        If ($USB.Exists()) {
-            Write-Host "Could not find any Software Configs in the Imaging Tool Software Config Repository:"
-            Write-Host "> $FolderPath_USB_Install_Software_Software_Configs"
-        } else {
-            Write-Host "Could not find any Software Configs in the Local Software Config Repository:"
-            Write-Host "> $FolderPath_Local_Software_Configs"
-        }
-        Write-Host ""
-    }
-} Export-ModuleMember -Function Read-SoftwareConfig
-
-function Get-SoftwareSettings {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $SoftwareName
-    )
-
-    $Global:Software_Settings = $null
-    $Local_Software_Config_File = "$FolderPath_Local_Software_Configs\$SoftwareName.SoftwareConfig"
-    # Get USB Paths
-    $USB = New-ImagingUSB
-    if ($USB.Exists()) {
-        $FolderPath_USB_Install_Software_Software_Configs  = $USB.Install_Software_Software_Configs
-        $USB_Software_Config_File = "$FolderPath_USB_Install_Software_Software_Configs\$SoftwareName.SoftwareConfig"
-    }
-
-    # First, check for a Software Config file under $FolderPath_Local_Software_Configs
-    If (Test-Path $Local_Software_Config_File) {
-        $Global:Software_Settings = (Get-Content -Path $Local_Software_Config_File | ConvertFrom-Json)
-    # Then, check for a Software Config file under $FolderPath_USB_Install_Software_Software_Configs
-    } elseif (Test-Path $USB_Software_Config_File) {$Global:Software_Settings = (Get-Content -Path $USB_Software_Config_File | ConvertFrom-Json)}
-
-    If ($Global:Software_Settings) {
-        #Write-Host "$SoftwareName software config has been loaded"
-    }
-} Export-ModuleMember -Function Get-SoftwareSettings
-
-function Save-SoftwareSettings {
-    $SoftwareName = $Global:Software_Settings.Name
-
-    # Save locally
-    $Local_Software_Config_File = "$FolderPath_Local_Software_Configs\$SoftwareName.SoftwareConfig"
-    $Global:Software_Settings | ConvertTo-Json -depth 1 | Set-Content -Path $Local_Software_Config_File -Force
+        
+        $Software_Settings = @{}
     
-    # Save to USB if plugged in
-    $USB = New-ImagingUSB
-    if ($USB.Exists()) {
-        $FolderPath_USB_Install_Software_Software_Configs  = $USB.Install_Software_Software_Configs
-        $USB_Software_Config_File = "$FolderPath_USB_Install_Software_Software_Configs\$SoftwareName.SoftwareConfig"
-        $Global:Software_Settings | ConvertTo-Json -depth 1 | Set-Content -Path $USB_Software_Config_File -Force
+        Add-SoftwareHash -Name "Adobe Acrobat Pro DC - Trial Installer"`
+                         -Installer_Name "rdracrobatdc_acr_xa_mdr_install.exe"`
+                         -Verification_Path "C:\Program Files (x86)\Adobe\Acrobat DC\Acrobat\Acrobat.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -Manual_URL "https://get.adobe.com/reader/download?os=Windows+10&name=AcrobatProDC&lang=en&nativeOs=Windows+10&accepted=&declined=mss%2Cmsc&preInstalled=&site=landing"
+        
+        Add-SoftwareHash -Name "Adobe Acrobat Reader DC"`
+                         -Installer_Name "readerdc64_en_xa_mdr_install.exe"`
+                         -Verification_Path "C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -Manual_URL "https://get.adobe.com/reader/download?os=Windows+10&name=Reader+DC+2022.001.20117+English+Windows%2864Bit%29&lang=en&nativeOs=Windows+10&accepted=&declined=mss%2Cmsc&preInstalled=&site=landing"
+        
+        Add-SoftwareHash -Name "Chrome"`
+                         -Installer_Name "ChromeInstaller.exe"`
+                         -Verification_Path "C:\Program Files\Google\Chrome\Application\chrome.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -URL "http://dl.google.com/chrome/install/latest/chrome_installer.exe"`
+                         -Arguments '"/silent","/install"'
+        
+        Add-SoftwareHash -Name "CutePDF Writer"`
+                         -Installer_Name "Ninite CutePDF Installer.exe"`
+                         -Verification_Path "C:\Program Files (x86)\CutePDF Writer\CutePDFWriter.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -URL "https://ninite.com/cutepdf/ninite.exe"
+        
+        Add-SoftwareHash -Name "Dell Support Assist"`
+                         -Installer_Name "Dell_Support_Assist_Installer.exe"`
+                         -Verification_Path "C:\Setup"`
+                         -Installer_Source "Standard_Software"`
+                         -URL "https://downloads.dell.com/serviceability/catalog/SupportAssistInstaller.exe"`
+                         -Arguments "/S"
+        
+        Add-SoftwareHash -Name "Dropbox"`
+                         -Installer_Name "DropboxInstaller.exe"`
+                         -Verification_Path "C:\Program Files (x86)\Dropbox\Client\Dropbox.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -Manual_URL "https://www.dropbox.com/downloading"`
+                         -Arguments "/S"
+        
+        Add-SoftwareHash -Name "Firefox"`
+                         -Installer_Name "FirefoxInstaller.exe"`
+                         -Verification_Path "C:\Program Files\Mozilla Firefox\firefox.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -URL "https://download.mozilla.org/?product=firefox-latest-ssl"`
+                         -Arguments "/S"
+        
+        Add-SoftwareHash -Name "Microsoft 365 Apps for business - en-us (32-bit)"`
+                         -Installer_Name "setup.exe"`
+                         -Verification_Path "C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE"`
+                         -Installer_Source "ODT"`
+                         -Arguments "/configure o365Business1_32-bit.xml"
+        
+        Add-SoftwareHash -Name "Microsoft 365 Apps for business - en-us (64-bit)"`
+                         -Installer_Name "setup.exe"`
+                         -Verification_Path "C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE"`
+                         -Installer_Source "ODT"`
+                         -Arguments "/configure o365Business1.xml"
+        
+        Add-SoftwareHash -Name "Microsoft 365 Apps for enterprise - en-us (32-bit)"`
+                         -Installer_Name "setup.exe"`
+                         -Verification_Path "C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE"`
+                         -Installer_Source "ODT"`
+                         -Arguments "/configure o365Enterprise_32-bit.xml"
+        
+        Add-SoftwareHash -Name "Microsoft 365 Apps for enterprise - en-us (64-bit)"`
+                         -Installer_Name "setup.exe"`
+                         -Verification_Path "C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE"`
+                         -Installer_Source "ODT"`
+                         -Arguments "/configure o365ProPlus1.xml"
+        
+        Add-SoftwareHash -Name "MXIE"`
+                         -Installer_Name "mxie64-15.0.6.msi"`
+                         -Verification_Path "C:\Program Files (x86)\Zultys\MXIE\Bin\mxie.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -Arguments "/qn"
+        
+        Add-SoftwareHash -Name "ZAC"`
+                         -Installer_Name "ZAC_x64-8.0.28.exe"`
+                         -Verification_Path "C:\Program Files (x86)\Zultys\ZAC\zac.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -URL "https://mirror.zultys.biz/ZAC/ZAC_x64-8.0.28.exe"`
+                         -Arguments "/S /v/qn"
+        
+        Add-SoftwareHash -Name "Zultys Fax 2.0 Printer"`
+                         -Installer_Name "Zultys_Fax_2.0_x64.msi"`
+                         -Verification_Path "C:\Program Files\Zultys\Zultys Fax 2.0 Printer\display.ico"`
+                         -Installer_Source "Standard_Software"`
+                         -URL "http://fumcgp.mxvirtual.com/Zultys_Fax_2.0_x64.msi"`
+                         -Arguments "/qn"
+        
+        Add-SoftwareHash -Name "Citrix Files for Windows (ShareFile)"`
+                         -Installer_Name "CitrixFilesForWindows-*.exe"`
+                         -Verification_Path "C:\Program Files\Citrix\Citrix Files\CitrixFiles.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -Manual_URL ""`
+                         -Arguments "/install /quiet /norestart"
+
+        Add-SoftwareHash -Name "Cisco Jabber"`
+                         -Installer_Name "CiscoJabberSetup*.msi"`
+                         -Verification_Path "C:\Program Files (x86)\Cisco Systems\Cisco Jabber\CiscoJabber.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -Manual_URL ""`
+                         -Arguments "/qn"
+
+        Add-SoftwareHash -Name "EXTRACT Dell Command | Update"`
+                         -Installer_Name "Dell-Command-Update-Application_8D5MC_WIN_4.3.0_A00_02.EXE"`
+                         -Installer_Source "Standard_Software"`
+                         -URL "https://dl.dell.com/FOLDER07582851M/3/Dell-Command-Update-Application_8D5MC_WIN_4.3.0_A00_02.EXE"`
+                         -Arguments "/s /e=C:\Setup\_Software_Collection\Standard_Software"`
+                         -Verification_Path "C:\Setup\_Software_Collection\Standard_Software\DCU_Setup_4_3_0.exe"
+                         
+        Add-SoftwareHash -Name "INSTALL Dell Command | Update"`
+                         -Installer_Name "DCU_Setup_4_3_0.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -Manual_URL "https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=8d5mc"`
+                         -Arguments "/S /v/qn"`
+                         -Verification_Path "C:\Program Files (x86)\Dell\CommandUpdate\DellCommandUpdate.exe"
+
+        <#
+        Add-SoftwareHash -Name `
+                         -Installer_Name `
+                         -Verification_Path `
+                         -Installer_Source `
+                         -Manual_URL `
+                         -URL `
+                         -Arguments 
+        #>
+
+        $this.Config = $Software_Settings
     }
-} Export-ModuleMember -Function Save-SoftwareSettings
+    
+    [void]Install([string]$SoftwareName) {
+        $this.Install($SoftwareName,"none")
+    }
 
-function Add-SoftwareSetting {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $Name,
+    [void]Install([string]$SoftwareName,[string]$CompletionFile) {
+        # Define variables
+        $FolderPath_Local_ODT_Software          = "C:\Setup\_Software_Collection\ODT"
+        $FolderPath_Local_Profile_Software      = "C:\Setup\_Software_Collection\Profile_Specific_Software"
+        $FolderPath_Local_Standard_Software     = "C:\Setup\_Software_Collection\Standard_Software"
+        $Installer_Name = $this.Config.$SoftwareName.Installer_Name
+        $Installer_Source = $this.Config.$SoftwareName.Installer_Source
+        $Installer_URL = $this.Config.$SoftwareName.URL
+        $Installer_Manual_URL = $this.Config.$SoftwareName.Manual_URL
+        $Installer_Arguments = $this.Config.$SoftwareName.Arguments
+        $Installer_Verification_Path = $this.Config.$SoftwareName.Verification_Path
+        $Installer_Path = $null
+        $Local_Installer_Path = $null
+        $Local_Installer_Name = $null
+        $USB_Installer_Path = $null
+        $USB_Installer_Name = $null
+        $Working_Dir = $null
+        $Local_Working_Dir = $null
+        $USB_Working_Dir = $null
+        $USB = $null
+        $FolderPath_USB_Install_Software_ODT               = $null
+        $FolderPath_USB_Install_Software_Profile_Software  = $null
+        $FolderPath_USB_Install_Software_Standard_Software = $null
+        $Arguments = $null
+        # Define USB related variables if USB Imaging Tool is attached
+        # Get The USB Drive Letter
+        foreach ($letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+            $TestPath = "$letter" + ":\PC_Setup"
+            If (Test-Path $TestPath) {
+                $USB = "$letter" + ":"
+            }
+        }
+        if ($USB) {
+            $FolderPath_USB_Install_Software_ODT               = "$USB\PC_Setup\_Software_Collection\ODT"
+            $FolderPath_USB_Install_Software_Profile_Software  = "$USB\PC_Setup\_Software_Collection\Profile_Specific_Software"
+            $FolderPath_USB_Install_Software_Standard_Software = "$USB\PC_Setup\_Software_Collection\Standard_Software"
+        }
 
-        [Parameter(Mandatory = $true)]
-        [string] $Value
-    )
+        # Define all potential installation parameters that are dependant on installer type
+        # Produces:
+        #      $Local_Working_Dir       $USB_Working_Dir (if exists)
+        #      $Local_Installer_Path    $USB_Installer_Path (if exists)
+        switch ($Installer_Source) {
+            "Standard_Software" {
+                $Local_Working_Dir    = $FolderPath_Local_Standard_Software
+                if (Test-Path "$Local_Working_Dir\$Installer_Name") {
+                    $Local_Installer_Path = Get-ChildItem -Path "$Local_Working_Dir\$Installer_Name"
+                    $Local_Installer_Path = $Local_Installer_Path[-1]
+                    $Local_Installer_Name = $Local_Installer_Path.Name
+                    $Local_Installer_Path = $Local_Installer_Path.FullName
+                } else {
+                    $Local_Installer_Path = "$Local_Working_Dir\$Installer_Name"
+                    $Local_Installer_Name = $Installer_Name
+                }
+                if ($USB) {$USB_Working_Dir = $FolderPath_USB_Install_Software_Standard_Software}
+            }
+            "ODT" {
+                $Local_Working_Dir    = $FolderPath_Local_ODT_Software
+                $Local_Installer_Path = "$Local_Working_Dir\$Installer_Name"
+                if ($USB) {$USB_Working_Dir = $FolderPath_USB_Install_Software_ODT}
+            }
+            "Profile_Specific_Software" {
+                $Local_Working_Dir    = $FolderPath_Local_Profile_Software
+                $Local_Installer_Path = "$Local_Working_Dir\$Installer_Name"
+                if ($USB) {$USB_Working_Dir = $FolderPath_USB_Install_Software_Profile_Software}
+            }
+        }
+        if ($USB) {
+            if (Test-Path "$USB_Working_Dir\$Installer_Name") {
+                $USB_Installer_Path = Get-ChildItem -Path "$USB_Working_Dir\$Installer_Name"
+                $USB_Installer_Path = $USB_Installer_Path[-1]
+                $USB_Installer_Name = $USB_Installer_Path.Name
+                $USB_Installer_Path = $USB_Installer_Path.FullName
+            }
+        }
+        
+        # Determine Installer location and define $Installer_Path and $Working_Dir
+        # Ideally we want a local installer, USB if we have to, otherwise download if we can. In that order.
+        # Produces:
+        #      $Working_Dir        $Installer_Path
+        #
+        # If installer is found to be local...
+        If (Test-Path $Local_Installer_Path) {
+            #Write-Host $Local_Installer_Path
+            # Define $Working_Dir
+            $Working_Dir = $Local_Working_Dir
+            # Make a copy and define that as the $Installer_Path
+            If (!(Test-Path "$Working_Dir\copy")) {New-Item -Path "$Working_Dir\copy" -ItemType Directory -Force | Out-Null}
+            $Installer_Name = $Local_Installer_Name
+            $Installer_Path = "$Working_Dir\copy\$Installer_Name"
+            Copy-Item -Path $Local_Installer_Path -Destination $Installer_Path
+        # If installer is found to be on USB...
+        } elseif ($USB_Installer_Path) {
+            #Write-Host "`$USB_Installer_Path = $USB_Installer_Path"
+            # Define $Working_Dir
+            $Working_Dir = $USB_Working_Dir
+            # Make a copy and define that as the $Installer_Path
+            If (!(Test-Path "$Working_Dir\copy")) {New-Item -Path "$Working_Dir\copy" -ItemType Directory -Force | Out-Null}
+            $Installer_Name = $USB_Installer_Name
+            $Installer_Path = "$Working_Dir\copy\$Installer_Name"
+            #Write-Host "`$Installer_Path = $Installer_Path"
+            Copy-Item -Path $USB_Installer_Path -Destination $Installer_Path
+        # Otherwise download the installer if possible
+        } elseif ($Installer_URL -ne $null) {
+            #Write-Host "`$Installer_URL = $Installer_URL"
+            #Write-Host "`$Local_Installer_Path = $Local_Installer_Path"
+            # Download Installer
+            (New-Object System.Net.WebClient).DownloadFile($Installer_URL, $Local_Installer_Path)
+            # Define $Working_Dir
+            $Working_Dir = $Local_Working_Dir
+            # Make a copy and define that as the $Installer_Path
+            If (!(Test-Path "$Working_Dir\copy")) {New-Item -Path "$Working_Dir\copy" -ItemType Directory -Force | Out-Null}
+            $Installer_Path = "$Working_Dir\copy\$Installer_Name"
+            Copy-Item -Path $Local_Installer_Path -Destination $Installer_Path
+            # Copy to USB if USB is present
+            If ($USB) {Copy-Item -Path $Local_Installer_Path -Destination $USB_Installer_Path -ErrorAction SilentlyContinue}
+        # Else, notify that the installer could not be found
+        } else {
+            $Installer_Path = $null
+            If ($USB) {
+                Write-Host "`nWARNING: " -ForegroundColor Red -NoNewline; Write-Host "Was not able to locate an installer for $SoftwareName on the local host or on the Imaging Tool"
+            } else {
+                Write-Host "`nWARNING: " -ForegroundColor Red -NoNewline; Write-Host "Was not able to locate an installer for $SoftwareName on the local host"
+            }
+            Write-Host "  >You will need to " -NoNewline; Write-Host "download" -ForegroundColor Cyan -NoNewline; Write-Host " this software and " -NoNewline; Write-Host "install" -ForegroundColor Cyan -NoNewline; Write-Host " it " -NoNewline; Write-Host "manually" -ForegroundColor Red -NoNewline; Write-Host "..."
+            If ($Installer_Manual_URL -ne $null) {Write-Host "  >Opening Download portal now" -ForegroundColor Green; Start-Process $Installer_Manual_URL}
+            Write-Host "`nPlease also place a copy of $Installer_Name in the $Installer_Source folder on the Imaging Tool" -ForegroundColor Yellow
+            Write-Host "  >If you do this, you will not need to download it next time"
+            Write-Host "`nOnce the software has been installed," -ForegroundColor Yellow
+            PAUSE
+        }
 
-    $Global:Software_Settings | Add-Member -MemberType NoteProperty -Name $Name -Value $Value
-    Save-SoftwareSettings
-} Export-ModuleMember -Function Add-SoftwareSetting
+        # First see if the software is already installed before running the installer
+        #Write-Host "`$Installer_Verification_Path = $Installer_Verification_Path"
+        if (!(Test-Path $Installer_Verification_Path)) {
+            # If an Installer exists, run the install command
+            if (Test-Path $Installer_Path) {
+                Write-Host "`nStarting to install $SoftwareName"
+                if ($Installer_Path -like "*.exe") {
+                    if ($Installer_Arguments) {$Arguments = ($Installer_Arguments).Split(",")}
+                    #Write-Host 'Troubleshooting Info - $Arguments = '$Arguments
+                    if ($Arguments -eq $null) {
+                        #Write-Host "Troubleshooting Info: Start-Process $Installer_Path -WorkingDirectory $Working_Dir -Wait"
+                        Start-Process $Installer_Path -WorkingDirectory $Working_Dir -Wait
+                    } else {
+                        #Write-Host "Troubleshooting Info: Start-Process $Installer_Path -ArgumentList $Arguments -WorkingDirectory $Working_Dir -Wait"
+                        Start-Process $Installer_Path -ArgumentList $Arguments -WorkingDirectory $Working_Dir -Wait
+                    }
+                } elseif ($Installer_Path -like "*.msi") {
+                    $Arguments = "/i $Installer_Path $Installer_Arguments"
+                    #Write-Host 'Start-Process "msiexec.exe" -ArgumentList $Arguments -Wait'
+                    Start-Process "msiexec.exe" -ArgumentList $Arguments -Wait 
+                } else {
+                    Write-Host "Error 505"
+                    Pause
+                }
+            }
+        }
 
-##############################################################
-############## END OF SOFTWARE CONFIG FUNCTIONS ##############
-##############################################################
+        # Verify Installation Status and Create CompletionFile if install is successful
+        If (($Installer_Verification_Path -ne $null) -and ($CompletionFile -ne "none")) {
+            $this.Verify_Installation_Success($SoftwareName,$Installer_Verification_Path,$CompletionFile)
+        } elseif ($Installer_Verification_Path -ne $null) {
+            $this.Verify_Installation_Success($SoftwareName,$Installer_Verification_Path)
+        } else {
+            Write-Host "WARNING!!" -ForegroundColor Red -NoNewline; Write-Host ": Software config does not have a Verification Path to reference"
+            Write-Host "Please update the config file now before continuing, then reboot ideally"
+            PAUSE
+        }
+        If ($CompletionFile -ne "none") {
+            If (Test-Path $CompletionFile) {Remove-Item -Path $Installer_Path -Force -ErrorAction SilentlyContinue}
+        }
+    }
+
+    [boolean]hidden Verify_Installation_Success([string]$SoftwareName,[string]$Installer_Verification_Path) {
+        return $this.Verify_Installation_Success($SoftwareName,$Installer_Verification_Path,"")
+    }
+
+    [boolean]hidden Verify_Installation_Success([string]$SoftwareName,[string]$Installer_Verification_Path,[string]$CompletionFile) {
+        Write-Host "Verifying if the software is now installed..."
+        If (Test-Path $Installer_Verification_Path) {
+            Write-Host "Installed - $SoftwareName" -ForegroundColor Green
+            If ($CompletionFile -ne "") {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            return $true
+        } else {
+            Write-Host "$SoftwareName is not installed" -ForegroundColor Red
+            Write-Host "Reboot or just relog to re-attempt install"
+            [int]$Global:InstallationErrorCount++
+            return $false
+        }
+    }
+}
 
 ###############################################################################
 ############## START OF IMAGE-CAPABLE Software Install Functions ##############
@@ -203,10 +427,8 @@ function Install-Image_Softwares {
     $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
-    Write-Host ""
-    Write-Host "-=[ $Step ]=-" -ForegroundColor DarkGray
+    Write-Host "`n-=[ $Step ]=-" -ForegroundColor DarkGray
     If (Test-Path "$StepStatus*") {
-        #Install-Basic_Softwares # Is this needed here? Removing for now
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
         # .EXE EXAMPLE: Start-Process C:\Setup\Agent_Install.exe -Wait -ArgumentList '/s'
@@ -249,13 +471,13 @@ function Install-Image_Softwares {
     }
 } Export-ModuleMember -Function Install-Image_Softwares
 
-
 function Choose-FileShareApp {
     # Variables - edit as needed
     $Step = "Install File Share App"
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
@@ -294,33 +516,16 @@ function Choose-FileShareApp {
             1 {
                 $SoftwareName = "Citrix Files for Windows (ShareFile)"
                 $CompletionFile = "$StepStatus-1.txt"
-
-                Write-Host "`nInstalling $SoftwareName"
-                $InstallerPath = Get-ChildItem -Path "$FolderPath_Local_Standard_Software\CitrixFilesForWindows-*.exe"
-                $InstallerPath = $InstallerPath[-1]
-                $InstallerPath = $InstallerPath.FullName
-                Start-Process "$InstallerPath" -Wait -ArgumentList '/install /quiet /norestart'
-                Write-Host "Verifying if the software is now installed..."
-                If (Test-Path "C:\Program Files\Citrix\Citrix Files\CitrixFiles.exe") {
-                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                } else {
-                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
-                    Write-Host "Reboot or just relog to re-attempt install"
-                    [int]$Global:InstallationErrorCount++
-                }
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             2 {
                 $SoftwareName = "Dropbox"
                 $CompletionFile = "$StepStatus-2.txt"
-                
-                # Install
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                $Software.Install($SoftwareName,$CompletionFile)
             }
         }
     }
 } Export-ModuleMember -Function Choose-FileShareApp
-
 
 function Choose-Browser {
     # Variables - edit as needed
@@ -328,6 +533,7 @@ function Choose-Browser {
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
@@ -364,20 +570,20 @@ function Choose-Browser {
             1 {
                 $SoftwareName = "Chrome"
                 $CompletionFile = "$StepStatus-1.txt"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             2 {
                 $SoftwareName = "Firefox"
                 $CompletionFile = "$StepStatus-2.txt"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             3 {
                 $SoftwareName = "Chrome"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $null
+                $Software.Install($SoftwareName)
 
                 $SoftwareName = "Firefox"
                 $CompletionFile = "$StepStatus-3.txt"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             4 {
                 Write-Host "Chrome and Firefox browser installs have been skipped"
@@ -393,6 +599,7 @@ function Choose-PDF_Viewer {
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
@@ -434,12 +641,12 @@ function Choose-PDF_Viewer {
             1 {
                 $SoftwareName = "Adobe Acrobat Reader DC"
                 $CompletionFile = "$StepStatus-1.txt"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             2 {
                 $SoftwareName = "Adobe Acrobat Pro DC - Trial Installer"
                 $CompletionFile = "$StepStatus-2.txt"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             3 {
                 Write-Host "Option 3 is no longer possible, please remove this choice from your client config file and then relog to start the Automated Setup script again"
@@ -451,15 +658,15 @@ function Choose-PDF_Viewer {
             4 {
                 $SoftwareName = "CutePDF Writer"
                 $CompletionFile = "$StepStatus-4.txt"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             5 {
                 $SoftwareName = "Adobe Acrobat Reader DC"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $null
+                $Software.Install($SoftwareName)
 
                 $SoftwareName = "CutePDF Writer"
                 $CompletionFile = "$StepStatus-5.txt"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             6 {
                 Write-Host "All PDF Editor\Viewer installs have been skipped"
@@ -475,6 +682,7 @@ function Choose-o365 {
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
@@ -602,6 +810,7 @@ function Choose-VPN {
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
@@ -636,9 +845,7 @@ function Choose-VPN {
                 $CompletionFile = "$StepStatus-1.txt"
                 #Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
 
-                $Software = "WatchGuard Mobile VPN with SSL client"
-                Write-Host ""
-                Write-Host "Installing $Software"
+                Write-Host "`nInstalling $SoftwareName"
                 $ZipPath = "$FolderPath_Local_Standard_Software\WG-MVPN-SSL_12_7.zip"
                 $InstallerPath = "$FolderPath_Local_Standard_Software\temp"
                 Expand-Archive -LiteralPath $ZipPath -DestinationPath $InstallerPath -Force
@@ -646,10 +853,10 @@ function Choose-VPN {
                 Start-Process $InstallerPath -Wait
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files (x86)\WatchGuard\WatchGuard Mobile VPN with SSL\wgsslvpnc.exe") {
-                    Write-Host "Installed - $Software" -ForegroundColor Green
+                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
                     {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
-                    Write-Host "$Software is not installed" -ForegroundColor Red
+                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
                     [int]$Global:InstallationErrorCount++
                 }
@@ -668,6 +875,7 @@ function Choose-Collaboration_Software {
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
@@ -704,38 +912,20 @@ function Choose-Collaboration_Software {
             1 {
                 $SoftwareName = "Cisco Jabber"
                 $CompletionFile = "$StepStatus-1.txt"
-                #Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
-
-                $Software = "Cisco Jabber"
-                Write-Host "`nInstalling $Software"
-                $JabberInstaller = Get-ChildItem -Path "$FolderPath_Local_Standard_Software\CiscoJabberSetup*.msi"
-                $JabberInstaller = $JabberInstaller[-1]
-                $JabberInstaller = $JabberInstaller.FullName
-                $command = "msiexec /i $JabberInstaller /qn"
-                cmd.exe /c $command
-                Write-Host "Verifying if the software is now installed..."
-                $Global:WMI_Installed_Software = Get-WmiObject -Class Win32_Product
-                If ($Global:WMI_Installed_Software | Where-Object -FilterScript {$_.Name -match $Software}) {
-                    Write-Host "Installed - $Software" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                } else {
-                    Write-Host "$Software is not installed" -ForegroundColor Red
-                    Write-Host "Reboot or just relog to re-attempt install"
-                    [int]$Global:InstallationErrorCount++
-                }
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             2 {
                 $SoftwareName = "ZAC"
                 $CompletionFile = "$StepStatus-2.txt"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             3 {
                 $SoftwareName = "ZAC"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $null
+                $Software.Install($SoftwareName)
 
                 $SoftwareName = "Zultys Fax 2.0 Printer"
                 $CompletionFile = "$StepStatus-3.txt"
-                Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
+                $Software.Install($SoftwareName,$CompletionFile)
             }
             4 {
                 Write-Host "Cisco Jabber, MXIE, ZAC, and Zulty's Fax Driver installs have been skipped"
@@ -744,171 +934,6 @@ function Choose-Collaboration_Software {
         }
     }
 } Export-ModuleMember -Function Choose-Collaboration_Software
-
-function Install-Software {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $SoftwareName,
-
-        [Parameter(Mandatory = $false)]
-        [string] $CompletionFile
-    )
-
-    # Get software information
-    #Load-Software_Config -SoftwareName $SoftwareName
-    Get-SoftwareSettings -SoftwareName $SoftwareName
-    $Installer_Name = $Global:Software_Settings.Installer_Name
-    $Installer_Source = $Global:Software_Settings.Installer_Source
-    $Installer_URL = $Global:Software_Settings.URL
-    $Installer_Manual_URL = $Global:Software_Settings.Manual_URL
-    $Installer_Arguments = $Global:Software_Settings.Arguments
-    $Installer_Verification_Path = $Global:Software_Settings.Verification_Path
-    $Installer_Path = $null
-    $Working_Directory = $null
-
-    # Find Installer location and define $Installer_Path and $Working_Directory
-    # Ideally we want a local installer, USB if we have to, otherwise download if we can. In that order.
-    function Search {
-        # If installer is found to be local...
-        If (Test-Path $Installer_Local_Path) {
-            # Define $Working_Directory
-            $Script:Working_Directory = $Local_Working_Dir
-            # Make a copy and define that as the $Installer_Path
-            If (!(Test-Path "$Script:Working_Directory\copy") -and $global:Automated_Setup) {New-Item -Path "$Script:Working_Directory\copy" -ItemType Directory -Force | Out-Null}
-            $Script:Installer_Path = "$Script:Working_Directory\copy\$Installer_Name"
-            Copy-Item -Path $Installer_Local_Path -Destination $Script:Installer_Path
-        # If installer is found to be on USB...
-        } elseif ($Installer_USB_Path) {
-            # Define $Working_Directory
-            $Script:Working_Directory = $USB_Working_Dir
-            # Make a copy and define that as the $Installer_Path
-            If (!(Test-Path "$Script:Working_Directory\copy") -and $global:Automated_Setup) {New-Item -Path "$Script:Working_Directory\copy" -ItemType Directory -Force | Out-Null}
-            $Script:Installer_Path = "$Script:Working_Directory\copy\$Installer_Name"
-            Copy-Item -Path $Installer_USB_Path -Destination $Script:Installer_Path
-        # Otherwise download the installer if possible
-        } elseif ($Installer_URL -ne $null) {
-            # Download Installer
-            (New-Object System.Net.WebClient).DownloadFile($Installer_URL, $Installer_Local_Path)
-            # Define $Working_Directory
-            $Script:Working_Directory = $Local_Working_Dir
-            # Make a copy and define that as the $Installer_Path
-            If (!(Test-Path "$Script:Working_Directory\copy") -and $global:Automated_Setup) {New-Item -Path "$Script:Working_Directory\copy" -ItemType Directory -Force | Out-Null}
-            $Script:Installer_Path = "$Script:Working_Directory\copy\$Installer_Name"
-            Copy-Item -Path $Installer_Local_Path -Destination $Script:Installer_Path
-            # Copy to USB if USB is present
-            If ($USB.Exists()) {Copy-Item -Path $Installer_Local_Path -Destination $Installer_USB_Path -ErrorAction SilentlyContinue}
-        # Else, notify that the installer could not be found
-        } else {
-            $Script:Installer_Path = $null
-            If ($USB.Exists()) {
-                Write-Host "`nWARNING: " -ForegroundColor Red -NoNewline; Write-Host "Was not able to locate an installer for $SoftwareName on the local host or on the Imaging Tool"
-            } else {
-                Write-Host "`nWARNING: " -ForegroundColor Red -NoNewline; Write-Host "Was not able to locate an installer for $SoftwareName on the local host"
-            }
-            Write-Host "  >You will need to " -NoNewline; Write-Host "download" -ForegroundColor Cyan -NoNewline; Write-Host " this software and " -NoNewline; Write-Host "install" -ForegroundColor Cyan -NoNewline; Write-Host " it " -NoNewline; Write-Host "manually" -ForegroundColor Red -NoNewline; Write-Host "..."
-            If ($Installer_Manual_URL -ne $null) {Write-Host "  >Opening Download portal now" -ForegroundColor Green; Start $Installer_Manual_URL}
-            Write-Host "`nPlease also place a copy of $Installer_Name in the $Installer_Source folder on the Imaging Tool" -ForegroundColor Yellow
-            Write-Host "  >If you do this, you will not need to download it next time"
-            Write-Host "`nOnce the software has been installed," -ForegroundColor Yellow
-            PAUSE
-        }
-    }
-    
-    # Define installer parameters that are dependant on installer type, then Search to locate the installer
-    # Produces $Installer_Path and $Working_Directory
-    $USB = New-ImagingUSB
-    if ($USB.Exists()) {
-        #$USB_Drive = $USB.Drive_Letter
-        $FolderPath_USB_Install_Software_ODT               = $USB.Install_Software_ODT
-        $FolderPath_USB_Install_Software_Profile_Software  = $USB.Install_Software_Profile_Software
-        $FolderPath_USB_Install_Software_Standard_Software = $USB.Install_Software_Standard_Software
-    }
-
-    if ($Installer_Source -eq "Standard_Software") {
-        $Local_Working_Dir    = $FolderPath_Local_Standard_Software
-        $Installer_Local_Path = "$Local_Working_Dir\$Installer_Name"
-        if ($USB.Exists()) {$USB_Working_Dir = $FolderPath_USB_Install_Software_Standard_Software}
-    } elseif ($Installer_Source -eq "ODT") {
-        $Local_Working_Dir    = $FolderPath_Local_ODT_Software
-        $Installer_Local_Path = "$Local_Working_Dir\$Installer_Name"
-        if ($USB.Exists()) {$USB_Working_Dir = $FolderPath_USB_Install_Software_ODT}
-    } elseif ($Installer_Source -eq "Profile_Specific_Software") {
-        $Local_Working_Dir    = $FolderPath_Local_Profile_Software
-        $Installer_Local_Path = "$Local_Working_Dir\$Installer_Name"
-        if ($USB.Exists()) {$USB_Working_Dir = $FolderPath_USB_Install_Software_Profile_Software}
-    }
-    if ($USB.Exists()) {$Installer_USB_Path   = "$USB_Working_Dir\$Installer_Name"}
-    Search
-
-    # First see if the software is already installed before running the installer
-    if (!(Test-Path $Installer_Verification_Path)) {
-        # If an Installer exists, run the install command
-        if ($Script:Installer_Path -ne $null) {
-            # NOW INSTALL THE SOFTWARE
-            Write-Host "`nStarting to install $SoftwareName"
-            if ($Script:Installer_Path -like "*.exe") {
-                if ($Installer_Arguments) {$Arguments = ($Installer_Arguments).Split(",")}
-                #Write-Host 'Troubleshooting Info - $Arguments = '$Arguments
-                if ($Arguments -eq $null) {
-                    Start-Process $Script:Installer_Path -WorkingDirectory $Script:Working_Directory -Wait
-                } else {
-                    #Write-Host "Troubleshooting Info: Start-Process $Script:Installer_Path -ArgumentList $Arguments -WorkingDirectory $Script:Working_Directory -Wait"
-                    Start-Process $Script:Installer_Path -ArgumentList $Arguments -WorkingDirectory $Script:Working_Directory -Wait
-                }
-            } elseif ($Script:Installer_Path -like "*.msi") {
-                $Arguments = "/i $Script:Installer_Path $Installer_Arguments"
-                Start-Process "msiexec.exe" -ArgumentList $Arguments -Wait 
-            }
-        }
-    }
-
-    # Verify Installation Status and Create CompletionFile if install is successful
-    If ($Installer_Verification_Path -ne $null -and $CompletionFile) {
-        Verify-Installation_Success -SoftwareName $SoftwareName -Installer_Verification_Path $Installer_Verification_Path -CompletionFile $CompletionFile
-    } elseif ($Installer_Verification_Path -ne $null) {
-        Verify-Installation_Success -SoftwareName $SoftwareName -Installer_Verification_Path $Installer_Verification_Path
-    } else {
-        Write-Host "WARNING!!" -ForegroundColor Red -NoNewline; Write-Host ": Software config does not have a Verification Path to reference"
-        Write-Host "Please update the config file now before continuing, then reboot ideally"
-        PAUSE
-    }
-    If ($CompletionFile) {
-        If (Test-Path $CompletionFile) {Remove-Item -Path $Script:Installer_Path -Force -ErrorAction SilentlyContinue}
-    }
-} Export-ModuleMember -Function Install-Software
-
-function Verify-Installation_Success {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $SoftwareName,
-
-        [Parameter(Mandatory = $true)]
-        [string] $Installer_Verification_Path,
-
-        [Parameter(Mandatory = $false)]
-        [string] $CompletionFile
-    )
-
-    Write-Host "Verifying if the software is now installed..."
-    If (Test-Path $Installer_Verification_Path) {
-        Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-        If ($CompletionFile) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-    } else {
-        Write-Host "$SoftwareName is not installed" -ForegroundColor Red
-        Write-Host "Reboot or just relog to re-attempt install"
-        [int]$Global:InstallationErrorCount++
-    }
-} Export-ModuleMember -Function Verify-Installation_Success
-
-function Get-Installed_Softwares {
-    # Get lists of installed software
-    # NOTE: Neither WMI nor the registry apears to contain a full list!!!
-    Write-Host "Getting list of installed softwares..." -ForegroundColor Yellow
-    $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-    $Global:WMI_Installed_Software = Get-WmiObject -Class Win32_Product
-} Export-ModuleMember -Function Get-Installed_Softwares
 
 function CheckPoint-Client_Software {
     # Variables - edit as needed
@@ -921,8 +946,7 @@ function CheckPoint-Client_Software {
     If (Test-Path "$StepStatus*") {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        Write-Host ""
-        Write-Host "If needed, install Client Specific Software now"
+        Write-Host "`nIf needed, install Client Specific Software now"
         PAUSE
         if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
@@ -1086,31 +1110,40 @@ function Reinstall-SupportAssistant {
 
 function Install-SupportAssistant {
     #Variables - edit as needed
-    $Step = "Install Support Assistant"
+    $Step = "Install a Driver Update Assistant"
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
     $SkippedFile = "$StepStatus-Skipped.txt"
     
     If (Test-Path "$StepStatus*") {
-        If (Test-Path "$StepStatus-Dell.txt") {Write-Host "Dell Support Assistant" -NoNewline; Write-Host " has been installed" -ForegroundColor Green}
+        If (Test-Path "$StepStatus-DellSA.txt") {Write-Host "Dell Support Assistant" -NoNewline; Write-Host " has been installed" -ForegroundColor Green}
+        If (Test-Path "$StepStatus-DellCU.txt") {Write-Host "Dell Command | Update" -NoNewline; Write-Host " has been installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-HP.txt") {Write-Host "HP Support Assistant" -NoNewline; Write-Host " has been installed" -ForegroundColor Green}
         If (Test-Path $SkippedFile) {Write-Host "Both Dell and HP Support Assistant Installations" -NoNewline; Write-Host " have been skipped"}
     } else {
         $choice = $null
         DO {
             Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
-            Write-Host "Which version of Support Assistant would you like to install?"
-            Write-Host "1. Dell"
-            Write-Host "2. HP"
-            Write-Host "3. NEITHER"
-            [int]$choice = Read-Host -Prompt "Enter a number, 1 through 3"
-        } UNTIL (($choice -ge 1) -and ($choice -le 3))
+            Write-Host "Which Driver Update Assistant would you like to install?"
+            Write-Host "1. Dell Command | Update"
+            Write-Host "2. Dell SupportAssist"
+            Write-Host "3. HP Support Assistant"
+            Write-Host "4. None"
+            [int]$choice = Read-Host -Prompt "Enter a number, 1 through 4"
+        } UNTIL (($choice -ge 1) -and ($choice -le 4))
         switch ($choice) {
             1 {
-                $Software = "Dell Support Assist"
-                Write-Host ""
-                Write-Host "Installing $Software"
+                $SoftwareName = "EXTRACT Dell Command | Update"
+                $Software.Install($SoftwareName)
+
+                $SoftwareName = "INSTALL Dell Command | Update"
+                $CompletionFile = "$StepStatus-DellCU.txt"
+                $Software.Install($SoftwareName,$CompletionFile)
+            }
+            2 {
+                $Software = "Dell SupportAssist"
+                Write-Host "`nInstalling $Software"
                 $InstallerPath = "$FolderPath_Local_Standard_Software\Dell_Support_Assist_Installer.exe"
                 Copy-Item -Path $InstallerPath -Destination $FolderPath_Local_Setup -Force
                 Start-Process "$InstallerPath" -Wait
@@ -1118,16 +1151,15 @@ function Install-SupportAssistant {
                 $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
                 If (($Global:Installed_Software).DisplayName -match $Software) {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null}
+                    if ($global:Automated_Setup) {New-Item "$StepStatus-DellSA.txt" -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
                 }
             }
-            2 {
+            3 {
                 $Software = "HP Support Assistant"
-                Write-Host ""
-                Write-Host "Installing $Software"
+                Write-Host "`nInstalling $Software"
                 $InstallerPath = "$FolderPath_Local_Standard_Software\HP_Support_Assistant.exe"
                 Copy-Item -Path $InstallerPath -Destination $FolderPath_Local_Setup -Force
                 Start-Process "$InstallerPath" -Wait
@@ -1140,8 +1172,8 @@ function Install-SupportAssistant {
                     Write-Host "Reboot or just relog to re-attempt install"
                 }
             }
-            3 {
-                Write-Host "Both Dell and HP Support Assistant Installations have been skipped" -ForegroundColor Green
+            4 {
+                Write-Host "All Driver Update Assistant installations have been skipped" -ForegroundColor Green
                 if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             }
         }
@@ -1237,7 +1269,7 @@ function Install-SupportAssistant2 {
 
 function CheckPoint-DriverUpdates {
     #Variables - edit as needed
-    $Step = "Install a SupportAssistant"
+    $Step = "Install a Driver Update Assistant"
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
