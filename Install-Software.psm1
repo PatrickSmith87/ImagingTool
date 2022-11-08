@@ -197,14 +197,22 @@ class Software {
                          -Arguments "/S /v/qn"`
                          -Verification_Path "C:\Program Files (x86)\Dell\CommandUpdate\DellCommandUpdate.exe"
 
+        Add-SoftwareHash -Name "HP Image Assistant"`
+                         -Installer_Name "hp-hpia-5.1.6.exe"`
+                         -Installer_Source "Standard_Software"`
+                         -URL "https://hpia.hpcloud.hp.com/downloads/hpia/hp-hpia-5.1.6.exe"`
+                         -Arguments "/s /e /f ""C:\Program Files\HP\HPIA"""`
+                         -Verification_Path "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
+        #-Manual_URL "https://ftp.ext.hp.com/pub/caps-softpaq/cmit/HPIA.html"`
+
         <#
         Add-SoftwareHash -Name `
                          -Installer_Name `
-                         -Verification_Path `
                          -Installer_Source `
                          -Manual_URL `
                          -URL `
-                         -Arguments 
+                         -Arguments `
+                         -Verification_Path
         #>
 
         $this.Config = $Software_Settings
@@ -320,6 +328,7 @@ class Software {
         } elseif ($Installer_URL -ne $null) {
             #Write-Host "`$Installer_URL = $Installer_URL"
             #Write-Host "`$Local_Installer_Path = $Local_Installer_Path"
+            if (!($Local_Installer_Path)) {New-Item -Path "$Local_Installer_Path" -ItemType Directory -Force}
             # Download Installer
             (New-Object System.Net.WebClient).DownloadFile($Installer_URL, $Local_Installer_Path)
             # Define $Working_Dir
@@ -860,6 +869,11 @@ function Choose-VPN {
                     Write-Host "Reboot or just relog to re-attempt install"
                     [int]$Global:InstallationErrorCount++
                 }
+
+                $WScriptShell = New-Object -ComObject WScript.Shell
+                $Shortcut = $WScriptShell.CreateShortcut("C:\Users\Public\Desktop\HP Image Assistant.lnk")
+                $Shortcut.TargetPath = "C:\Program Files (x86)\WatchGuard\WatchGuard Mobile VPN with SSL\wgsslvpnc.exe"
+                $Shortcut.Save()
             }
             2 {
                 Write-Host "VPN client installation has been skipped"
@@ -1126,12 +1140,13 @@ function Install-SupportAssistant {
         DO {
             Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
             Write-Host "Which Driver Update Assistant would you like to install?"
-            Write-Host "1. Dell Command | Update"
+            Write-Host "1. Dell Command | Update" -NoNewline; Write-Host " <--- Suggested for Dell PCs" -ForegroundColor Green
             Write-Host "2. Dell SupportAssist"
             Write-Host "3. HP Support Assistant"
-            Write-Host "4. None"
-            [int]$choice = Read-Host -Prompt "Enter a number, 1 through 4"
-        } UNTIL (($choice -ge 1) -and ($choice -le 4))
+            Write-Host "4. HP Image Assistant" -NoNewline; Write-Host "    <--- Suggested for HP PCs" -ForegroundColor Green
+            Write-Host "5. None"
+            [int]$choice = Read-Host -Prompt "Enter a number, 1 through 5"
+        } UNTIL (($choice -ge 1) -and ($choice -le 5))
         switch ($choice) {
             1 {
                 $SoftwareName = "EXTRACT Dell Command | Update"
@@ -1173,6 +1188,22 @@ function Install-SupportAssistant {
                 }
             }
             4 {
+                $SoftwareName = "HP Image Assistant"
+                $CompletionFile = "$StepStatus-HPIA.txt"
+                $Software.Install($SoftwareName,$CompletionFile)
+
+                $TargetFile = "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
+                $WScriptShell = New-Object -ComObject WScript.Shell
+
+                $Shortcut = $WScriptShell.CreateShortcut("$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\HP Image Assistant.lnk")
+                $Shortcut.TargetPath = $TargetFile
+                $Shortcut.Save()
+
+                $Shortcut = $WScriptShell.CreateShortcut("C:\Users\Public\Desktop\HP Image Assistant.lnk")
+                $Shortcut.TargetPath = $TargetFile
+                $Shortcut.Save()
+            }
+            5 {
                 Write-Host "All Driver Update Assistant installations have been skipped" -ForegroundColor Green
                 if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             }
