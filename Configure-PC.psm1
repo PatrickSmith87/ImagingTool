@@ -5,6 +5,7 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
+Import-Module Install-Software -WarningAction SilentlyContinue -Force
 
 # Variables may be defined from parent script. If not, they will be defined from here.
 # Child scripts should be able to see variables from the parent script...
@@ -42,6 +43,11 @@ $FolderPath_Local_PublicDesktop         = "C:\Users\Public\Desktop"
 $FolderPath_Local_Client_Public_Desktop = "C:\Setup\SCOPE-Image_Setup\Public Desktop"
 
 # ALL the Imaging USB paths should be defined centrally here. Let the functions infer paths from the ImagingUSB object's attributes
+
+function New-ImagingUSB {
+    [ImagingUSB]::new()
+} Export-ModuleMember -Function New-ImagingUSB
+
 class ImagingUSB {
     [string[]]$Drive_Letter = @()
     [string[]]$WinPE_Drive_Letter = @()
@@ -113,10 +119,6 @@ class ImagingUSB {
         $this.Exists()
     }
 }
-
-function New-ImagingUSB {
-    [ImagingUSB]::new()
-} Export-ModuleMember -Function New-ImagingUSB
 
 #############################################################
 ############## START OF SYSTEM DEFAULT SCRIPTS ##############
@@ -1510,6 +1512,14 @@ function Transfer-Sophos_Agent {
 } Export-ModuleMember -Function Transfer-Sophos_Agent
 
 function Install-Windows_Updates {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [switch] $RebootAllowed,
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
     # Variables - edit as needed
     $Step = "Install Windows Updates"
 
@@ -1519,16 +1529,18 @@ function Install-Windows_Updates {
     $SkippedFile = "$StepStatus-Skipped.txt"
     $InProgressFile = "$StepStatus-InProgress.txt"
 
-    If ((Test-Path $CompletionFile) -or (Test-Path $SkippedFile)) {
+    If ((Test-Path $CompletionFile) -or (Test-Path $SkippedFile) -and !($Force)) {
         # If task is completed or skipped...
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
         If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
     } else {
-        # If task is not completed...
+        # If task is not completed (or was forced)...
         
         # Choice
         If (!(Test-Path $InProgressFile)) {
-            If ($global:ClientSettings.WindowsUpdates) {
+            If ($Force) {
+                $choice = 1
+            } elseIf ($global:ClientSettings.WindowsUpdates) {
                 $choice = $global:ClientSettings.WindowsUpdates
             } else {
                 DO {
@@ -1564,11 +1576,17 @@ function Install-Windows_Updates {
             Write-Host "Checking for available Windows Updates..."
             $Updates = Get-WindowsUpdate
             If ($Updates.count -gt 0) {
-                Write-Host "Installing all available Windows Updates"
-                Get-WindowsUpdate -AcceptAll -Install -AutoReboot
-                Restart-Computer -Force | Out-Null
-                Write-Host "Should be restarting soon..." -ForegroundColor Red
-                Pause
+                Write-Host "Installing all available Windows Updates..."
+                if ($RebootAllowed) {
+                    Get-WindowsUpdate -AcceptAll -Install -AutoReboot
+                    Restart-Computer -Force | Out-Null
+                    Write-Host "Should be restarting soon..." -ForegroundColor Red
+                    Pause
+                } else {
+                    Get-WindowsUpdate -AcceptAll -Install -IgnoreReboot
+                    Write-Host "Completed" -ForegroundColor Green
+                    Write-Host "(There may be additional updates)"
+                }
             } else {
                 Remove-Item $InProgressFile | Out-Null
                 if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
@@ -1577,6 +1595,101 @@ function Install-Windows_Updates {
         }
     }
 } Export-ModuleMember -Function Install-Windows_Updates
+
+function Get-Manufacturer {
+    $Script:Manufacturer = (Get-WmiObject -Class:Win32_ComputerSystem).Manufacturer
+    return $Script:Manufacturer
+} Export-ModuleMember -Function Get-Manufacturer
+
+function Install-Updates_In_Background {
+    Install-Windows_Updates -Force
+    Get-Manufacturer
+    If ($Script:Manufacturer -eq "HP") {
+        # Install HP Image Assistant if not already installed
+        If (Test-Path "C:\Program Files\HP\HPIA\HPImageAssistant.exe") {
+            $Software = New-Software
+
+            $SoftwareName = "HP Image Assistant"
+            $Software.Install($SoftwareName)
+
+            $TargetFile = "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
+            $WScriptShell = New-Object -ComObject WScript.Shell
+
+            $Shortcut = $WScriptShell.CreateShortcut("$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\HP Image Assistant.lnk")
+            $Shortcut.TargetPath = $TargetFile
+            $Shortcut.Save()
+
+            $Shortcut = $WScriptShell.CreateShortcut("C:\Users\Public\Desktop\HP Image Assistant.lnk")
+            $Shortcut.TargetPath = $TargetFile
+            $Shortcut.Save()
+        }
+        Install-Softpaqs
+    } else {
+        Write-Host "`$Script:Manufacturer = $Script:Manufacturer"
+    }
+    PAUSE
+} Export-ModuleMember -Function Install-Updates_In_Background
+
+function Install-Softpaqs {
+    # Variables - edit as needed
+    $Step = "Install HP Softpaq BIOS, Drivers, and Firmware Updates"
+
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
+    $InProgressFile = "$StepStatus-InProgress.txt"
+
+    If (Test-Path $CompletionFile) {
+        # If task is completed or skipped...
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        # If task is not completed...
+        
+        # Mark as InProgress if not already
+        If (!(Test-Path $InProgressFile)) {New-Item $InProgressFile -ItemType File -Force | Out-Null}
+
+        # Keep installing updates and rebooting when needed until fully up to date
+        Write-Host "Checking for & Installing HP Softpaq BIOS, Drivers, and Firmware Updates..."
+
+        # Get USB Paths
+        $USB = New-ImagingUSB
+        if ($USB.Exists()) {
+            $USB_Drive = $USB.Drive_Letter
+            $FolderPath_USB_Driver_Collection = "$USB_Drive\PC_Setup\_Driver_Collection"
+        }
+
+        # Check for updates
+        Write-Host "Checking for available updates..."
+        $Arguments = '/Operation:Analyze /Action:List /Category:BIOS,Drivers,Firmware /Selection:All /Silent /ReportFolder:"C:\Setup\HPIA_Logs" /BIOSPwdFile:pwd1.bin'
+        Start-Process "C:\Program Files\HP\HPIA\HPImageAssistant.exe" -ArgumentList $Arguments -WorkingDirectory "C:\Setup" -Wait
+        Start-Sleep -Seconds 10
+        $JSON_File = Get-ChildItem -Path "C:\Setup\HPIA_Logs\*.json" -ErrorAction SilentlyContinue
+        $Status = Get-Content "$JSON_File" | ConvertFrom-Json
+            # Install Updates if any are available
+            $UpdateCount = $Status.HPIA.Recommendations.Count
+            if ($UpdateCount -gt 0) {
+                Write-Host "$UpdateCount updates found, installing now..."
+                If ($USB.Exists()) {
+                    $Arguments = '/Operation:Analyze /Action:Install /Category:BIOS,Drivers,Firmware /Selection:All /Silent /ReportFolder:"C:\Setup\HPIA_Logs"' + " /SoftpaqDownloadFolder:$FolderPath_USB_Driver_Collection /BIOSPwdFile:pwd1.bin"
+                } else {
+                    $Arguments = '/Operation:Analyze /Action:Install /Category:BIOS,Drivers,Firmware /Selection:All /Silent /ReportFolder:"C:\Setup\HPIA_Logs" /SoftpaqDownloadFolder:"C:\Setup\HPSoftpaqs" /BIOSPwdFile:pwd1.bin'
+                }
+                Start-Process "C:\Program Files\HP\HPIA\HPImageAssistant.exe" -ArgumentList $Arguments -WorkingDirectory "C:\Setup" -Wait
+                Write-Host "Installing updates complete"
+                # Chose NOT to restart computer since planning on this running in the background while the Automated Setup script is doing other things and don't want to interrupt.
+                #Restart-Computer -Force | Out-Null
+                #Write-Host "Should be restarting soon..." -ForegroundColor Red
+                #Pause
+                # Running again instead of rebooting
+                Install-Softpaqs
+            } else {
+                Write-Host "No updates found!"
+                Remove-Item $InProgressFile | Out-Null
+                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+            }
+    }
+} Export-ModuleMember -Function Install-Softpaqs
 
 function CheckPoint-Disk_Cleanup {
     # Variables - edit as needed

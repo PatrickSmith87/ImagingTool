@@ -63,7 +63,7 @@ function Build-Image {
 ##     -=[ UPDATES ]=-     ##
 #############################
     CheckPoint-DriverUpdates
-    Install-Windows_Updates
+    Install-Windows_Updates -RebootAllowed
 
 ###################################
 ##     -=[ Capture Image ]=-     ##
@@ -106,7 +106,7 @@ function Single-Setup {
 ##     -=[ UPDATES ]=-     ##
 #############################
     CheckPoint-DriverUpdates
-    Install-Windows_Updates
+    Install-Windows_Updates -RebootAllowed
 }
 
 #############################################################################
@@ -142,6 +142,8 @@ Set-ProfileDefaultSettings
 Determine-SetupType
 # -=[ Rename PC\Image ]=-
 Rename-PC -PreImage
+# -=[ Start Updates In Background ]
+Start-Process powershell -ArgumentList '-command Install-Updates_In_Background' -WindowStyle Minimized
 
 If ($ClientSettings.SetupType -eq "BuildImage") {
     Build-Image

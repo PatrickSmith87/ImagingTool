@@ -272,7 +272,7 @@ function Update_PC_submenu {
     } UNTIL (($choice -ge 0) -and ($choice -le 2))
     Switch ($choice) {
         0 {Clear-Host; PC-Maintenance_submenu}
-        1 {Clear-Host; Install-Windows_Updates}
+        1 {Clear-Host; Install-Windows_Updates -RebootAllowed}
         2 {EXIT}
     }
     #Recursivly call the submenu
