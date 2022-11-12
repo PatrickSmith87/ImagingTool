@@ -1,11 +1,12 @@
-##############################################################################
-##############################################################################
-###                                                                        ###
-###                          -=[ Script Setup ]=-                          ###
-###                                                                        ###
-##############################################################################
-##############################################################################
+#################################################################################################################################################################
+#################################################################################################################################################################
+###                                                                                                                                                           ###
+###                                                               -=[ Automate-Setup Module ]=-                                                               ###
+###                                                                                                                                                           ###
+#################################################################################################################################################################
+#################################################################################################################################################################
 
+#region Module Variables
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
 
@@ -38,182 +39,9 @@ $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-A
 
 
 #>
+#endregion Module Variables
 
-class Update {   
-    [void] Scripts() {
-        [string]$Name = "ImagingTool"
-        [string]$Author = "PatrickSmith87"
-        [string]$Branch = "master"
-        [string]$Location = "C:\temp"
-        $this.Scripts($Name,$Author,$Branch,$Location)
-    }
-
-    [void] Scripts([string]$Name,[string]$Author) {
-        [string]$Branch = "master"
-        [string]$Location = "c:\temp"
-        $this.Scripts($Name,$Author,$Branch,$Location)
-    }
-
-    [void] Scripts([string]$Name,[string]$Author,[string]$Branch) {
-        [string]$Location = "c:\temp"
-        $this.Scripts($Name,$Author,$Branch,$Location)
-    }
-
-    [void] Scripts([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
-        # Variables - edit as needed
-        $Step = "Update Automated Setup Scripts"
-
-        # Static Variables - DO NOT EDIT
-        $StepStatus = "$Script:FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
-        $CompletionFile = "$StepStatus-Completed.txt"
-
-        Write-Host ""
-        Write-Host "-=[ $Step ]=-" -ForegroundColor DarkGray
-        Write-Host "Updating..."
-        If (Test-Path "$StepStatus*") {
-            #Install-Basic_Softwares # Is this needed here? Removing for now
-            If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
-        } else {
-            $this.DownloadGitHubRepository($Name,$Author,$Branch,$Location)
-            $this.Spread($Location,$Name)
-            #New-Item $CompletionFile -ItemType File -Force | Out-Null
-            Write-Host "$Step`: " -NoNewline; Write-Host "has been Completed" -ForegroundColor Green
-        }
-    }
-
-    [void]hidden DownloadGitHubRepository([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
-        # Force to create a zip file
-        $ZipFile = "$Location\$Name.zip"
-        New-Item $ZipFile -ItemType File -Force
-
-        $ZipUrl = "https://github.com/$Author/$Name/archive/$Branch.zip"
-        #$ZipUrl = "https://github.com/PatrickSmith87/ImagingTool/archive/master.zip"
-        #$ZipUrl = "https://api.github.com/repos/PatrickSmith87/Setup/zipball/master" 
-        #$ZipUrl = "https://api.github.com/repos/$Author/$Name/zipball/$Branch" 
-        # download the zip 
-        Invoke-RestMethod -Uri $ZipUrl -OutFile $ZipFile
- 
-        #Extract Zip File
-        Expand-Archive -Path $ZipFile -DestinationPath "$Location" -Force
-     
-        # remove the zip file
-        Remove-Item -Path $ZipFile -Force
-    }
-
-    [void]hidden Spread([string]$Location,[string]$Name) {
-        $Source = "$Location\$Name-main"
-        $USB = New-ImagingUSB
-        $WinPEDrive = $USB.WinPE_Drive_Letter
-        $ImagingDrive = $USB.Drive_Letter
-
-        if ($USB.Exists()) {
-            $WinPEDrive                                         = $USB.WinPE_Drive_Letter
-            $ImagingDrive                                       = $USB.Drive_Letter
-
-            $FilePath_USB_WinPE_Menu                            = "$WinPEDrive\sources\WinPE-Menu.ps1"
-            
-            $FilePath_USB_Imaging_Menu_bat                      = "$ImagingDrive\Imaging_Tool_Menu-RAA.bat"
-            $FilePath_USB_Imaging_Menu_ps1                      = "$ImagingDrive\sources\Menu.ps1"
-            $FilePath_USB_AutomateSetup_ps1                     = "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\Automate-Setup.ps1"
-            $FilePath_USB_AutomateSetup_Module                  = "$ImagingDrive\sources\PC-Maintenance\_modules\Automate-Setup\Automate-Setup.psm1"
-            $FilePath_USB_ConfigurePC_Module                    = "$ImagingDrive\sources\PC-Maintenance\_modules\Configure-PC\Configure-PC.psm1"
-            $FilePath_USB_InstallSoftware_Module                = "$ImagingDrive\sources\PC-Maintenance\_modules\Install-Software\Install-Software.psm1"
-            $FilePath_USB_TuneUpPC_Module                       = "$ImagingDrive\sources\PC-Maintenance\_modules\TuneUp-PC\TuneUp-PC.psm1"
-            
-            $this.Restore("$Source\WinPE-Menu.ps1",$FilePath_USB_WinPE_Menu,"Move")
-            $this.Restore("$Source\Imaging_Tool_Menu-RAA.bat",$FilePath_USB_Imaging_Menu_bat,"Move")
-            $this.Restore("$Source\Menu.ps1",$FilePath_USB_Imaging_Menu_ps1,"Move")
-            $this.Restore("$Source\Automate-Setup.ps1",$FilePath_USB_AutomateSetup_ps1,"Copy")
-            $this.Restore("$Source\Automate-Setup.psm1",$FilePath_USB_AutomateSetup_Module,"Copy")
-            $this.Restore("$Source\Configure-PC.psm1",$FilePath_USB_ConfigurePC_Module,"Copy")
-            $this.Restore("$Source\Install-Software.psm1",$FilePath_USB_InstallSoftware_Module,"Copy")
-            $this.Restore("$Source\TuneUp-PC.psm1",$FilePath_USB_TuneUpPC_Module,"Copy")
-        }
-
-        $this.Restore("$Source\Automate-Setup.ps1",$Script:FilePath_Local_AutomateSetup_Script,"Move")
-        $this.Restore("$Source\Automate-Setup.psm1",$Script:FilePath_Local_AutomateSetup_Module,"Move")
-        $this.Restore("$Source\Configure-PC.psm1",$Script:FilePath_Local_ConfigurePC_Module,"Move")
-        $this.Restore("$Source\Install-Software.psm1",$Script:FilePath_Local_InstallSoftware_Module,"Move")
-        $this.Restore("$Source\TuneUp-PC.psm1",$Script:FilePath_Local_TuneUpPC_Module,"Move")
-    }
-
-    [void]hidden Restore([string]$SourceFile,[string]$DestinationFile,[string]$CopyORMove) {
-    <# This function does three things
-            1. Verify source file exists
-            2. Remove Destination File if exists
-            3. Move or Copy file #>
-        If (($CopyORMove -eq "Copy") -or ($CopyORMove -eq "Move")) {
-            If (Test-Path $SourceFile) { #1. Verify source file exists
-                If (Test-Path $DestinationFile) {Remove-Item $DestinationFile -Force} #2. Remove Destination File if exists
-                $PathPieces = $DestinationFile.Split('\')
-                $FolderPath = $PathPieces[0]
-                $x=1
-                foreach ($Piece in $PathPieces) {  # Breaking down the destination file path and then rebuilding it without the filename so that we get a path to it's parent folder
-                    If ($x -lt ($PathPieces.Count - 1)) {
-                        $FolderPath = $FolderPath + "\" + $PathPieces[$x]
-                        $x++
-                    }
-                }
-                If (!(Test-Path $FolderPath)) {New-Item $FolderPath -ItemType Directory}
-                If ($CopyORMove -eq "Copy") {
-                    Copy-Item -Path $SourceFile -Destination $DestinationFile -Force
-                    #Write-Host "Copied " -NoNewline; Write-Host "$SourceFile" -ForegroundColor Cyan -NoNewline; Write-Host " to " -NoNewline; Write-Host "$DestinationFile" -ForegroundColor Cyan
-                } elseif ($CopyORMove -eq "Move") {
-                    Move-Item -Path $SourceFile -Destination $DestinationFile -Force
-                    #Write-Host "Moved " -NoNewline; Write-Host "$SourceFile" -ForegroundColor Cyan -NoNewline; Write-Host " to " -NoNewline; Write-Host "$DestinationFile" -ForegroundColor Cyan
-                }
-            } else {
-                Write-Host "`n!!WARNING!!!" -ForegroundColor Red -NoNewline; Write-Host ' Source file not found'
-                Write-Host "-No Copy\Move action taken`n" -ForegroundColor Yellow
-            }
-        } else {
-            Write-Host "`n!!WARNING!!!" -ForegroundColor Red -NoNewline; Write-Host ' The 3rd parameter, "CopyorMove", MUST be defined as either "Copy" or "Move"'
-            Write-Host "-No Copy\Move action taken`n" -ForegroundColor Yellow
-        }
-    }
-
-    [void] GitHubRepo() {
-        $this.GitHubRepo("C:\Git-Repositories\ImagingTool")
-    }
-    
-    [void] GitHubRepo([string]$RepoPath) {
-        #$GitHubRepo = "C:\Git-Repositories\ImagingTool"
-        $GitHubRepo = $RepoPath
-
-        $USB = New-ImagingUSB
-        if ($USB.Exists()) {
-            $WinPEDrive                                         = $USB.WinPE_Drive_Letter
-            $FilePath_USB_WinPE_Menu                            = "$WinPEDrive\sources\WinPE-Menu.ps1"
-            $ImagingDrive                                       = $USB.Drive_Letter
-            $FilePath_USB_Imaging_Menu_bat                      = "$ImagingDrive\Imaging_Tool_Menu-RAA.bat"
-            $FilePath_USB_Imaging_Menu_ps1                      = "$ImagingDrive\sources\Menu.ps1"
-            $FilePath_USB_AutomateSetup_ps1                     = "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\Automate-Setup.ps1"
-            $FilePath_USB_AutomateSetup_Module                  = "$ImagingDrive\sources\PC-Maintenance\_modules\Automate-Setup\Automate-Setup.psm1"
-            $FilePath_USB_ConfigurePC_Module                    = "$ImagingDrive\sources\PC-Maintenance\_modules\Configure-PC\Configure-PC.psm1"
-            $FilePath_USB_InstallSoftware_Module                = "$ImagingDrive\sources\PC-Maintenance\_modules\Install-Software\Install-Software.psm1"
-            $FilePath_USB_TuneUpPC_Module                       = "$ImagingDrive\sources\PC-Maintenance\_modules\TuneUp-PC\TuneUp-PC.psm1"
-
-            Copy-Item -Path $FilePath_USB_WinPE_Menu -Destination "$GitHubRepo\WinPE-Menu.ps1" -Force
-            Copy-Item -Path $FilePath_USB_Imaging_Menu_bat -Destination "$GitHubRepo\Imaging_Tool_Menu-RAA.bat" -Force
-            Copy-Item -Path $FilePath_USB_Imaging_Menu_ps1 -Destination "$GitHubRepo\Menu.ps1" -Force
-            Copy-Item -Path $FilePath_USB_AutomateSetup_ps1 -Destination "$GitHubRepo\Automate-Setup.ps1" -Force
-            Copy-Item -Path $FilePath_USB_AutomateSetup_Module -Destination "$GitHubRepo\Automate-Setup.psm1" -Force
-            Copy-Item -Path $FilePath_USB_ConfigurePC_Module -Destination "$GitHubRepo\Configure-PC.psm1" -Force
-            Copy-Item -Path $FilePath_USB_InstallSoftware_Module -Destination "$GitHubRepo\Install-Software.psm1" -Force
-            Copy-Item -Path $FilePath_USB_TuneUpPC_Module -Destination "$GitHubRepo\TuneUp-PC.psm1" -Force
-            Write-Host "Files Updated to GitHub Repo Folder: $GitHubRepo" -ForegroundColor Green
-        }
-    }
-}
-
-function Update-Scripts {
-    $Update = [Update]::new(); $Update.Scripts()
-} Export-ModuleMember -Function Update-Scripts
-
-function Update-GitHubRepo {
-    $Update = [Update]::new(); $Update.GitHubRepo()
-} Export-ModuleMember -Function Update-GitHubRepo
-
+#region Client Config Functions
 ##############################################################
 ############## START OF CLIENT CONFIG FUNCTIONS ##############
 ##############################################################
@@ -434,10 +262,12 @@ function Add-ClientSetting {
     Save-ClientSettings
 } Export-ModuleMember -Function Add-ClientSetting
 
-
 ############################################################
 ############## END OF CLIENT CONFIG FUNCTIONS ##############
 ############################################################
+#endregion Client Config Functions
+
+#region Automated-Setup Related Functions
 function Start-AutomatedSetup_AtLogon {
     Set-ItemProperty -Path $RunOnceKey -Name SetupComputer -Value ("C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe -NoExit -Windowstyle maximized -ExecutionPolicy Bypass -File $FilePath_Local_AutomateSetup_Script") -Force
     Write-Host "Set Automated-Setup script to run at next logon: " -NoNewline; Write-Host "Complete" -ForegroundColor Green
@@ -555,6 +385,21 @@ function Cleanup-AutomatedSetup {
     Write-Host "`nCleanup is complete!" -ForegroundColor Green
 } Export-ModuleMember -Function Cleanup-AutomatedSetup
 
+function Remove-Folder {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Folder
+    )
+    
+    If (Test-Path -Path $Folder) {
+        Remove-Item $Folder -Recurse
+        Write-Host "Removed - $Folder" -ForeGroundColor Green
+    } else {Write-Host "$Folder has already been removed" -ForegroundColor Green}
+}
+#endregion Automated-Setup Related Functions
+
+#region Automated-Setup Submenu Functions
 ##############################################################################
 ############## Imaging Tool - Automated Setup Submenu Functions ##############
 ##############################################################################
@@ -649,6 +494,9 @@ function Create-ClientConfig {
 
 } Export-ModuleMember -Function Create-ClientConfig
 
+#endregion Automated-Setup Submenu Functions
+
+#region IGNORE
 # This will not be called by script or Menu.ps1. It is not intended to be used except for one instance
 function Create-RegistryBackupFile {
     DO {
@@ -685,3 +533,4 @@ function Create-RegistryBackupFile {
     Get-Random -Count 32 -InputObject (0..255) | Out-File -FilePath $FilePath_USB_Automated_Setup_RegistryBackup
     Write-Host "$FilePath_USB_Automated_Setup_RegistryBackup has been created" -ForegroundColor Green
 } # DO NOT EXPORT-MODULEMEMBER!!!
+#endregion IGNORE

@@ -5,12 +5,14 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
-#using module Configure-PC
-#using module Automate-Setup
+#region Initialize
 Import-Module Automate-Setup -WarningAction SilentlyContinue -Force
 Import-Module Configure-PC -WarningAction SilentlyContinue -Force
 Import-Module Install-Software -WarningAction SilentlyContinue -Force
-Clear-Host
+#Clear-Host
+
+$TechTool = New-TechTool
+$USB = New-ImagingUSB
 
 ######################################
 ##  STATIC Variables - Do not edit  ##
@@ -44,7 +46,9 @@ Clear-Host
   # Close lid actions... 0=Do Nothing, 1=Sleep, 2=Hibernate, 3=Shut Down.
   $AC_Close_Lid_Action = $null # Default is 0
   $DC_Close_Lid_Action = $null # Default is 1
+#endregion Initialize
 
+#region Functions
 function Build-Image {
 ############################################
 ##     -=[ SOFTWARE INSTALLATIONS ]=-     ##
@@ -108,7 +112,9 @@ function Single-Setup {
     CheckPoint-DriverUpdates
     Install-Windows_Updates -RebootAllowed
 }
+#endregion Functions
 
+#region Script Body
 #############################################################################
 #############################################################################
 ###                                                                       ###
@@ -124,7 +130,7 @@ Remove-StartAutomatedSetup_BatchFile
 Write-Host "Computername: " -NoNewline; Write-Host "$ComputerName" -ForegroundColor Cyan
 Write-Host ">Starting Automated Setup...`n" -ForegroundColor Yellow
 # -=[ Update Automated Setup Scripts ]=-
-Update-Scripts
+$script:TechTool.Update()
 # -=[ LOAD CLIENT SETTINGS ]=-
 Write-Host "-=[ LOAD CLIENT SETTINGS ]=-" -ForegroundColor DarkGray
 Get-ClientSettings
@@ -204,3 +210,5 @@ These need to be added to the script
     Install-Skype (Not Skype for Business)
     Install-VLC Media Player
 #>
+
+#endregion Script Body

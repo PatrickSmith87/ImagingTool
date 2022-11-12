@@ -1,3 +1,11 @@
+#################################################################################################################################################################
+#################################################################################################################################################################
+###                                                                                                                                                           ###
+###                                                                -=[ Configure-PC Module ]=-                                                                ###
+###                                                                                                                                                           ###
+#################################################################################################################################################################
+#################################################################################################################################################################
+
 #region Module Variables
 # Variables may be defined from parent script. If not, they will be defined from here.
 # Child scripts should be able to see variables from the parent script...
@@ -37,6 +45,7 @@ $FolderPath_Local_Client_Public_Desktop = "C:\Setup\SCOPE-Image_Setup\Public Des
 # ALL the Imaging USB paths should be defined centrally here. Let the functions infer paths from the ImagingUSB object's attributes
 #endregion Module Variables
 
+#region System Default Scripts
 #############################################################
 ############## START OF SYSTEM DEFAULT SCRIPTS ##############
 #############################################################
@@ -535,7 +544,9 @@ function Enable-FileSharing {
 ###########################################################
 ############## END OF SYSTEM DEFAULT SCRIPTS ##############
 ###########################################################
+#endregion System Default Scripts
 
+#region Local Admin Functions
 ##########################################################
 ############## START Of Local Admin Scripts ##############
 ##########################################################
@@ -786,13 +797,15 @@ function Remove-UserAccount {
         }
     }
 } Export-ModuleMember -Function Remove-UserAccount
-########################################################
-############## END Of Local Admin Scripts ##############
-########################################################
+##########################################################
+############## END Of Local Admin Functions ##############
+##########################################################
+#endregion Local Admin Functions
 
-######################################################
-############## START Of Profile Scripts ##############
-######################################################
+#region Profile Related Functions
+########################################################
+############## START Of Profile Functions ##############
+########################################################
 function Set-ProfileDefaultSettings {
     [CmdletBinding()]
     param(
@@ -833,10 +846,12 @@ function Show-HiddenObjects {
         Write-Host "$Step is " -NoNewline; Write-Host "enabled" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function Show-HiddenObjects
-####################################################
-############## END Of Profile Scripts ##############
-####################################################
+######################################################
+############## END Of Profile Functions ##############
+######################################################
+#endregion Profile Related Functions
 
+#region Configure PC Related Scripts
 ###########################################################
 ############## START Of Configure PC Scripts ##############
 ###########################################################
@@ -1770,16 +1785,4 @@ function Activate-Windows {
 #########################################################
 ############## END OF Configure PC SCRIPTS ##############
 #########################################################
-
-function Remove-Folder {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $Folder
-    )
-    
-    If (Test-Path -Path $Folder) {
-        Remove-Item $Folder -Recurse
-        Write-Host "Removed - $Folder" -ForeGroundColor Green
-    } else {Write-Host "$Folder has already been removed" -ForegroundColor Green}
-} Export-ModuleMember -Function Remove-Folder
+#endregion Configure PC Related Scripts

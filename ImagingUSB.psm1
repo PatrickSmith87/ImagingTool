@@ -1,7 +1,12 @@
-#region Module Variables
+#################################################################################################################################################################
+#################################################################################################################################################################
+###                                                                                                                                                           ###
+###                                                                 -=[ ImagingUSB Module ]=-                                                                 ###
+###                                                                                                                                                           ###
+#################################################################################################################################################################
+#################################################################################################################################################################
 
-#endregion Module Variables
-
+#region ImagingUSB Class
 function New-ImagingUSB {
     [ImagingUSB]::new()
 } Export-ModuleMember -Function New-ImagingUSB
@@ -76,7 +81,7 @@ class ImagingUSB {
         $this.FilePath_TechTool_bat                             = "$ImagingDrive\TechTool-RAA.bat"
         $this.FilePath_TechTool_ps1                             = "$ImagingDrive\sources\TechTool.ps1"
         $this.FilePath_ImagingUSB_Module                        = "$ImagingDrive\sources\ImagingUSB-Maintenance\_modules\ImagingUSB\ImagingUSB.psm1"
-        $this.FilePath_AutomateSetup_ps1                     = "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\Automate-Setup.ps1"
+        $this.FilePath_AutomateSetup_ps1                        = "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\Automate-Setup.ps1"
         $this.FilePath_AutomateSetup_Module                     = "$ImagingDrive\sources\PC-Maintenance\_modules\Automate-Setup\Automate-Setup.psm1"
         $this.FilePath_ConfigurePC_Module                       = "$ImagingDrive\sources\PC-Maintenance\_modules\Configure-PC\Configure-PC.psm1"
         $this.FilePath_InstallSoftware_Module                   = "$ImagingDrive\sources\PC-Maintenance\_modules\Install-Software\Install-Software.psm1"
@@ -110,3 +115,4 @@ class ImagingUSB {
         $this.DevTool                                           = $false
     }
 }
+#endregion ImagingUSB Class
