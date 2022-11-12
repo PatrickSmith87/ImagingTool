@@ -1,12 +1,4 @@
-##############################################################################
-##############################################################################
-###                                                                        ###
-###                          -=[ Script Setup ]=-                          ###
-###                                                                        ###
-##############################################################################
-##############################################################################
-Import-Module Install-Software -WarningAction SilentlyContinue -Force
-
+#region Module Variables
 # Variables may be defined from parent script. If not, they will be defined from here.
 # Child scripts should be able to see variables from the parent script...
 # However the child script cannot modify the parent's variables unless the scope is defined.
@@ -43,82 +35,7 @@ $FolderPath_Local_PublicDesktop         = "C:\Users\Public\Desktop"
 $FolderPath_Local_Client_Public_Desktop = "C:\Setup\SCOPE-Image_Setup\Public Desktop"
 
 # ALL the Imaging USB paths should be defined centrally here. Let the functions infer paths from the ImagingUSB object's attributes
-
-function New-ImagingUSB {
-    [ImagingUSB]::new()
-} Export-ModuleMember -Function New-ImagingUSB
-
-class ImagingUSB {
-    [string[]]$Drive_Letter = @()
-    [string[]]$WinPE_Drive_Letter = @()
-    [string]$Automated_Setup_Client_Folders
-    [string]$Automated_Setup_Client_Configs
-    [string]$Automated_Setup_RegistryBackup_Folder
-    [string]$Automated_Setup_RegistryBackup_File
-    [string]$Install_Software_Software_Configs
-    [string]$Install_Software_ODT
-    [string]$Install_Software_Profile_Software
-    [string]$Install_Software_Standard_Software
-
-    [boolean]Exists() {
-        $this.Drive_Letter = @() # Reset to empty list
-        $this.WinPE_Drive_Letter = @() # Reset to empty list
-        
-        foreach ($letter in (Get-PSDrive -PSProvider FileSystem).Name) {
-            # Get The Imaing USB Drive Letter
-            $TestPath = "$letter" + ":\PC_Setup"
-            If (Test-Path $TestPath) {
-                $this.Drive_Letter += "$letter" + ":"
-            }
-            # Get The WinPE USB Drive Letter
-            $TestPath = "$letter" + ":\sources\WinPE-Menu.ps1"
-            If (Test-Path $TestPath) {
-                $this.WinPE_Drive_Letter += "$letter" + ":"
-            }
-        }
-        
-        # Set\Remove USB related paths and send return value
-        If ($this.Drive_Letter.count -eq 0) {
-            $this.RemovePaths()
-            return $false
-        } elseif ($this.Drive_Letter.count -gt 1) {
-            Write-Host "Error: Multiple *:\PC_Setup paths have been detected" -ForegroundColor Red
-            $this.RemovePaths()
-            return $false
-        } else {
-            $this.SetPaths()
-            return $true
-        }
-    }
-
-    [void]hidden SetPaths() {
-        $USB_Drive = $this.Drive_Letter
-        $this.Automated_Setup_Client_Folders = "$USB_Drive\PC_Setup\Client_Folders"
-        $this.Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Folders\_Client_Configs"
-        $this.Automated_Setup_RegistryBackup_Folder = "$USB_Drive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\_RegistryBackup"
-        $this.Automated_Setup_RegistryBackup_File   = "$USB_Drive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\_RegistryBackup\registry-backup020622.reg"
-        $this.Install_Software_Software_Configs  = "$USB_Drive\PC_Setup\_Software_Collection\_Software_Configs"
-        $this.Install_Software_ODT               = "$USB_Drive\PC_Setup\_Software_Collection\ODT"
-        $this.Install_Software_Profile_Software  = "$USB_Drive\PC_Setup\_Software_Collection\Profile_Specific_Software"
-        $this.Install_Software_Standard_Software = "$USB_Drive\PC_Setup\_Software_Collection\Standard_Software"
-    }
-
-    [void]hidden RemovePaths() {
-        $USB_Drive = $this.Drive_Letter
-        $this.Automated_Setup_Client_Folders = $null
-        $this.Automated_Setup_Client_Configs = $null
-        $this.Automated_Setup_RegistryBackup_Folder = $null
-        $this.Automated_Setup_RegistryBackup_File   = $null
-        $this.Install_Software_Software_Configs  = $null
-        $this.Install_Software_ODT               = $null
-        $this.Install_Software_Profile_Software  = $null
-        $this.Install_Software_Standard_Software = $null
-    }
-
-    ImagingUSB() {
-        $this.Exists()
-    }
-}
+#endregion Module Variables
 
 #############################################################
 ############## START OF SYSTEM DEFAULT SCRIPTS ##############

@@ -1,4 +1,3 @@
-#
 ##############################################################################
 ##############################################################################
 ###                                                                        ###
@@ -6,8 +5,6 @@
 ###                                                                        ###
 ##############################################################################
 ##############################################################################
-#using module Configure-PC
-Clear-Host
 
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"

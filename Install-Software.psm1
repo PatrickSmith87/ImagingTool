@@ -1,12 +1,4 @@
-﻿##############################################################################
-##############################################################################
-###                                                                        ###
-###                          -=[ Script Setup ]=-                          ###
-###                                                                        ###
-##############################################################################
-##############################################################################
-#using module Configure-PC
-
+﻿#region Module Variables
 # Variables may be defined from parent script. If not, they will be defined from here.
 # Child scripts should be able to see variables from the parent script...
 # However the child script cannot modify the parent's variables unless the scope is defined.
@@ -18,12 +10,12 @@
 $FolderPath_Local_Setup                 = "C:\Setup"
 $FolderPath_Local_AutomatedSetup_Status = "C:\Setup\_Automated_Setup\Status"
 $FolderPath_Local_Software              = "C:\Setup\_Software_Collection"
-$FolderPath_Local_Software_Configs      = "C:\Setup\_Software_Collection\_Software_Configs"
 $FolderPath_Local_ODT_Software          = "C:\Setup\_Software_Collection\ODT"
 $FolderPath_Local_Profile_Software      = "C:\Setup\_Software_Collection\Profile_Specific_Software"
 $FolderPath_Local_Standard_Software     = "C:\Setup\_Software_Collection\Standard_Software"
-$Software                               = New-Software
+#endregion Module Variables
 
+#region Classes
 function New-Software {
     [Software]::new()
 } Export-ModuleMember -Function New-Software
@@ -414,7 +406,14 @@ class Software {
         }
     }
 }
+#endregion Classes
 
+#region INSTALLATION FUNCTIONS
+#############################################################
+############### START OF INSTALLATION FUNCTIONS #############
+#############################################################
+
+#region Image-Capable Software Install Functions
 ###############################################################################
 ############## START OF IMAGE-CAPABLE Software Install Functions ##############
 ###############################################################################
@@ -478,62 +477,6 @@ function Install-Image_Softwares {
         } Until ($Global:InstallationErrorCount -eq 0)
     }
 } Export-ModuleMember -Function Install-Image_Softwares
-
-function Choose-FileShareApp {
-    # Variables - edit as needed
-    $Step = "Install File Share App"
-
-    # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
-    $Software = New-Software
-
-    # Status check
-    # If already installed for skipped, just report so and skip the rest
-    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
-        If (Test-Path "$StepStatus-1.txt") {Write-Host "Citrix Files for Windows has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
-        #If (Test-Path "$StepStatus-2.txt") {Write-Host "Citrix Files for Outlook has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
-        #If (Test-Path "$StepStatus-3.txt") {Write-Host "Both Citrix Files for Windows " -NoNewline; Write-Host "and " -NoNewline -ForegroundColor Cyan; Write-Host "Citrix Files for Outlook have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
-        If (Test-Path "$StepStatus-2.txt") {Write-Host "Citrix Files for Windows has been " -NoNewline; Write-Host "skipped"}
-    # Assuming no progress on this step yet
-    } else {
-        # First see if the choice has already been made
-        $choice = $null
-        If ($global:ClientSettings.FileShareApp) {
-            $choice = $global:ClientSettings.FileShareApp
-        } else {
-        # Otherwise ask tech to choose action to take
-            DO {
-                Write-Host "`n-=[ $Step Choice ]=-" -ForegroundColor Yellow
-                Write-Host "Which File Share App(s) do you want to install?"
-                Write-Host "0. Skip"
-                Write-Host "1. Citrix Files for Windows"
-                Write-Host "2. Dropbox"
-                [int]$choice = Read-Host -Prompt "Enter a number, 0 through 2"
-            } UNTIL (($choice -ge 0) -and ($choice -le 2))
-            if ($global:Automated_Setup) {
-                # Update Client Config File with choice
-                Add-ClientSetting -Name FileShareApp -Value $choice
-            }
-        }
-        # Act on choice
-        switch ($choice) {
-            0 {
-                if ($global:Automated_Setup) {New-Item "$StepStatus-0.txt" -ItemType File -Force | Out-Null}
-                Write-Host "$Step has been skipped"
-            }
-            1 {
-                $SoftwareName = "Citrix Files for Windows (ShareFile)"
-                $CompletionFile = "$StepStatus-1.txt"
-                $Software.Install($SoftwareName,$CompletionFile)
-            }
-            2 {
-                $SoftwareName = "Dropbox"
-                $CompletionFile = "$StepStatus-2.txt"
-                $Software.Install($SoftwareName,$CompletionFile)
-            }
-        }
-    }
-} Export-ModuleMember -Function Choose-FileShareApp
 
 function Choose-Browser {
     # Variables - edit as needed
@@ -947,6 +890,72 @@ function Choose-Collaboration_Software {
         }
     }
 } Export-ModuleMember -Function Choose-Collaboration_Software
+
+function Choose-FileShareApp {
+    # Variables - edit as needed
+    $Step = "Install File Share App"
+
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $Software = New-Software
+
+    # Status check
+    # If already installed for skipped, just report so and skip the rest
+    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
+        If (Test-Path "$StepStatus-1.txt") {Write-Host "Citrix Files for Windows has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
+        #If (Test-Path "$StepStatus-2.txt") {Write-Host "Citrix Files for Outlook has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
+        #If (Test-Path "$StepStatus-3.txt") {Write-Host "Both Citrix Files for Windows " -NoNewline; Write-Host "and " -NoNewline -ForegroundColor Cyan; Write-Host "Citrix Files for Outlook have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
+        If (Test-Path "$StepStatus-2.txt") {Write-Host "Citrix Files for Windows has been " -NoNewline; Write-Host "skipped"}
+    # Assuming no progress on this step yet
+    } else {
+        # First see if the choice has already been made
+        $choice = $null
+        If ($global:ClientSettings.FileShareApp) {
+            $choice = $global:ClientSettings.FileShareApp
+        } else {
+        # Otherwise ask tech to choose action to take
+            DO {
+                Write-Host "`n-=[ $Step Choice ]=-" -ForegroundColor Yellow
+                Write-Host "Which File Share App(s) do you want to install?"
+                Write-Host "0. Skip"
+                Write-Host "1. Citrix Files for Windows"
+                Write-Host "2. Dropbox"
+                [int]$choice = Read-Host -Prompt "Enter a number, 0 through 2"
+            } UNTIL (($choice -ge 0) -and ($choice -le 2))
+            if ($global:Automated_Setup) {
+                # Update Client Config File with choice
+                Add-ClientSetting -Name FileShareApp -Value $choice
+            }
+        }
+        # Act on choice
+        switch ($choice) {
+            0 {
+                if ($global:Automated_Setup) {New-Item "$StepStatus-0.txt" -ItemType File -Force | Out-Null}
+                Write-Host "$Step has been skipped"
+            }
+            1 {
+                $SoftwareName = "Citrix Files for Windows (ShareFile)"
+                $CompletionFile = "$StepStatus-1.txt"
+                $Software.Install($SoftwareName,$CompletionFile)
+            }
+            2 {
+                $SoftwareName = "Dropbox"
+                $CompletionFile = "$StepStatus-2.txt"
+                $Software.Install($SoftwareName,$CompletionFile)
+            }
+        }
+    }
+} Export-ModuleMember -Function Choose-FileShareApp
+
+###############################################################################
+############### END OF IMAGE-CAPABLE Software Install Functions ###############
+###############################################################################
+#endregion Image-Capable Software Install Functions
+
+#region POST-IMAGE Software Install Functions
+############################################################################
+############## START OF POST-IMAGE Software Install Functions ##############
+############################################################################
 
 function CheckPoint-Client_Software {
     # Variables - edit as needed
@@ -1363,6 +1372,24 @@ function CheckPoint-DriverUpdates {
     }
 } Export-ModuleMember -Function CheckPoint-DriverUpdates
 
+##########################################################################
+############## END OF POST-IMAGE Software Install Functions ##############
+##########################################################################
+#endregion POST-IMAGE Software Install Functions
+
+#region Profile-Specific Software Install Functions
+##################################################################################
+############## START OF Profile-Specific Software Install Functions ##############
+##################################################################################
+
+
+
+################################################################################
+############## END OF Profile-Specific Software Install Functions ##############
+################################################################################
+#endregion Profile-Specific Software Install Functions
+
 ###########################################################
 ############### END OF INSTALLATION FUNCTIONS #############
 ###########################################################
+#endregion INSTALLATION FUNCTIONS

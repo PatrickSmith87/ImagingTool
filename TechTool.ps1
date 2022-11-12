@@ -71,7 +71,17 @@ if (!(Test-Path $FilePath_Local_TechTool_Module)) {
     #endregion Download GitHub Repo
 
     #region Update Local Code (Only what is needed!)
-    Copy-Item -Path "$Location\$Name-main\TechTool.psm1" -Destination $FilePath_Local_TechTool_Module -Force
+    $PathPieces = $FilePath_Local_TechTool_Module.Split('\')
+    $ParentFolderPath = $PathPieces[0]
+    $x=1
+    foreach ($Piece in $PathPieces) {  # Breaking down the destination file path and then rebuilding it without the filename so that we get a path to it's parent folder
+        If ($x -lt ($PathPieces.Count - 1)) {
+            $ParentFolderPath = $ParentFolderPath + "\" + $PathPieces[$x]
+            $x++
+        }
+    }
+    If (!(Test-Path $ParentFolderPath)) {New-Item $ParentFolderPath -ItemType Directory}
+    Copy-Item -Path "$Location\$Name-main\TechTool.psm1" -Destination $ParentFolderPath -Force
     #endregion Update Local Code (Only what is needed!)
 
     #region Import Modules

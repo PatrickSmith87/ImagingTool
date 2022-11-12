@@ -6,7 +6,7 @@
 ##############################################################################
 ##############################################################################
 #using module Configure-PC
-Clear-Host
+#Clear-Host
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 
 # Modules Folder
