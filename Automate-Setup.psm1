@@ -7,6 +7,8 @@
 #################################################################################################################################################################
 
 #region Module Variables
+$USB = New-ImagingUSB
+
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
 
@@ -58,25 +60,14 @@ $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-A
 
 function Get-ClientSettings {
     $ClientConfig = $null
-    # Get USB Drive
-    <#foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
-        $Test_Path = "$Drive_Letter" + ":\PC_Setup"
-        If (Test-Path $Test_Path) {
-            $USB_Drive = "$Drive_Letter" + ":"
-            $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Folders\_Client_Configs"
-        }
-    }
-    #>
     
     # Get USB Paths
-    $USB = New-ImagingUSB
-    if ($USB.Exists()) {
-        $USB_Drive = $USB.Drive_Letter
-        $FolderPath_USB_Automated_Setup_Client_Folders = $USB.Automated_Setup_Client_Folders
-        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Automated_Setup_Client_Configs
+    if ($script:USB.Exists()) {
+        Write-Host "`$script:USB.Exists() ="$script:USB.Exists()
+        Write-Host "`$USB.Exists() ="$USB.Exists()
+        pause
+        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.FolderPath_Automated_Setup_Client_Configs
     }
-
-    $ClientName            = $Global:ClientSettings.ClientName
 
     # First, check for a Client Config file under $FolderPath_Local_Setup = C:\Setup
     $ClientConfig = (Get-ChildItem -Path "$FolderPath_Local_Setup\*.ClientConfig" -ErrorAction SilentlyContinue)
@@ -88,10 +79,9 @@ function Get-ClientSettings {
         $ClientConfigs = (Get-ChildItem -Path "$FolderPath_USB_Automated_Setup_Client_Configs\*.ClientConfig" -ErrorAction SilentlyContinue)
         If ($ClientConfigs.Count -gt 0) {
             Write-Host "Imaging Tool Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
-            Write-Host ""
             Do {
                 $Count = 1
-                Write-Host "   -=[ Available Client Config Files ]=-"
+                Write-Host "`n   -=[ Available Client Config Files ]=-"
                 ForEach ($Config in $ClientConfigs) {
                     $Line = "   $Count" + ": " + $Config.Name
                     Write-Host $Line
@@ -99,8 +89,7 @@ function Get-ClientSettings {
                 }
                 $Line = "   $Count" + ": " + "OR, start a new Client Config..."
                 Write-Host $Line
-                Write-Host ""
-                [int]$choice = Read-Host -Prompt "Which Client Config file would you like to load? (Enter a number from 1 to $Count)"
+                [int]$choice = Read-Host -Prompt "`nWhich Client Config file would you like to load? (Enter a number from 1 to $Count)"
             } Until (($choice -gt 0) -and ($choice -le $Count))
             If ($choice -ne $Count) {
                 $ClientConfig = $ClientConfigs[$choice-1]
@@ -112,10 +101,9 @@ function Get-ClientSettings {
         $ClientConfigs = (Get-ChildItem -Path "$FolderPath_Local_Client_Config_Repository\*.ClientConfig" -ErrorAction SilentlyContinue)
         If ($ClientConfigs.Count -gt 0) {
             Write-Host "Local Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
-            Write-Host ""
             Do {
                 $Count = 1
-                Write-Host "   -=[ Available Client Config Files ]=-"
+                Write-Host "`n   -=[ Available Client Config Files ]=-"
                 ForEach ($Config in $ClientConfigs) {
                     $Line = "   $Count" + ": " + $Config.Name
                     Write-Host $Line
@@ -123,8 +111,7 @@ function Get-ClientSettings {
                 }
                 $Line = "   $Count" + ": " + "OR, start a new Client Config..."
                 Write-Host $Line
-                Write-Host ""
-                [int]$choice = Read-Host -Prompt "Which Client Config file would you like to load? (Enter a number from 1 to $Count)"
+                [int]$choice = Read-Host -Prompt "`nWhich Client Config file would you like to load? (Enter a number from 1 to $Count)"
             } Until (($choice -gt 0) -and ($choice -le $Count))
             If ($choice -ne $Count) {
                 $ClientConfig = $ClientConfigs[$choice-1]
@@ -140,7 +127,6 @@ function Get-ClientSettings {
         Write-Host "Completed`n" -ForegroundColor Green
         Save-ClientSettings
         #If ($DelFlag = $true) {Remove-Item -Path $ClientConfigFile -Force | Out-Null}
-        
     } else {
         $NewFlag = $true
         # Otherwise start a new client config
@@ -182,24 +168,12 @@ function Save-ClientSettings {
     $ClientName            = $Global:ClientSettings.ClientName
     $SetupType             = $Global:ClientSettings.SetupType
     $ClientConfig_FileName = "$ClientName-$SetupType.ClientConfig"
-    <#
-    # Get USB Drive
-    foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
-        $Test_Path = "$Drive_Letter" + ":\PC_Setup"
-        If (Test-Path $Test_Path) {
-            $USB_Drive = "$Drive_Letter" + ":"
-            $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Folders\_Client_Configs"
-            $FolderPath_USB_Automated_Setup_Client_Folders = "$USB_Drive\PC_Setup\Client_Folders"
-        }
-    }
-    #>
 
     # Get USB Paths
-    $USB = New-ImagingUSB
     if ($USB.Exists()) {
         $USB_Drive = $USB.Drive_Letter
-        $FolderPath_USB_Automated_Setup_Client_Folders = $USB.Automated_Setup_Client_Folders
-        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Automated_Setup_Client_Configs
+        $FolderPath_USB_Automated_Setup_Client_Folders = $USB.FolderPath_Automated_Setup_Client_Folders
+        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.FolderPath_Automated_Setup_Client_Configs
     }
 
     If ($Final) {
@@ -209,11 +183,10 @@ function Save-ClientSettings {
             Write-Host "If you want $ClientConfig_FileName to be saved to your Imaging Tool, " -NoNewline; Write-Host "plug it in now" -NoNewline -ForegroundColor Red; Write-Host " before continuing"
             Pause
             # Get USB Paths
-            $USB = New-ImagingUSB
             if ($USB.Exists()) {
                 $USB_Drive = $USB.Drive_Letter
-                $FolderPath_USB_Automated_Setup_Client_Folders = $USB.Automated_Setup_Client_Folders
-                $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Automated_Setup_Client_Configs
+                $FolderPath_USB_Automated_Setup_Client_Folders = $USB.FolderPath_Automated_Setup_Client_Folders
+                $FolderPath_USB_Automated_Setup_Client_Configs = $USB.FolderPath_Automated_Setup_Client_Configs
             }
         }
         # If $Final switch and USB is plugged in, save to USB at $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Configs"
@@ -434,33 +407,19 @@ function Remove-Automated_Setup_Files {
 
 function Read-ClientConfig {
     $ClientConfig = $null
-    
-    <#
-    # Get USB Drive
-    foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
-        $Test_Path = "$Drive_Letter" + ":\PC_Setup"
-        If (Test-Path $Test_Path) {
-            $USB_Drive = "$Drive_Letter" + ":"
-            $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Folders\_Client_Configs"
-        }
-    }
-    #>
 
     # Get USB Paths
-    $USB = New-ImagingUSB
     if ($USB.Exists()) {
-        $USB_Drive = $USB.Drive_Letter
-        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Automated_Setup_Client_Configs
+        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.FolderPath_Automated_Setup_Client_Configs
     }
 
     # Check the USB Client Configs repository under $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\sources\PC-Maintenance\1. Automated Setup\Client_Configs"
     $ClientConfigs = (Get-ChildItem -Path "$FolderPath_USB_Automated_Setup_Client_Configs\*.ClientConfig" -ErrorAction SilentlyContinue)
     If ($ClientConfigs.Count -gt 0) {
         Write-Host "Imaging Tool Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
-        Write-Host ""
         Do {
             $Count = 1
-            Write-Host "   -=[ Available Client Config Files ]=-"
+            Write-Host "`n   -=[ Available Client Config Files ]=-"
             ForEach ($ClientConfig in $ClientConfigs) {
                 $Line = "   $Count" + ": " + $ClientConfig.Name
                 Write-Host $Line
@@ -468,8 +427,7 @@ function Read-ClientConfig {
             }
             $Line = "   $Count" + ": " + "OR, Go Back..."
             Write-Host $Line
-            Write-Host ""
-            $input = Read-Host -Prompt "Which Client Config file would you like to read the properties of? (Enter a number from 1 to $Count)"
+            $input = Read-Host -Prompt "`nWhich Client Config file would you like to read the properties of? (Enter a number from 1 to $Count)"
         } Until (($input -gt 0) -and ($input -le $Count))
         If ($input -ne $Count) {
             $ClientConfig = $ClientConfigs[$input-1]
@@ -479,8 +437,7 @@ function Read-ClientConfig {
         }
     } else {
         Write-Host "Could not find any Client Configs in the Imaging Tool Repository:"
-        Write-Host "> $FolderPath_USB_Automated_Setup_Client_Configs"
-        Write-Host ""
+        Write-Host "> $FolderPath_USB_Automated_Setup_Client_Configs`n"
     }
 } Export-ModuleMember -Function Read-ClientConfig
 
