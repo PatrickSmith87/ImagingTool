@@ -67,18 +67,13 @@ function Get-ClientSettings {
     }
 
     # First, check for a Client Config file under $FolderPath_Local_Setup = C:\Setup
-    Write-Host "First, check for a Client Config file under $FolderPath_Local_Setup = C:\Setup"
     $ClientConfig = (Get-ChildItem -Path "$FolderPath_Local_Setup\*.ClientConfig" -ErrorAction SilentlyContinue)
     # Second, check the Local Client Config repository under $FolderPath_Local_Client_Config = "C:\Setup\_Automated_Setup\_Client_Config"
-    Write-Host "Second, check the Local Client Config repository under $FolderPath_Local_Client_Config = C:\Setup\_Automated_Setup\_Client_Config"
     If (!($ClientConfig)) {$ClientConfig = (Get-ChildItem -Path "$FolderPath_Local_Client_Config\*.ClientConfig" -ErrorAction SilentlyContinue)} else {$DelFlag = $true; $NewFlag = $true}
     # Third, check the USB Client Configs repository under $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Folders\_Client_Configs"
-    Write-Host "Third, check the USB Client Configs repository under $FolderPath_USB_Automated_Setup_Client_Configs = $USB_Drive\PC_Setup\Client_Folders\_Client_Configs"
     If (!($ClientConfig)) {
         $NewFlag = $true
         $ClientConfigs = (Get-ChildItem -Path "$FolderPath_USB_Automated_Setup_Client_Configs\*.ClientConfig" -ErrorAction SilentlyContinue)
-        Write-Host "$ClientConfigs"
-        Write-Host "TEST POINT 0"
         Pause
         If ($ClientConfigs.Count -gt 0) {
             Write-Host "Imaging Tool Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
@@ -98,15 +93,9 @@ function Get-ClientSettings {
                 $ClientConfig = $ClientConfigs[$choice-1]
             }
         }
-        Write-Host (!($ClientConfig))
-        Write-Host "TEST POINT 1"
-        Pause
     } 
     if (!($ClientConfig)) {
     # Fourth, check the Local Client Configs repository under $FolderPath_Local_Client_Config_Repository = "C:\Setup\_Automated_Setup\_Client_Config\Repository"
-    Write-Host "Fourth, check the Local Client Configs repository under $FolderPath_Local_Client_Config_Repository = C:\Setup\_Automated_Setup\_Client_Config\Repository"
-    Write-Host "TEST POINT 2"
-    Pause
         $NewFlag = $true
         $ClientConfigs = (Get-ChildItem -Path "$FolderPath_Local_Client_Config_Repository\*.ClientConfig" -ErrorAction SilentlyContinue)
         Write-Host "$ClientConfigs"
