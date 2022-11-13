@@ -77,6 +77,7 @@ function Get-ClientSettings {
     If (!($ClientConfig)) {
         $NewFlag = $true
         $ClientConfigs = (Get-ChildItem -Path "$FolderPath_USB_Automated_Setup_Client_Configs\*.ClientConfig" -ErrorAction SilentlyContinue)
+        Write-Host "$ClientConfigs"
         Write-Host "TEST POINT"
         Pause
         If ($ClientConfigs.Count -gt 0) {
@@ -100,8 +101,13 @@ function Get-ClientSettings {
     } elseif (!($ClientConfig)) {
     # Fourth, check the Local Client Configs repository under $FolderPath_Local_Client_Config_Repository = "C:\Setup\_Automated_Setup\_Client_Config\Repository"
     Write-Host "Fourth, check the Local Client Configs repository under $FolderPath_Local_Client_Config_Repository = C:\Setup\_Automated_Setup\_Client_Config\Repository"
+    Write-Host "TEST POINT 2"
+    Pause
         $NewFlag = $true
         $ClientConfigs = (Get-ChildItem -Path "$FolderPath_Local_Client_Config_Repository\*.ClientConfig" -ErrorAction SilentlyContinue)
+        Write-Host "$ClientConfigs"
+        Write-Host "TEST POINT 3"
+        Pause
         If ($ClientConfigs.Count -gt 0) {
             Write-Host "Local Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
             Do {
