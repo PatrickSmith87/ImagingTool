@@ -78,7 +78,7 @@ function Get-ClientSettings {
         $NewFlag = $true
         $ClientConfigs = (Get-ChildItem -Path "$FolderPath_USB_Automated_Setup_Client_Configs\*.ClientConfig" -ErrorAction SilentlyContinue)
         Write-Host "$ClientConfigs"
-        Write-Host "TEST POINT"
+        Write-Host "TEST POINT 0"
         Pause
         If ($ClientConfigs.Count -gt 0) {
             Write-Host "Imaging Tool Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
@@ -98,6 +98,9 @@ function Get-ClientSettings {
                 $ClientConfig = $ClientConfigs[$choice-1]
             }
         }
+        Write-Host (!($ClientConfig))
+        Write-Host "TEST POINT 1"
+        Pause
     } elseif (!($ClientConfig)) {
     # Fourth, check the Local Client Configs repository under $FolderPath_Local_Client_Config_Repository = "C:\Setup\_Automated_Setup\_Client_Config\Repository"
     Write-Host "Fourth, check the Local Client Configs repository under $FolderPath_Local_Client_Config_Repository = C:\Setup\_Automated_Setup\_Client_Config\Repository"
