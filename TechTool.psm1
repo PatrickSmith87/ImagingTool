@@ -43,10 +43,10 @@ $USB = New-ImagingUSB
 # 8. Backup Folder
   $FilePath_USB_Backup_Folder_BACKUP                    = $USB.PCMaint_BackupFolder_BACKUP_bat_Fi
 # -=[ Imaging USB MAINTENANCE ]=-
-  $ImagingUSBMaintenance_BACKUP_Minus_Images_Fi         = $USB.USBMaint_BACKUPMinusImages_bat_Fi
-  $ImagingUSBMaintenance_BACKUP_Fi                      = $USB.USBMaint_BACKUP_bat_Fi
-  $ImagingUSBMaintenance_CREATE_AutoDeploy_Package_Fi   = $USB.USBMaint_CREATEAutoDeployPackage_bat_Fi
-  $ImagingUSBMaintenance_RESTORE_Fi                     = $USB.USBMaint_RESTORE_bat_Fi
+  $USBMaintenance_BACKUP_Minus_Images_Fi                = $USB.USBMaint_BACKUPMinusImages_bat_Fi
+  $USBMaintenance_BACKUP_Fi                             = $USB.USBMaint_BACKUP_bat_Fi
+  $USBMaintenance_CREATE_AutoDeploy_Package_Fi          = $USB.USBMaint_CREATEAutoDeployPackage_bat_Fi
+  $USBMaintenance_RESTORE_Fi                            = $USB.USBMaint_RESTORE_bat_Fi
 
 #endregion Module Variables
 
@@ -653,13 +653,13 @@ function ImagingUSB-Maintenance_submenu {
     } UNTIL (($choice -ge 0) -and ($choice -le 10))
     Switch ($choice) {
         0 {Clear-Host; Main_Menu}
-        1 {Clear-Host; & $ImagingUSBMaintenance_BACKUP_Minus_Images_Fi}
-        2 {Clear-Host; & $ImagingUSBMaintenance_BACKUP_Fi}
-        3 {Clear-Host; & $ImagingUSBMaintenance_CREATE_AutoDeploy_Package_Fi}
+        1 {Clear-Host; & $USBMaintenance_BACKUP_Minus_Images_Fi}
+        2 {Clear-Host; & $USBMaintenance_BACKUP_Fi}
+        3 {Clear-Host; & $USBMaintenance_CREATE_AutoDeploy_Package_Fi}
         4 {Clear-Host; ImagingUSBMaintenance_Create-Package}
         5 {Clear-Host; ImagingUSBMaintenance_Transfer-Package}
         6 {Clear-Host; & $FilePath_ImagingUSBToolMaintenance_RESTORE_Minus_Images}
-        7 {Clear-Host; & $ImagingUSBMaintenance_RESTORE_Fi}
+        7 {Clear-Host; & $USBMaintenance_RESTORE_Fi}
         8 {Clear-Host; $script:TechTool.Download_GitHub_Repo() ;$script:TechTool.Update_USB_Scripts()}
         9 {Clear-Host; $Script:TechTool.Update_Local_GitHubRepo()}
         10 {EXIT}
@@ -767,11 +767,12 @@ function ImagingUSBMaintenance_Create-Package {
         # I:\
         $command = "XCOPY $Imaging_Drive\autorun.inf $Imaging_Dest\autorun.inf* /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
         $command = "attrib +h $Imaging_Dest\autorun.inf"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-        $command = "XCOPY $Imaging_Drive\Imaging_Tool_Menu-RAA.bat $Imaging_Dest\Imaging_Tool_Menu-RAA.bat* /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
+        $command = "XCOPY $Imaging_Drive\TechTool-RAA.bat $Imaging_Dest\TechTool-RAA.bat* /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
+        $command = "XCOPY $Imaging_Drive\Get-WindowsAutoPilotInfo-RAA.bat $Imaging_Dest\Get-WindowsAutoPilotInfo-RAA.bat* /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
 
         # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\Imaging_Drive\sources
         # I:\sources
-        $command = "ROBOCOPY $Imaging_Drive\sources\ $Imaging_Dest\sources\ $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
+        $command = "ROBOCOPY $Imaging_Drive\sources\ $Imaging_Dest\sources\ $what $options /XF DevTool"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
         $command = "attrib +h $Imaging_Dest\sources"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
 
         # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\Imaging_Drive\Images
@@ -801,6 +802,7 @@ function ImagingUSBMaintenance_Create-Package {
         $command = "XCOPY $Imaging_Drive\PC_Setup\_Software_Collection\ODT\*.xml $Imaging_Dest\PC_Setup\_Software_Collection\ODT\*.xml /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
         $command = "XCOPY $Imaging_Drive\PC_Setup\_Software_Collection\ODT\*.exe $Imaging_Dest\PC_Setup\_Software_Collection\ODT\*.exe /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
     
+
     # TRANSFERS COMPLETED
     Write-Host "`nDownload\Update of " -NoNewline; Write-Host "$WinPE_USB_Package_DESTINATION" -NoNewline -ForegroundColor Cyan; Write-Host " is " -NoNewline; Write-Host "Complete" -ForegroundColor Green
 }

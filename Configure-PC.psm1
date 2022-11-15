@@ -1174,7 +1174,7 @@ function Restart-Explorer {
     If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        Start-Sleep 20
+        Start-Sleep 5
         cmd.exe /c 'taskkill /F /IM explorer.exe' | Out-Null
         Start-Sleep 3
         #cmd.exe /c 'start explorer.exe' | Out-Null
