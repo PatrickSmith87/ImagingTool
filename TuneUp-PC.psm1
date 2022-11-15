@@ -10,10 +10,10 @@
 $RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
 
 # Modules Folder
-    $FilePath_Local_AutomateSetup_Module             = "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup\Automate-Setup.psm1"
-    $FilePath_Local_ConfigurePC_Module               = "C:\Program Files\WindowsPowerShell\Modules\Configure-PC\Configure-PC.psm1"
-    $FilePath_Local_InstallSoftware_Module           = "C:\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
-    $FilePath_Local_TuneUpPC_Module                  = "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC\TuneUp-PC.psm1"
+    $Module_AutomateSetup_Fi             = "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup\Automate-Setup.psm1"
+    $Module_ConfigurePC_Fi               = "C:\Program Files\WindowsPowerShell\Modules\Configure-PC\Configure-PC.psm1"
+    $Module_InstallSoftware_Fi           = "C:\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
+    $Module_TuneUpPC_Fi                  = "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC\TuneUp-PC.psm1"
 # 2. TuneUp
     $FolderPath_Local_TuneUp_PC_Status               = "C:\Setup\_TuneUp_PC\Status"
     $FilePath_Local_TuneUp_PC_Script                 = "C:\Setup\_TuneUp_PC\TuneUp-PC.ps1"
@@ -135,7 +135,7 @@ function Install-Driver_Updates {
                         $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
                         If (($Global:Installed_Software).DisplayName -match $Software) {
                             Write-Host "Installed - $Software" -ForegroundColor Green
-                            if ($global:Automated_Setup) {New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null}
+                            if ($Automated_Setup) {New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null}
                         } else {
                             Write-Host "$Software is not installed" -ForegroundColor Red
                             Write-Host "Reboot or just relog to re-attempt install"
@@ -150,7 +150,7 @@ function Install-Driver_Updates {
                         Write-Host "Verifying if the software is now installed..."
                         If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
                             Write-Host "Installed - $Software" -ForegroundColor Green
-                            if ($global:Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
+                            if ($Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
                         } else {
                             Write-Host "$Software is not installed" -ForegroundColor Red
                             Write-Host "Reboot or just relog to re-attempt install"
@@ -158,7 +158,7 @@ function Install-Driver_Updates {
                     }
                     3 {
                         Write-Host "Both Dell and HP Support Assistant Installations have been skipped" -ForegroundColor Green
-                        if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                        if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                     }
                 }
             }
@@ -175,10 +175,10 @@ function Install-Driver_Updates {
                 $input = Read-Host -Prompt "Type in 'continue' move on to the next step"
             } UNTIL ($input -eq "continue")
             Write-Host "$Step has been completed"
-            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
             Write-Host "$Step has been skipped"
-            if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
         }
     }
 } Export-ModuleMember -Function Install-Driver_Updates

@@ -45,8 +45,9 @@ if (!$CurrentSessionAdmin) {
 #endregion Prompt to restart as administrator if not currently
 
 #region Manually Initialize TechTool Library
-[string]$FilePath_Local_TechTool_Module = "C:\Program Files\WindowsPowerShell\Modules\TechTool\TechTool.psm1"
-if (!(Test-Path $FilePath_Local_TechTool_Module)) {
+[string]$Module_TechTool_Fi = "C:\Program Files\WindowsPowerShell\Modules\TechTool\TechTool.psm1"
+[string]$Module_ImagingUSB_Fi = "C:\Program Files\WindowsPowerShell\Modules\ImagingUSB\ImagingUSB.psm1"
+if (!(Test-Path $Module_TechTool_Fi)) {
     [string]$Name                           = "ImagingTool"
     [string]$Author                         = "PatrickSmith87"
     [string]$Branch                         = "master"
@@ -71,7 +72,7 @@ if (!(Test-Path $FilePath_Local_TechTool_Module)) {
     #endregion Download GitHub Repo
 
     #region Update Local Code (Only what is needed!)
-    $PathPieces = $FilePath_Local_TechTool_Module.Split('\')
+    $PathPieces = $Module_TechTool_Fi.Split('\')
     $ParentFolderPath = $PathPieces[0]
     $x=1
     foreach ($Piece in $PathPieces) {  # Breaking down the destination file path and then rebuilding it without the filename so that we get a path to it's parent folder
@@ -82,10 +83,23 @@ if (!(Test-Path $FilePath_Local_TechTool_Module)) {
     }
     If (!(Test-Path $ParentFolderPath)) {New-Item $ParentFolderPath -ItemType Directory | Out-Null}
     Copy-Item -Path "$Location\$Name-main\TechTool.psm1" -Destination $ParentFolderPath -Force
+    
+    $PathPieces = $Module_ImagingUSB_Fi.Split('\')
+    $ParentFolderPath = $PathPieces[0]
+    $x=1
+    foreach ($Piece in $PathPieces) {  # Breaking down the destination file path and then rebuilding it without the filename so that we get a path to it's parent folder
+        If ($x -lt ($PathPieces.Count - 1)) {
+            $ParentFolderPath = $ParentFolderPath + "\" + $PathPieces[$x]
+            $x++
+        }
+    }
+    If (!(Test-Path $ParentFolderPath)) {New-Item $ParentFolderPath -ItemType Directory | Out-Null}
+    Copy-Item -Path "$Location\$Name-main\ImagingUSB.psm1" -Destination $ParentFolderPath -Force
     #endregion Update Local Code (Only what is needed!)
 
     #region Import Modules
     Import-Module TechTool -WarningAction SilentlyContinue -Force | Out-Null
+    Import-Module ImagingUSB -WarningAction SilentlyContinue -Force | Out-Null
     #endregion Import Modules
 }
 #endregion Manually Initialize TechTool Library

@@ -5,42 +5,32 @@
 ###                                                                                                                                                           ###
 #################################################################################################################################################################
 #################################################################################################################################################################
-
+<#
+This module contains functions that support the Automate-Setup.ps1 functionality
+#>
 #region Module Variables
+$TechTool = New-TechTool
 $USB = New-ImagingUSB
 
-$RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
+$RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce" # This is the registry key that points to what script(s) to run when a user logs in
 $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
 
-# Modules Folder
-    $FilePath_Local_AutomateSetup_Module             = "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup\Automate-Setup.psm1"
-    $FilePath_Local_ConfigurePC_Module               = "C:\Program Files\WindowsPowerShell\Modules\Configure-PC\Configure-PC.psm1"
-    $FilePath_Local_InstallSoftware_Module           = "C:\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
-    $FilePath_Local_TuneUpPC_Module                  = "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC\TuneUp-PC.psm1"
 # 1. Automated Setup
-    $FolderPath_Local_Setup                          = "C:\Setup"
-    $FolderPath_Local_Client_Config                  = "C:\Setup\_Automated_Setup\_Client_Config"
-    $FolderPath_Local_Client_Config_Repository       = "C:\Setup\_Automated_Setup\_Client_Config\Repository"
-    $FolderPath_Local_Automated_Setup_RegistryBackup = "C:\Setup\_Automated_Setup\_RegistryBackup"
-    $FolderPath_Local_AutomatedSetup_Status          = "C:\Setup\_Automated_Setup\Status"
-    $FilePath_Local_AutomateSetup_Script             = "C:\Setup\_Automated_Setup\Automate-Setup.ps1"
-    $FolderPath_Local_Software                       = "C:\Setup\_Software_Collection"
-    $FolderPath_Local_Software_Configs               = "C:\Setup\_Software_Collection\_Software_Configs"
-    $FolderPath_Local_ODT_Software                   = "C:\Setup\_Software_Collection\ODT"
-    $FolderPath_Local_Profile_Software               = "C:\Setup\_Software_Collection\Profile_Specific_Software"
-    $FolderPath_Local_Standard_Software              = "C:\Setup\_Software_Collection\Standard_Software"
-    $FolderPath_Local_SCOPE_Image_Setup              = "C:\Setup\SCOPE-Image_Setup"
-    $FolderPath_Local_Client_Public_Desktop          = "C:\Setup\SCOPE-Image_Setup\Public Desktop"
-    $FolderPath_Local_SCOPE_POST_Image_Setup         = "C:\Setup\SCOPE-POST_Image_Setup"
-    $FolderPath_Local_SCOPE_User_Profile             = "C:\Setup\SCOPE-User_Profile"
-
-<#
- THESE are defined in functions within this module
- $FolderPath_USB_Automated_Setup_RegistryBackup      = "$USB_Drive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\_RegistryBackup"
- $FilePath_USB_Automated_Setup_RegistryBackup        = "$USB_Drive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\_RegistryBackup\registry-backup020622.reg"
-
-
-#>
+    $FolderPath_Local_Setup                             = $TechTool.FolderPath_Local_Setup
+    $Setup_AS_Client_Config_Fo                     = $TechTool.Setup_AS_Client_Config_Fo
+    $Setup_AS_Client_Config_Fo_Repository          = $TechTool.Setup_AS_Client_Config_Repository_Fo
+    $Setup_AS_RegistryBackup_Fo    = $TechTool.Setup_AS_RegistryBackup_Fo
+    $Setup_AS_Status_Fo             = $TechTool.Setup_AS_Status_Fo
+    $Setup_AS_AutomateSetup_ps1                   = $TechTool.Setup_AS_AutomateSetup_ps1
+    $Setup_SoftwareCollection_Fo                          = $TechTool.Setup_SoftwareCollection_Fo
+    $Setup_SoftwareCollection_Fo_Configs                  = $TechTool.Setup_SoftwareCollection_Fo_Configs
+    $Setup_SoftwareCollection_ODTSoftware_Fo                      = $TechTool.Setup_SoftwareCollection_ODTSoftware_Fo
+    $Setup_SoftwareCollection_ProfileSoftware_Fo                  = $TechTool.Setup_SoftwareCollection_ProfileSoftware_Fo
+    $Setup_SoftwareCollection_Standard_Software_Fo                 = $TechTool.Setup_SoftwareCollection_Standard_Software_Fo
+    $Setup_SCOPEImageSetup_Fo                 = $TechTool.Setup_SCOPEImageSetup_Fo
+    $Setup_SCOPEImageSetup_PublicDesktop_Fo             = $TechTool.Setup_SCOPEImageSetup_PublicDesktop_Fo
+    $Setup_SCOPEPostImageSetup_Fo            = $TechTool.Setup_SCOPEPostImageSetup_Fo
+    $Setup_SCOPEUserProfile_Fo                = $TechTool.Setup_SCOPEUserProfile_Fo
 #endregion Module Variables
 
 #region Client Config Functions
@@ -62,19 +52,18 @@ function Get-ClientSettings {
     $ClientConfig = $null
     
     # Get USB Paths
-    if ($script:USB.Exists()) {
-        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.FolderPath_Automated_Setup_Client_Configs
+    if ($USB.Exists()) {
+        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Client_Configs_Fo
     }
 
     # First, check for a Client Config file under $FolderPath_Local_Setup = C:\Setup
     $ClientConfig = (Get-ChildItem -Path "$FolderPath_Local_Setup\*.ClientConfig" -ErrorAction SilentlyContinue)
-    # Second, check the Local Client Config repository under $FolderPath_Local_Client_Config = "C:\Setup\_Automated_Setup\_Client_Config"
-    If (!($ClientConfig)) {$ClientConfig = (Get-ChildItem -Path "$FolderPath_Local_Client_Config\*.ClientConfig" -ErrorAction SilentlyContinue)} else {$DelFlag = $true; $NewFlag = $true}
+    # Second, check the Local Client Config repository under $Setup_AS_Client_Config_Fo = "C:\Setup\_Automated_Setup\_Client_Config"
+    If (!($ClientConfig)) {$ClientConfig = (Get-ChildItem -Path "$Setup_AS_Client_Config_Fo\*.ClientConfig" -ErrorAction SilentlyContinue)} else {$DelFlag = $true; $NewFlag = $true}
     # Third, check the USB Client Configs repository under $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Folders\_Client_Configs"
     If (!($ClientConfig)) {
         $NewFlag = $true
         $ClientConfigs = (Get-ChildItem -Path "$FolderPath_USB_Automated_Setup_Client_Configs\*.ClientConfig" -ErrorAction SilentlyContinue)
-        Pause
         If ($ClientConfigs.Count -gt 0) {
             Write-Host "Imaging Tool Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
             Do {
@@ -95,12 +84,9 @@ function Get-ClientSettings {
         }
     } 
     if (!($ClientConfig)) {
-    # Fourth, check the Local Client Configs repository under $FolderPath_Local_Client_Config_Repository = "C:\Setup\_Automated_Setup\_Client_Config\Repository"
+    # Fourth, check the Local Client Configs repository under $Setup_AS_Client_Config_Fo_Repository = "C:\Setup\_Automated_Setup\_Client_Config\Repository"
         $NewFlag = $true
-        $ClientConfigs = (Get-ChildItem -Path "$FolderPath_Local_Client_Config_Repository\*.ClientConfig" -ErrorAction SilentlyContinue)
-        Write-Host "$ClientConfigs"
-        Write-Host "TEST POINT 3"
-        Pause
+        $ClientConfigs = (Get-ChildItem -Path "$Setup_AS_Client_Config_Fo_Repository\*.ClientConfig" -ErrorAction SilentlyContinue)
         If ($ClientConfigs.Count -gt 0) {
             Write-Host "Local Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
             Do {
@@ -142,7 +128,7 @@ function Get-ClientSettings {
             ClientName = $input
         }
         Save-ClientSettings
-        $ClientConfig = (Get-ChildItem -Path "$FolderPath_Local_Client_Config\*.ClientConfig" -ErrorAction SilentlyContinue)
+        $ClientConfig = (Get-ChildItem -Path "$Setup_AS_Client_Config_Fo\*.ClientConfig" -ErrorAction SilentlyContinue)
         Write-Host "Client Config File started: "$ClientConfig.Name -ForegroundColor Green
         Write-Host ""
     }
@@ -158,7 +144,7 @@ function Get-ClientSettings {
     }
 
     # Remove Local Client Configs Repository if it exists
-    If (Test-Path $FolderPath_Local_Client_Config_Repository) {Remove-Item -Path $FolderPath_Local_Client_Config_Repository -Recurse -Force -ErrorAction SilentlyContinue}
+    If (Test-Path $Setup_AS_Client_Config_Fo_Repository) {Remove-Item -Path $Setup_AS_Client_Config_Fo_Repository -Recurse -Force -ErrorAction SilentlyContinue}
 } Export-ModuleMember -Function Get-ClientSettings
 
 function Save-ClientSettings {
@@ -173,9 +159,7 @@ function Save-ClientSettings {
 
     # Get USB Paths
     if ($USB.Exists()) {
-        $USB_Drive = $USB.Drive_Letter
-        $FolderPath_USB_Automated_Setup_Client_Folders = $USB.FolderPath_Automated_Setup_Client_Folders
-        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.FolderPath_Automated_Setup_Client_Configs
+        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Client_Configs_Fo
     }
 
     If ($Final) {
@@ -186,9 +170,7 @@ function Save-ClientSettings {
             Pause
             # Get USB Paths
             if ($USB.Exists()) {
-                $USB_Drive = $USB.Drive_Letter
-                $FolderPath_USB_Automated_Setup_Client_Folders = $USB.FolderPath_Automated_Setup_Client_Folders
-                $FolderPath_USB_Automated_Setup_Client_Configs = $USB.FolderPath_Automated_Setup_Client_Configs
+                $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Client_Configs_Fo
             }
         }
         # If $Final switch and USB is plugged in, save to USB at $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Configs"
@@ -198,9 +180,9 @@ function Save-ClientSettings {
             #$dest = "$FolderPath_USB_Automated_Setup_Client_Folders\$ClientName"
             #$what = '/A-:SH /COPYALL /B /E'
             #$options = '/R:3 /W:1 /XX /XO'
-            #$source = $FolderPath_Local_SCOPE_Image_Setup; $command = "ROBOCOPY $source $dest\SCOPE-Image_Setup $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
-            #$source = $FolderPath_Local_SCOPE_POST_Image_Setup; $command = "ROBOCOPY $source $dest\SCOPE-POST_Image_Setup $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
-            #$source = $FolderPath_Local_SCOPE_User_Profile; $command = "ROBOCOPY $source $dest\SCOPE-User_Profile $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
+            #$source = $Setup_SCOPEImageSetup_Fo; $command = "ROBOCOPY $source $dest\SCOPE-Image_Setup $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
+            #$source = $Setup_SCOPEPostImageSetup_Fo; $command = "ROBOCOPY $source $dest\SCOPE-POST_Image_Setup $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
+            #$source = $Setup_SCOPEUserProfile_Fo; $command = "ROBOCOPY $source $dest\SCOPE-User_Profile $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
             #Write-Host "REMOVE THIS PAUSE AFTER TROUBLESHOOTING ROBOCOPY"
             #PAUSE
         } else {
@@ -210,15 +192,15 @@ function Save-ClientSettings {
             Write-Host "Make sure to move this to your Imaging USB for future use if desired" -ForegroundColor Yellow
         }
     } else {
-        # If not $Final switch, save locally to $FolderPath_Local_Client_Config = "C:\Setup\Automated_Setup\Client_Config"
-        $Global:ClientSettings | ConvertTo-Json -depth 1 | Set-Content -Path "$FolderPath_Local_Client_Config\$ClientConfig_FileName" -Force
+        # If not $Final switch, save locally to $Setup_AS_Client_Config_Fo = "C:\Setup\Automated_Setup\Client_Config"
+        $Global:ClientSettings | ConvertTo-Json -depth 1 | Set-Content -Path "$Setup_AS_Client_Config_Fo\$ClientConfig_FileName" -Force
         if ($USB.Exists()) {
             #$dest = "$FolderPath_USB_Automated_Setup_Client_Folders\$ClientName"
             #$what = '/A-:SH /COPYALL /B /E'
             #$options = '/R:3 /W:1 /XX /XO'
-            #$source = $FolderPath_Local_SCOPE_Image_Setup; $command = "ROBOCOPY $source $dest\SCOPE-Image_Setup $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
-            #$source = $FolderPath_Local_SCOPE_POST_Image_Setup; $command = "ROBOCOPY $source $dest\SCOPE-POST_Image_Setup $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
-            #$source = $FolderPath_Local_SCOPE_User_Profile; $command = "ROBOCOPY $source $dest\SCOPE-User_Profile $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
+            #$source = $Setup_SCOPEImageSetup_Fo; $command = "ROBOCOPY $source $dest\SCOPE-Image_Setup $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
+            #$source = $Setup_SCOPEPostImageSetup_Fo; $command = "ROBOCOPY $source $dest\SCOPE-POST_Image_Setup $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
+            #$source = $Setup_SCOPEUserProfile_Fo; $command = "ROBOCOPY $source $dest\SCOPE-User_Profile $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
         }
     }
 } Export-ModuleMember -Function Save-ClientSettings
@@ -244,7 +226,7 @@ function Add-ClientSetting {
 
 #region Automated-Setup Related Functions
 function Start-AutomatedSetup_AtLogon {
-    Set-ItemProperty -Path $RunOnceKey -Name SetupComputer -Value ("C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe -NoExit -Windowstyle maximized -ExecutionPolicy Bypass -File $FilePath_Local_AutomateSetup_Script") -Force
+    Set-ItemProperty -Path $RunOnceKey -Name SetupComputer -Value ("C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe -NoExit -Windowstyle maximized -ExecutionPolicy Bypass -File $Setup_AS_AutomateSetup_ps1") -Force
     Write-Host "Set Automated-Setup script to run at next logon: " -NoNewline; Write-Host "Complete" -ForegroundColor Green
 } Export-ModuleMember -Function Start-AutomatedSetup_AtLogon
 
@@ -262,8 +244,7 @@ function Remove-StartAutomatedSetup_BatchFile {
 
     If (Test-Path $Path) {
         Remove-Item -Path $Path -Force -ErrorAction SilentlyContinue | Out-Null
-        Write-Host ""
-        Write-Host "Remove Start-AutomatedSetup-RAA.bat from the public desktop: " -NoNewline; Write-Host "Complete" -ForeGroundColor Green
+        Write-Host "`nRemove Start-AutomatedSetup-RAA.bat from the public desktop: " -NoNewline; Write-Host "Complete" -ForeGroundColor Green
     } else {
         Write-Host "Remove Start-AutomatedSetup-RAA.bat from the public desktop: " -NoNewline; Write-Host "Previously Completed" -ForeGroundColor Green
     }
@@ -271,8 +252,8 @@ function Remove-StartAutomatedSetup_BatchFile {
 
 function Determine-SetupType {
     If (!($global:ClientSettings.SetupType)) {
-        #Remove-Item -Path "$FolderPath_Local_Client_Config\*" -Recurse -Force -ErrorAction SilentlyContinue
-        $CurrentConfig = Get-ChildItem -Path "$FolderPath_Local_Client_Config\*"
+        #Remove-Item -Path "$Setup_AS_Client_Config_Fo\*" -Recurse -Force -ErrorAction SilentlyContinue
+        $CurrentConfig = Get-ChildItem -Path "$Setup_AS_Client_Config_Fo\*"
         DO {
             Write-Host ""
             Write-Host "Are you setting up a single PC or are you building an image?" -ForegroundColor Yellow
@@ -312,7 +293,7 @@ function CheckPoint-Capture_Image {
     $Step = "Capture Image"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     
     If (Test-Path "$StepStatus*") {
@@ -331,8 +312,8 @@ function CheckPoint-Capture_Image {
         Run-Disk_Cleanup
         Remove-SuggestedAppxPackages -Final
         Write-Host "`nRemoving unnecessary files to shrink image size"
-        Remove-Folder -Folder $FolderPath_Local_ODT_Software
-        Remove-Folder -Folder $FolderPath_Local_Standard_Software
+        Remove-Folder -Folder $Setup_SoftwareCollection_ODTSoftware_Fo
+        Remove-Folder -Folder $Setup_SoftwareCollection_Standard_Software_Fo
     
         New-Item $CompletionFile -ItemType File -Force | Out-Null
         Write-Host "`Hit any key to shut down the computer in order to take an image"
@@ -350,10 +331,10 @@ function Cleanup-AutomatedSetup {
     Remove-AutoLogon -Force
     Remove-SuggestedAppxPackages -Final
     Write-Host ""
-    Remove-Folder -Folder $FolderPath_Local_Software
-    Remove-Folder -Folder $FolderPath_Local_SCOPE_Image_Setup
-    Remove-Folder -Folder $FolderPath_Local_SCOPE_POST_Image_Setup
-    #Remove-Folder -Folder $FolderPath_Local_SCOPE_User_Profile
+    Remove-Folder -Folder $Setup_SoftwareCollection_Fo
+    Remove-Folder -Folder $Setup_SCOPEImageSetup_Fo
+    Remove-Folder -Folder $Setup_SCOPEPostImageSetup_Fo
+    #Remove-Folder -Folder $Setup_SCOPEUserProfile_Fo
     Remove-Automated_Setup_Files
     Stop-AutomatedSetup
     New-Item "$FolderPath_Local_Setup\AutomatedSetup-Complete.txt" -ItemType File -Value "Auto-Setup completed and system has been cleaned up" -Force | Out-Null
@@ -372,6 +353,161 @@ function Remove-Folder {
         Write-Host "Removed - $Folder" -ForeGroundColor Green
     } else {Write-Host "$Folder has already been removed" -ForegroundColor Green}
 }
+
+function Get-DomainJoinInfo {
+    # Variables - edit as needed
+    $Step = "Get Domain Join Info"
+
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
+    $SkippedFile = "$StepStatus-Skipped.txt"
+
+    If (Test-Path "$StepStatus*") {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+        If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
+    } else {
+        DO {
+            # Load setting from Client Config if available
+            If ($global:ClientSettings.DomainJoin) {
+                $choice = $global:ClientSettings.DomainJoin
+            } else {
+            # Otherwise ask tech
+                Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+                If ($Global:ClientSettings.SetupType -eq "SingleSetup") {Write-Host "Will you be joining this PC to a domain?"}
+                If ($Global:ClientSettings.SetupType -eq "BuildImage") {Write-Host "After applying this image to PCs, will you be joining them to the domain?"}
+                Write-Host "1. Yes"
+                Write-Host "2. No" 
+                $choice = Read-Host -Prompt "Enter a number, 1 or 2"
+            }
+        } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
+        switch ($choice) {
+            1 {
+                # Save the fact that we DO want to join the domain (either now or later)
+                If (!($global:ClientSettings.DomainJoin -and $Automated_Setup)) {
+                    Add-ClientSetting -Name "DomainJoin" -Value $choice
+                }
+                
+                # Get NETBIOS
+                $choice = $null
+                If ($global:ClientSettings.NETBIOS) {
+                    Write-Host "NETBIOS obtained from client config: "$global:ClientSettings.NETBIOS -ForegroundColor Green
+                } else {
+                    DO {
+                        Write-Host "`nWhat is the NETBIOS Domain name?" -ForegroundColor Yellow
+                        Write-Host "Example: ATI"
+                        $choice = Read-Host -Prompt "Enter the NETBIOS Domain name"
+                    } UNTIL ($choice -ne $null)
+                    if ($Automated_Setup) {Add-ClientSetting -Name NETBIOS -Value $choice}
+                }
+
+                # Get DNS Domain Name
+                $choice = $null
+                If ($global:ClientSettings.DNS_Domain_Name) {
+                    Write-Host "DNS Domain Name obtained from client config: "$global:ClientSettings.DNS_Domain_Name -ForegroundColor Green
+                } else {
+                    DO {
+                        Write-Host ""
+                        Write-Host "What is the DNS Domain name?" -ForegroundColor Yellow
+                        Write-Host "Example: ati.local"
+                        $choice = Read-Host -Prompt "Enter the DNS Domain name"
+                    } UNTIL ($choice -ne $null)
+                    if ($Automated_Setup) {Add-ClientSetting -Name DNS_Domain_Name -Value $choice}
+                }
+
+                # Get Domain Admin Username
+                $choice = $null
+                If ($global:ClientSettings.Domain_Admin_Username) {
+                    Write-Host "Domain Admin username obtained from client config: "$global:ClientSettings.Domain_Admin_Username -ForegroundColor Green
+                } else {
+                    DO {
+                        Write-Host ""
+                        Write-Host "What is the domain admin username?" -ForegroundColor Yellow
+                        Write-Host "Example: Axxys"
+                        $choice = Read-Host -Prompt "Enter the domain admin username"
+                    } UNTIL ($choice -ne $null)
+                    if ($Automated_Setup) {Add-ClientSetting -Name Domain_Admin_Username -Value $choice}
+                }
+
+                # If building an image, need to get naming convention and example
+                If ($global:ClientSettings.SetupType -eq "BuildImage") {
+                    # Get naming convention
+                    $choice = $null
+                    If ($global:ClientSettings.Naming_Convention) {
+                        Write-Host "Naming Convention obtained from client config: "$global:ClientSettings.Naming_Convention -ForegroundColor Green
+                    } else {
+                        DO {
+                            Write-Host ""
+                            Write-Host "What is the PC naming convention?" -ForegroundColor Yellow
+                            Write-Host "Example: ATI-[DT/LT]-XX"
+                            $choice = Read-Host -Prompt "Enter the PC naming convention"
+                        } UNTIL ($choice -ne $null)
+                        if ($Automated_Setup) {Add-ClientSetting -Name Naming_Convention -Value $choice}
+                    }
+
+                    # Get PC Name Example
+                    $choice = $null
+                    If ($global:ClientSettings.PC_Name_Example) {
+                        Write-Host "PC Name Example obtained from client config: "$global:ClientSettings.PC_Name_Example -ForegroundColor Green
+                    } else {
+                        DO {
+                            Write-Host ""
+                            Write-Host "What is an example for a PC name?" -ForegroundColor Yellow
+                            Write-Host "Example: ATI-DT-01"
+                            $choice = Read-Host -Prompt "Enter the example PC name"
+                        } UNTIL ($choice -ne $null)
+                        if (Automated_Setup) {Add-ClientSetting -Name PC_Name_Example -Value $choice}
+                    }
+                }
+                # Mark this section as completed
+                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                Write-Host "$Step has been completed" -ForegroundColor Green
+            } # End of Switch(1)
+            2 {
+                # Save the fact that we do NOT want to join the domain
+                If (!($global:ClientSettings.DomainJoin) -and $Automated_Setup) {
+                    Add-ClientSetting -Name "DomainJoin" -Value $choice
+                }
+                Write-Host "$Step has been skipped" -ForegroundColor Green
+                
+                # If building an image, still need to get naming convention and example
+                If ($global:ClientSettings.SetupType -eq "BuildImage") {
+                    Write-Host "Basic info only is needed..."
+                    # Get naming convention
+                    $choice = $null
+                    If ($global:ClientSettings.Naming_Convention) {
+                        Write-Host "Naming Convention obtained from client config: " + $global:ClientSettings.Naming_Convention -ForegroundColor Green
+                    } else {
+                        DO {
+                            Write-Host ""
+                            Write-Host "What is the PC naming convention?" -ForegroundColor Yellow
+                            Write-Host "Example: ATI-[DT/LT]-XX"
+                            $choice = Read-Host -Prompt "Enter the PC naming convention"
+                        } UNTIL ($choice -ne $null)
+                        if ($Automated_Setup) {Add-ClientSetting -Name Naming_Convention -Value $choice}
+                    }
+
+                    # Get PC Name Example
+                    $choice = $null
+                    If ($global:ClientSettings.PC_Name_Example) {
+                        Write-Host "PC Name Example obtained from client config: " + $global:ClientSettings.PC_Name_Example -ForegroundColor Green
+                    } else {
+                        DO {
+                            Write-Host ""
+                            Write-Host "What is an example for a PC name?" -ForegroundColor Yellow
+                            Write-Host "Example: ATI-DT-01"
+                            $choice = Read-Host -Prompt "Enter the example PC name"
+                        } UNTIL ($choice -ne $null)
+                        if ($Automated_Setup) {Add-ClientSetting -Name PC_Name_Example -Value $choice}
+                    }
+                    Write-Host "$Step has been completed" -ForegroundColor Green
+                }
+                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                Write-Host ""
+            } # End of Switch(2)
+        } # End of Switch($choice)
+    }
+} Export-ModuleMember -Function Get-DomainJoinInfo
 #endregion Automated-Setup Related Functions
 
 #region Automated-Setup Submenu Functions
@@ -379,13 +515,12 @@ function Remove-Folder {
 ############## Imaging Tool - Automated Setup Submenu Functions ##############
 ##############################################################################
 function Start-AutomatedSetup {
-    Write-Host ""
-    if (!(Test-Path $FilePath_Local_AutomateSetup_Script)) {
-        Write-Host "Automated Setup program is not detected on the current computer" -ForegroundColor Red
+    if (!(Test-Path $Setup_AS_AutomateSetup_ps1)) {
+        Write-Host "`nAutomated Setup program is not detected on the current computer" -ForegroundColor Red
         Write-Host "First, Inject it into the PC" -ForegroundColor Yellow
     } else {
-        Write-Host "Starting Automated Setup program" -ForegroundColor Green
-        Start-Process "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -ArgumentList "-NoExit -Windowstyle maximized -ExecutionPolicy Bypass -File $FilePath_Local_AutomateSetup_Script"
+        Write-Host "`nStarting Automated Setup program" -ForegroundColor Green
+        Start-Process "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -ArgumentList "-NoExit -Windowstyle maximized -ExecutionPolicy Bypass -File $Setup_AS_AutomateSetup_ps1"
     }
 } Export-ModuleMember -Function Start-AutomatedSetup
 
@@ -398,12 +533,9 @@ function Stop-AutomatedSetup {
 function Remove-Automated_Setup_Files {
         Write-Host "`nStarting cleanup of Automated Setup Files" -ForegroundColor Yellow
         #Remove-Item $UnAttend -ErrorAction SilentlyContinue | Out-Null
-        Remove-Item $FolderPath_Local_Automated_Setup_RegistryBackup -Recurse | Out-Null
-        Remove-Item $FolderPath_Local_Client_Config -Recurse | Out-Null
-        Remove-Item $FilePath_Local_AutomateSetup_Module | Out-Null
-        Remove-Item $FilePath_Local_ConfigurePC_Module | Out-Null
-        Remove-Item $FilePath_Local_InstallSoftware_Module | Out-Null
-        Remove-Folder -Folder $FolderPath_Local_Software_Configs
+        Remove-Item $Setup_AS_RegistryBackup_Fo -Recurse | Out-Null
+        Remove-Item $Setup_AS_Client_Config_Fo -Recurse | Out-Null
+        Remove-Folder -Folder $Setup_SoftwareCollection_Fo_Configs
         Write-Host "Automated Setup files have been removed from the PC" -ForegroundColor Green
 } Export-ModuleMember -Function Remove-Automated_Setup_Files
 
@@ -412,7 +544,7 @@ function Read-ClientConfig {
 
     # Get USB Paths
     if ($USB.Exists()) {
-        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.FolderPath_Automated_Setup_Client_Configs
+        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Client_Configs_Fo
     }
 
     # Check the USB Client Configs repository under $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\sources\PC-Maintenance\1. Automated Setup\Client_Configs"
@@ -473,7 +605,7 @@ function Create-RegistryBackupFile {
         $USB = New-ImagingUSB
         if ($USB.Exists()) {
             $USB_Drive = $USB.Drive_Letter
-            $FolderPath_USB_Automated_Setup_RegistryBackup = $USB.Automated_Setup_RegistryBackup_Folder
+            $FolderPath_USB_Automated_Setup_RegistryBackup = $USB.Setup_AS_RegistryBackup_Folder
             $FilePath_USB_Automated_Setup_RegistryBackup   = $USB.Automated_Setup_RegistryBackup_File
         } else {
             Write-Host "WARNING:" -ForegroundColor Red -NoNewline; Write-Host " the Imaging Tool is not detected"

@@ -16,11 +16,11 @@
 # -=[ Static Variables ]=-
 # Variables may be defined from parent script. If not, they will be defined from here.
 $FolderPath_Local_Setup                 = "C:\Setup"
-$FolderPath_Local_AutomatedSetup_Status = "C:\Setup\_Automated_Setup\Status"
-$FolderPath_Local_Software              = "C:\Setup\_Software_Collection"
-$FolderPath_Local_ODT_Software          = "C:\Setup\_Software_Collection\ODT"
-$FolderPath_Local_Profile_Software      = "C:\Setup\_Software_Collection\Profile_Specific_Software"
-$FolderPath_Local_Standard_Software     = "C:\Setup\_Software_Collection\Standard_Software"
+$Setup_AS_Status_Fo = "C:\Setup\_Automated_Setup\Status"
+$Setup_SoftwareCollection_Fo              = "C:\Setup\_Software_Collection"
+$Setup_SoftwareCollection_ODTSoftware_Fo          = "C:\Setup\_Software_Collection\ODT"
+$Setup_SoftwareCollection_ProfileSoftware_Fo      = "C:\Setup\_Software_Collection\Profile_Specific_Software"
+$Setup_SoftwareCollection_Standard_Software_Fo     = "C:\Setup\_Software_Collection\Standard_Software"
 #endregion Module Variables
 
 #region Classes
@@ -223,9 +223,9 @@ class Software {
 
     [void]Install([string]$SoftwareName,[string]$CompletionFile) {
         # Define variables
-        $FolderPath_Local_ODT_Software          = "C:\Setup\_Software_Collection\ODT"
-        $FolderPath_Local_Profile_Software      = "C:\Setup\_Software_Collection\Profile_Specific_Software"
-        $FolderPath_Local_Standard_Software     = "C:\Setup\_Software_Collection\Standard_Software"
+        $Setup_SoftwareCollection_ODTSoftware_Fo          = "C:\Setup\_Software_Collection\ODT"
+        $Setup_SoftwareCollection_ProfileSoftware_Fo      = "C:\Setup\_Software_Collection\Profile_Specific_Software"
+        $Setup_SoftwareCollection_Standard_Software_Fo     = "C:\Setup\_Software_Collection\Standard_Software"
         $Installer_Name = $this.Config.$SoftwareName.Installer_Name
         $Installer_Source = $this.Config.$SoftwareName.Installer_Source
         $Installer_URL = $this.Config.$SoftwareName.URL
@@ -265,7 +265,7 @@ class Software {
         #      $Local_Installer_Path    $USB_Installer_Path (if exists)
         switch ($Installer_Source) {
             "Standard_Software" {
-                $Local_Working_Dir    = $FolderPath_Local_Standard_Software
+                $Local_Working_Dir    = $Setup_SoftwareCollection_Standard_Software_Fo
                 if (Test-Path "$Local_Working_Dir\$Installer_Name") {
                     $Local_Installer_Path = Get-ChildItem -Path "$Local_Working_Dir\$Installer_Name"
                     $Local_Installer_Path = $Local_Installer_Path[-1]
@@ -278,12 +278,12 @@ class Software {
                 if ($USB) {$USB_Working_Dir = $FolderPath_USB_Install_Software_Standard_Software}
             }
             "ODT" {
-                $Local_Working_Dir    = $FolderPath_Local_ODT_Software
+                $Local_Working_Dir    = $Setup_SoftwareCollection_ODTSoftware_Fo
                 $Local_Installer_Path = "$Local_Working_Dir\$Installer_Name"
                 if ($USB) {$USB_Working_Dir = $FolderPath_USB_Install_Software_ODT}
             }
             "Profile_Specific_Software" {
-                $Local_Working_Dir    = $FolderPath_Local_Profile_Software
+                $Local_Working_Dir    = $Setup_SoftwareCollection_ProfileSoftware_Fo
                 $Local_Installer_Path = "$Local_Working_Dir\$Installer_Name"
                 if ($USB) {$USB_Working_Dir = $FolderPath_USB_Install_Software_Profile_Software}
             }
@@ -360,6 +360,12 @@ class Software {
             # If an Installer exists, run the install command
             if (Test-Path $Installer_Path) {
                 Write-Host "`nStarting to install $SoftwareName"
+                If ($SoftwareName -like "Adobe*") {
+                    Write-Host "!! WARNING !!" -NoNewline -ForegroundColor Red; Write-Host " - Adobe Installers are having issues installing and may hang.."
+                    Write-Host "Once the software has installed, if the Automated Setup script is not continuing, just log out."
+                    Write-Host "The Automated-Setup script will automatically log you back in, see that the software is now installed, and will move on"
+                }
+
                 if ($Installer_Path -like "*.exe") {
                     if ($Installer_Arguments) {$Arguments = ($Installer_Arguments).Split(",")}
                     #Write-Host 'Troubleshooting Info - $Arguments = '$Arguments
@@ -439,7 +445,7 @@ function Install-Image_Softwares {
     $Step = "Install Image Capable Softwares"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     Write-Host "`n-=[ $Step ]=-" -ForegroundColor DarkGray
@@ -479,7 +485,7 @@ function Install-Image_Softwares {
                     }
                 }
             } else {
-                if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "`n$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
             }
         } Until ($Global:InstallationErrorCount -eq 0)
@@ -491,12 +497,12 @@ function Choose-Browser {
     $Step = "Install Browser"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
+    If ((Test-Path "$StepStatus*.txt") -and ($Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Chrome has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "Firefox has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "Both Chrome " -NoNewline; Write-Host "and " -NoNewline -ForegroundColor Cyan; Write-Host "Firefox have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -519,7 +525,7 @@ function Choose-Browser {
                 Write-Host "4. NEITHER"
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 4"
             } UNTIL (($choice -ge 1) -and ($choice -le 4))
-            if ($global:Automated_Setup) {
+            if ($Automated_Setup) {
                 # Update Client Config File with choice
                 Add-ClientSetting -Name Browser -Value $choice
             }
@@ -546,7 +552,7 @@ function Choose-Browser {
             }
             4 {
                 Write-Host "Chrome and Firefox browser installs have been skipped"
-                if ($global:Automated_Setup) {New-Item "$StepStatus-4.txt" -ItemType File -Force | Out-Null}
+                if ($Automated_Setup) {New-Item "$StepStatus-4.txt" -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -557,12 +563,12 @@ function Choose-PDF_Viewer {
     $Step = "Install PDF Viewer"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
+    If ((Test-Path "$StepStatus*.txt") -and ($Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Adobe Acrobat Reader DC has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "Adobe Acrobat Pro DC - Trial Installer has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "Adobe Acrobat Reader DC " -NoNewline; Write-Host "-AND- " -NoNewline -ForegroundColor Cyan; Write-Host "Adobe Acrobat Pro DC - Trial Installer have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -590,7 +596,7 @@ function Choose-PDF_Viewer {
                 Write-Host "6. NONE"
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 6"
             } UNTIL (($choice -ge 1) -and ($choice -le 6))
-            if ($global:Automated_Setup) {
+            if ($Automated_Setup) {
                 # Update Client Config File with choice
                 Add-ClientSetting -Name PDF_Viewer -Value $choice
             }
@@ -609,7 +615,7 @@ function Choose-PDF_Viewer {
             }
             3 {
                 Write-Host "Option 3 is no longer possible, please remove this choice from your client config file and then relog to start the Automated Setup script again"
-                $ClientConfigFile = (Get-ChildItem -Path "$FolderPath_Local_Client_Config\*.ClientConfig" -ErrorAction SilentlyContinue).FullName
+                $ClientConfigFile = (Get-ChildItem -Path "$Setup_AS_Client_Config_Fo\*.ClientConfig" -ErrorAction SilentlyContinue).FullName
                 Write-Host "Client Config File: $ClientConfigFile"
                 PAUSE
                 Choose-PDF_Viewer
@@ -629,7 +635,7 @@ function Choose-PDF_Viewer {
             }
             6 {
                 Write-Host "All PDF Editor\Viewer installs have been skipped"
-                if ($global:Automated_Setup) {New-Item "$StepStatus-6.txt" -ItemType File -Force | Out-Null}
+                if ($Automated_Setup) {New-Item "$StepStatus-6.txt" -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -640,12 +646,12 @@ function Choose-o365 {
     $Step = "Install o365"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
+    If ((Test-Path "$StepStatus*.txt") -and ($Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "o365 Enterprise (64-bit) has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "o365 Business (64-bit) has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "o365 Enterprise (32-bit) has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -672,7 +678,7 @@ function Choose-o365 {
                 Write-Host "5. NONE"
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 5"
             } UNTIL (($choice -ge 1) -and ($choice -le 5))
-            if ($global:Automated_Setup) {
+            if ($Automated_Setup) {
                 # Update Client Config File with choice
                 Add-ClientSetting -Name o365 -Value $choice
             }
@@ -686,12 +692,12 @@ function Choose-o365 {
 
                 Write-Host ""
                 Write-Host "Installing $SoftwareName"
-                $InstallerPath = "$FolderPath_Local_ODT_Software\Install o365ProPlus1.bat"
+                $InstallerPath = "$Setup_SoftwareCollection_ODTSoftware_Fo\Install o365ProPlus1.bat"
                 Start-Process $InstallerPath -Wait
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files\Microsoft Office\root\Office16\WINWORD.exe") {
                     Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -705,12 +711,12 @@ function Choose-o365 {
 
                 Write-Host ""
                 Write-Host "Installing $SoftwareName"
-                $InstallerPath = "$FolderPath_Local_ODT_Software\Install o365Business1.bat"
+                $InstallerPath = "$Setup_SoftwareCollection_ODTSoftware_Fo\Install o365Business1.bat"
                 Start-Process $InstallerPath -Wait
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files\Microsoft Office\root\Office16\WINWORD.exe") {
                     Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -724,12 +730,12 @@ function Choose-o365 {
 
                 Write-Host ""
                 Write-Host "Installing $SoftwareName"
-                $InstallerPath = "$FolderPath_Local_ODT_Software\Install o365Enterprise_32-bit.bat"
+                $InstallerPath = "$Setup_SoftwareCollection_ODTSoftware_Fo\Install o365Enterprise_32-bit.bat"
                 Start-Process $InstallerPath -Wait
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.exe") {
                     Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -743,12 +749,12 @@ function Choose-o365 {
 
                 Write-Host ""
                 Write-Host "Installing $SoftwareName"
-                $InstallerPath = "$FolderPath_Local_ODT_Software\Install o365Business1_32-bit.bat"
+                $InstallerPath = "$Setup_SoftwareCollection_ODTSoftware_Fo\Install o365Business1_32-bit.bat"
                 Start-Process $InstallerPath -Wait
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.exe") {
                     Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -757,7 +763,7 @@ function Choose-o365 {
             }
             5 {
                 Write-Host "o365 installation has been skipped"
-                if ($global:Automated_Setup) {New-Item "$StepStatus-5.txt" -ItemType File -Force | Out-Null}
+                if ($Automated_Setup) {New-Item "$StepStatus-5.txt" -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -768,12 +774,12 @@ function Choose-VPN {
     $Step = "Install VPN"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
+    If ((Test-Path "$StepStatus*.txt") -and ($Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "WatchGuard VPN has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "VPN Installations have been " -NoNewline; Write-Host "skipped" -ForegroundColor Green}
     # Assuming no progress on this step yet
@@ -792,7 +798,7 @@ function Choose-VPN {
                 Write-Host "2. None"
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 2"
             } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
-            if ($global:Automated_Setup) {
+            if ($Automated_Setup) {
                 # Update Client Config File with choice
                 Add-ClientSetting -Name VPN -Value $choice
             }
@@ -805,8 +811,8 @@ function Choose-VPN {
                 #Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
 
                 Write-Host "`nInstalling $SoftwareName"
-                $ZipPath = "$FolderPath_Local_Standard_Software\WG-MVPN-SSL_12_7.zip"
-                $InstallerPath = "$FolderPath_Local_Standard_Software\temp"
+                $ZipPath = "$Setup_SoftwareCollection_Standard_Software_Fo\WG-MVPN-SSL_12_7.zip"
+                $InstallerPath = "$Setup_SoftwareCollection_Standard_Software_Fo\temp"
                 Expand-Archive -LiteralPath $ZipPath -DestinationPath $InstallerPath -Force
                 $InstallerPath = $InstallerPath + "\Install_WG_SSL_VPN_12.7.bat"
                 Start-Process $InstallerPath -Wait
@@ -827,7 +833,7 @@ function Choose-VPN {
             }
             2 {
                 Write-Host "VPN client installation has been skipped"
-                if ($global:Automated_Setup) {New-Item "$StepStatus-2.txt" -ItemType File -Force | Out-Null}
+                if ($Automated_Setup) {New-Item "$StepStatus-2.txt" -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -838,12 +844,12 @@ function Choose-Collaboration_Software {
     $Step = "Install Collaboration Software"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
+    If ((Test-Path "$StepStatus*.txt") -and ($Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Cisco Jabber has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-2.txt") {Write-Host "ZAC has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         If (Test-Path "$StepStatus-3.txt") {Write-Host "ZAC " -NoNewline; Write-Host "& " -NoNewline -ForegroundColor Cyan; Write-Host "Zulty's Fax Driver have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -866,7 +872,7 @@ function Choose-Collaboration_Software {
                 Write-Host "4. NONE"
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 through 4"
             } UNTIL (($choice -ge 1) -and ($choice -le 4))
-            if ($global:Automated_Setup) {
+            if ($Automated_Setup) {
                 # Update Client Config File with choice
                 Add-ClientSetting -Name Collab -Value $choice
             }
@@ -893,7 +899,7 @@ function Choose-Collaboration_Software {
             }
             4 {
                 Write-Host "Cisco Jabber, MXIE, ZAC, and Zulty's Fax Driver installs have been skipped"
-                if ($global:Automated_Setup) {New-Item "$StepStatus-4.txt" -ItemType File -Force | Out-Null}
+                if ($Automated_Setup) {New-Item "$StepStatus-4.txt" -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -904,12 +910,12 @@ function Choose-FileShareApp {
     $Step = "Install File Share App"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $Software = New-Software
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
-    If ((Test-Path "$StepStatus*.txt") -and ($global:Automated_Setup)) {
+    If ((Test-Path "$StepStatus*.txt") -and ($Automated_Setup)) {
         If (Test-Path "$StepStatus-1.txt") {Write-Host "Citrix Files for Windows has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         #If (Test-Path "$StepStatus-2.txt") {Write-Host "Citrix Files for Outlook has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
         #If (Test-Path "$StepStatus-3.txt") {Write-Host "Both Citrix Files for Windows " -NoNewline; Write-Host "and " -NoNewline -ForegroundColor Cyan; Write-Host "Citrix Files for Outlook have been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
@@ -930,7 +936,7 @@ function Choose-FileShareApp {
                 Write-Host "2. Dropbox"
                 [int]$choice = Read-Host -Prompt "Enter a number, 0 through 2"
             } UNTIL (($choice -ge 0) -and ($choice -le 2))
-            if ($global:Automated_Setup) {
+            if ($Automated_Setup) {
                 # Update Client Config File with choice
                 Add-ClientSetting -Name FileShareApp -Value $choice
             }
@@ -938,7 +944,7 @@ function Choose-FileShareApp {
         # Act on choice
         switch ($choice) {
             0 {
-                if ($global:Automated_Setup) {New-Item "$StepStatus-0.txt" -ItemType File -Force | Out-Null}
+                if ($Automated_Setup) {New-Item "$StepStatus-0.txt" -ItemType File -Force | Out-Null}
                 Write-Host "$Step has been skipped"
             }
             1 {
@@ -970,7 +976,7 @@ function CheckPoint-Client_Software {
     $Step = "Install Client Software"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     
     If (Test-Path "$StepStatus*") {
@@ -978,7 +984,7 @@ function CheckPoint-Client_Software {
     } else {
         Write-Host "`nIf needed, install Client Specific Software now"
         PAUSE
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Client_Software
@@ -988,7 +994,7 @@ function Install-RMM_Agent {
     $Step = "Install RMM Agent"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
 
@@ -1023,7 +1029,7 @@ function Install-RMM_Agent {
                 $input = Read-Host -Prompt "Type in 'continue' to move on to the next step"
             } UNTIL ($input -eq "continue")
         }
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     } 
 } Export-ModuleMember -Function Install-RMM_Agent
@@ -1033,7 +1039,7 @@ function Install-AV_Agent {
     $Step = "Install Anti-Virus"
     
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
     
@@ -1056,7 +1062,7 @@ function Install-AV_Agent {
                 $input = Read-Host -Prompt "Type in 'continue' to move on to the next step"
             } UNTIL ($input -eq "continue")
         }
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Install-AV_Agent
@@ -1066,7 +1072,7 @@ function Reinstall-SupportAssistant {
     $Step = "Reinstall Support Assistant"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
     
@@ -1099,7 +1105,7 @@ function Reinstall-SupportAssistant {
                         Write-Host "Verifying if the software is now installed..."
                         $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
                         If (($Global:Installed_Software).DisplayName -match $Software) {
-                            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                            if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                             Write-Host "Installed - $Software" -ForegroundColor Green
                         } else {
                             Write-Host "$Software is not installed" -ForegroundColor Red
@@ -1114,7 +1120,7 @@ function Reinstall-SupportAssistant {
                         Start-Process "$HPInstallerPath" -Wait
                         Write-Host "Verifying if the software is now installed..."
                         If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
-                            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                            if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                             Write-Host "Installed - $Software" -ForegroundColor Green
                         } else {
                             Write-Host "$Software is not installed" -ForegroundColor Red
@@ -1131,7 +1137,7 @@ function Reinstall-SupportAssistant {
                 }
             }
             2 {
-                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host "Skipping - $Step" -ForegroundColor Green
             }
         }
@@ -1143,7 +1149,7 @@ function Install-SupportAssistant {
     $Step = "Install a Driver Update Assistant"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $SkippedFile = "$StepStatus-Skipped.txt"
     
     If (Test-Path "$StepStatus*") {
@@ -1175,14 +1181,14 @@ function Install-SupportAssistant {
             2 {
                 $Software = "Dell SupportAssist"
                 Write-Host "`nInstalling $Software"
-                $InstallerPath = "$FolderPath_Local_Standard_Software\Dell_Support_Assist_Installer.exe"
+                $InstallerPath = "$Setup_SoftwareCollection_Standard_Software_Fo\Dell_Support_Assist_Installer.exe"
                 Copy-Item -Path $InstallerPath -Destination $FolderPath_Local_Setup -Force
                 Start-Process "$InstallerPath" -Wait
                 Write-Host "Verifying if the software is now installed..."
                 $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
                 If (($Global:Installed_Software).DisplayName -match $Software) {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item "$StepStatus-DellSA.txt" -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup) {New-Item "$StepStatus-DellSA.txt" -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -1191,13 +1197,13 @@ function Install-SupportAssistant {
             3 {
                 $Software = "HP Support Assistant"
                 Write-Host "`nInstalling $Software"
-                $InstallerPath = "$FolderPath_Local_Standard_Software\HP_Support_Assistant.exe"
+                $InstallerPath = "$Setup_SoftwareCollection_Standard_Software_Fo\HP_Support_Assistant.exe"
                 Copy-Item -Path $InstallerPath -Destination $FolderPath_Local_Setup -Force
                 Start-Process "$InstallerPath" -Wait
                 Write-Host "Verifying if the software is now installed..."
                 If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -1221,7 +1227,7 @@ function Install-SupportAssistant {
             }
             5 {
                 Write-Host "All Driver Update Assistant installations have been skipped" -ForegroundColor Green
-                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -1235,7 +1241,7 @@ function Install-SupportAssistant2 {
     $Step = "Install Support Assistant"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $SkippedFile = "$StepStatus-Skipped.txt"
     
     If (Test-Path "$StepStatus*") {
@@ -1264,14 +1270,14 @@ function Install-SupportAssistant2 {
             1 {
                 $Software = "Dell Support Assist"
                 Write-Host "`nInstalling $Software"
-                $InstallerPath = "$FolderPath_Local_Standard_Software\Dell_Support_Assist_Installer.exe"
+                $InstallerPath = "$Setup_SoftwareCollection_Standard_Software_Fo\Dell_Support_Assist_Installer.exe"
                 Copy-Item -Path $InstallerPath -Destination $FolderPath_Local_Setup -Force
                 Start-Process "$InstallerPath" -Wait
                 Write-Host "Verifying if the software is now installed..."
                 $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
                 If (($Global:Installed_Software).DisplayName -match $Software) {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup) {New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -1282,7 +1288,7 @@ function Install-SupportAssistant2 {
                 Write-Host ""
                 Write-Host "Downloading $Software"
                 # Download Installer
-                $Local_Working_Dir    = $FolderPath_Local_Standard_Software
+                $Local_Working_Dir    = $Setup_SoftwareCollection_Standard_Software_Fo
                 $Installer_Local_Path = "$Local_Working_Dir\HP_Support_Assistant.exe"
                 $Installer_URL = "https://ftp.ext.hp.com/pub/softpaq/sp138501-139000/sp138693.exe"
                 (New-Object System.Net.WebClient).DownloadFile($Installer_URL, $Installer_Local_Path)
@@ -1300,7 +1306,7 @@ function Install-SupportAssistant2 {
                 Write-Host "Verifying if the software is now installed..."
                 If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
                     Write-Host "Installed - $Software" -ForegroundColor Green
-                    if ($global:Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$Software is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -1308,7 +1314,7 @@ function Install-SupportAssistant2 {
             }
             3 {
                 Write-Host "Both Dell and HP Support Assistant Installations have been skipped" -ForegroundColor Green
-                if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             }
         }
     }
@@ -1319,7 +1325,7 @@ function CheckPoint-DriverUpdates {
     $Step = "Install a Driver Update Assistant"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
     
@@ -1337,10 +1343,10 @@ function CheckPoint-DriverUpdates {
         } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
         If ($choice -eq 1) {
             Install-SupportAssistant
-            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
             Write-Host "$Step has been skipped"
-            if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
         }
     }
 
@@ -1348,7 +1354,7 @@ function CheckPoint-DriverUpdates {
     $Step = "Update Drivers"
     
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
 
@@ -1369,13 +1375,12 @@ function CheckPoint-DriverUpdates {
             DO {
                 Write-Host ""
                 Write-Host "Please take a minute to run the HP or Dell support assistant tool to update the computer's drivers" -ForeGroundColor Yellow
-                Write-Host "NOTE: Installing a BIOS update and then capturing the image does NOT add the BIOS update it to the image. BIOS updates are written directly to the machine hardware. This is not part of the Windows' System partition on the hard drive that is captured as an image" -ForeGroundColor Yellow
                 $input = Read-Host -Prompt "Type in 'continue' move on to the next step"
             } UNTIL ($input -eq "continue")
-            if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
             Write-Host "$Step has been skipped"
-            if ($global:Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
         }
     }
 } Export-ModuleMember -Function CheckPoint-DriverUpdates

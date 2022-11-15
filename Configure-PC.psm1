@@ -5,6 +5,12 @@
 ###                                                                                                                                                           ###
 #################################################################################################################################################################
 #################################################################################################################################################################
+<#
+This module contains functions that configure PC settings that the Automated Setup script will use, but functions should be able to work independantly as well, 
+such as through the Imaging Tool Menu, or just from command line
+   -Functions should be designed with the expectation that Automated Setup might call them and require $Completion Files, updating client config
+       -So basically, if ($AutomatedSetup = $true), then it might call commands from the Automated-Setup module
+#>
 
 #region Module Variables
 # Variables may be defined from parent script. If not, they will be defined from here.
@@ -13,11 +19,15 @@
 # This should not be a problem since the child script does not need to modify these variables.
 # The goal here is to allow the modules to run independantly of the "Automate-Setup" script
 
+
+$TechTool = New-TechTool
+$USB = New-ImagingUSB
+
 # -=[ Static Variables ]=-
-if ($FolderPath_Local_Setup -eq $null)                                                 {$FolderPath_Local_Setup = "C:\Setup"}
-if ($FolderPath_Local_Client_Config -eq $null)                                 {$FolderPath_Local_Client_Config = "C:\Setup\_Automated_Setup\_Client_Config"}
+if ($FolderPath_Local_Setup -eq $null)                                                 {$FolderPath_Local_Setup = $TechTool.FolderPath_Local_Setup}
+if ($Setup_AS_Client_Config_Fo -eq $null)                                 {$Setup_AS_Client_Config_Fo = "C:\Setup\_Automated_Setup\_Client_Config"}
 # NOT USED? if ($FolderPath_Local_AutomatedSetup_SetupScripts -eq $null) {$FolderPath_Local_AutomatedSetup_SetupScripts = "C:\Setup\Automated_Setup\SetupScripts"}
-if ($FolderPath_Local_AutomatedSetup_Status -eq $null)                 {$FolderPath_Local_AutomatedSetup_Status = "C:\Setup\_Automated_Setup\Status"}
+if ($Setup_AS_Status_Fo -eq $null)                 {$Setup_AS_Status_Fo = "C:\Setup\_Automated_Setup\Status"}
 if ($FilePath_Local_Automated_Setup_RegistryBackup -eq $null)   {$FilePath_Local_Automated_Setup_RegistryBackup = "C:\Setup\_Automated_Setup\_RegistryBackup\registry-backup020622.reg"}
 
 # $Global:ClientSettings <--- NEEDS to stay defined globally as the ClientConfigs are utilized specifically by the Automate-Setup script
@@ -36,11 +46,11 @@ if ($Hiberboot_Setting -eq $null) {$Hiberboot_Setting = 0}
 if ($SN -eq $null) {$SN = (Get-WmiObject win32_bios).SerialNumber}
 # Cleanup related
 if ($UnAttend -eq $null) {$UnAttend = "C:\Windows\System32\sysprep\unattend.xml"}
-if ($FolderPath_Local_Standard_Software -eq $null) {$FolderPath_Local_Standard_Software = "C:\Setup\_Software_Collection\Standard_Software"}
+if ($Setup_SoftwareCollection_Standard_Software_Fo -eq $null) {$Setup_SoftwareCollection_Standard_Software_Fo = "C:\Setup\_Software_Collection\Standard_Software"}
 if ($RunOnceKey -eq $null) {$RunOnceKey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"}
 
 $FolderPath_Local_PublicDesktop         = "C:\Users\Public\Desktop"
-$FolderPath_Local_Client_Public_Desktop = "C:\Setup\SCOPE-Image_Setup\Public Desktop"
+$Setup_SCOPEImageSetup_PublicDesktop_Fo = "C:\Setup\SCOPE-Image_Setup\Public Desktop"
 
 # ALL the Imaging USB paths should be defined centrally here. Let the functions infer paths from the ImagingUSB object's attributes
 #endregion Module Variables
@@ -200,7 +210,7 @@ function Set-Clock {
     #Variables - edit as needed
     $Step = "Set Clock"
     #Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     
     #First checks to see if this action has been taken previously. Only takes action if no action previously. Don't use this switch if you want to force the action to occur
@@ -212,7 +222,7 @@ function Set-Clock {
 
         # Finished Message
         Write-Host "Timezone has been set to $Target_TimeZone & the clock has been reset" -ForeGroundColor Green
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
     }
 } Export-ModuleMember -Function Set-Clock
 
@@ -226,7 +236,7 @@ function Set-ClockTimeZone {
     $Step = "Set Clock TimeZone"
 
     #Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     # Load setting from Client Config if available
@@ -255,7 +265,7 @@ function Set-ClockTimeZone {
     }
 
     # If ClientSetting doesn't exist, update Client Config File
-    If (!($global:ClientSettings.ClockTimeZone) -and $global:Automated_Setup) {
+    If (!($global:ClientSettings.ClockTimeZone) -and $Automated_Setup) {
         Add-ClientSetting -Name "ClockTimeZone" -Value $Target_TimeZone
     }
 } Export-ModuleMember -Function Set-ClockTimeZone
@@ -299,7 +309,7 @@ function Set-PowerSettings {
     #Variables - Editable
     $Step = "Set Power Settings"
     #Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     
     If ((Test-Path "$StepStatus*") -and !($Force)) {
@@ -341,7 +351,7 @@ function Set-PowerSettings {
         Write-Host "Close lid actions... 0=Do Nothing, 1=Sleep, 2=Hibernate, 3=Shut Down" -ForegroundColor DarkGray
     
         # If ClientSetting doesn't exist, update Client Config File
-        If (!($global:ClientSettings.pwr_ACMT) -and $global:Automated_Setup) {
+        If (!($global:ClientSettings.pwr_ACMT) -and $Automated_Setup) {
             Add-ClientSetting -Name "pwr_ACMT" -Value $AC_Monitor_Timeout
             Add-ClientSetting -Name "pwr_ACST" -Value $AC_Standby_Timeout
             Add-ClientSetting -Name "pwr_DCMT" -Value $DC_Monitor_Timeout
@@ -349,7 +359,7 @@ function Set-PowerSettings {
             Add-ClientSetting -Name "pwr_ACCLA" -Value $AC_Close_Lid_Action
             Add-ClientSetting -Name "pwr_DCCLA" -Value $DC_Close_Lid_Action
         }
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Set-PowerSettings
@@ -363,7 +373,7 @@ function Toggle-Hibernate {
     #Variables - edit as needed
     $Step = "Toggle Hibernate"
     #Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     # Load setting from Client Config if available
@@ -372,11 +382,11 @@ function Toggle-Hibernate {
     If ($Setting = 0) {Disable-Hibernate} else {Enable-Hibernate}
 
     # If ClientSetting doesn't exist, update Client Config File
-    If (!($global:ClientSettings.Hibernate) -and $global:Automated_Setup) {
+    If (!($global:ClientSettings.Hibernate) -and $Automated_Setup) {
         Add-ClientSetting -Name "Hibernate" -Value $Setting
     }
 
-    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
 } Export-ModuleMember -Function Toggle-Hibernate
 
 function Enable-Hibernate {
@@ -409,7 +419,7 @@ function Toggle-Hiberboot {
     #Variables - edit as needed
     $Step = "Toggle Hiberboot"
     #Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     # Load setting from Client Config if available
@@ -418,11 +428,11 @@ function Toggle-Hiberboot {
     If ($Setting = 0) {Disable-Hiberboot} else {Enable-Hiberboot}
 
     # If ClientSetting doesn't exist, update Client Config File
-    If (!($global:ClientSettings.Hiberboot) -and $global:Automated_Setup) {
+    If (!($global:ClientSettings.Hiberboot) -and $Automated_Setup) {
         Add-ClientSetting -Name "Hiberboot" -Value $Setting
     }
 
-    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
 } Export-ModuleMember -Function Toggle-Hiberboot
 
 function Enable-Hiberboot {
@@ -449,7 +459,7 @@ function Toggle-UAC {
     #Variables - edit as needed
     $Step = "Set UAC"
     #Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $SkippedFile = "$StepStatus-Skipped.txt"
     $CompletionFile = "$StepStatus-Completed.txt"
 
@@ -479,27 +489,27 @@ function Toggle-UAC {
             switch ($choice) {
                 1 {
                     # Update Client Config File with choice
-                    if ($global:Automated_Setup) {
+                    if ($Automated_Setup) {
                         Add-ClientSetting -Name UAC -Value "Up"
                     }
-                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                     TurnUp-UAC
                 }
                 2 {
                     # Update Client Config File with choice
-                    if ($global:Automated_Setup) {
+                    if ($Automated_Setup) {
                         Add-ClientSetting -Name UAC -Value "Down"
                     }
-                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                     TurnDown-UAC
                 }
                 3 {
                     If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
                     # Update Client Config File with choice
-                    if ($global:Automated_Setup) {
+                    if ($Automated_Setup) {
                         Add-ClientSetting -Name UAC -Value "Skip"
                     }
-                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 }
             }
         }
@@ -525,7 +535,7 @@ function Enable-FileSharing {
     #Variables - edit as needed
     $Step = "Enable Network Discover and File & Printer Sharing settings"
     #Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If (Test-Path "$StepStatus*") {
@@ -537,7 +547,7 @@ function Enable-FileSharing {
         cmd.exe /c 'REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f' | Out-Null
         cmd.exe /c 'netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes' | Out-Null
         cmd.exe /c 'netsh advfirewall firewall set rule group="Network Discovery" new enable=Yes' | Out-Null
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host " Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Enable-FileSharing
@@ -570,7 +580,7 @@ function Set-LocalAdmin {
     # Variables - edit as needed
     $Step = "Set Local Admin Account"
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If ((Test-Path "$StepStatus*") -and !($Force)) {
@@ -590,7 +600,7 @@ function Set-LocalAdmin {
                 Write-Host "If you are already signed into the desired local administrator account, please enter the credentials anyway. (NOTE: In this case, make sure you enter the credentials correctly!)" -ForegroundColor Yellow
                 $Credentials = Get-Credential
             } UNTIL ($Credentials -ne $null)
-            if ($global:Automated_Setup) {
+            if ($Automated_Setup) {
                 Add-ClientSetting -Name LocalAdminName -Value $Credentials.UserName
                 Add-ClientSetting -Name LocalAdminPassword -Value ($Credentials.Password | ConvertFrom-SecureString -Key (Get-Content -Path $FilePath_Local_Automated_Setup_RegistryBackup))
             }
@@ -616,7 +626,7 @@ function Set-LocalAdmin {
         #$command = "wmic useraccount where Name='$LocalAdminName' set PasswordExpires=false"
         #cmd.exe /c $command # Set password to never expire
         
-        if ($global:Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }   
 } Export-ModuleMember -Function Set-LocalAdmin
@@ -648,7 +658,7 @@ function Enable-AutoLogon {
     # Variables - edit as needed
     $Step = "Enable Auto-Logon"
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If ((Test-Path "$StepStatus*") -and !($Force)) {
@@ -723,7 +733,7 @@ function Enable-AutoLogon {
         Set-ItemProperty -Path $WinLogonKey -Name AutoAdminLogon -Value "1"
         Set-ItemProperty -Path $WinLogonKey -Name ForceAutoLogon -Value "1"
         
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
         Ask-Logoff -Force
     }   
@@ -774,7 +784,7 @@ function Remove-UserAccount {
     $Step = "Remove User Account"
 
     #Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If (Test-Path "$StepStatus*") {
@@ -786,7 +796,7 @@ function Remove-UserAccount {
             Remove-LocalUser -Name User
             Start-Sleep 3
             Remove-Item -Path "C:\Users\User" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
             Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
         } else {
             Write-Host ""
@@ -812,9 +822,19 @@ function Set-ProfileDefaultSettings {
         [Parameter(Mandatory = $false)]
         [switch] $AdminProfile
     )
-
-    Show-FileExtensions
-    If ($AdminProfile) {Show-HiddenObjects}
+    
+    Disable-Live_Tiles
+    Remove-CortanaFromTaskbar
+    Remove-PeopleFromTaskbar
+    Remove-TaskViewButtonFromTaskbar
+    Show-SearchIcon
+    If ($AdminProfile) {
+        Show-FileExtensions
+        Show-HiddenObjects
+        Show-ALLSysTrayIcons -Scope CurrentUser
+        Hide-NewsIcon -Scope CurrentUser
+    }
+    Restart-Explorer
 } Export-ModuleMember -Function Set-ProfileDefaultSettings
 
 function Show-FileExtensions {
@@ -830,7 +850,7 @@ function Show-FileExtensions {
     } else {
         Write-Host "$Step is " -NoNewline; Write-Host "enabled" -ForeGroundColor Green
     }
-} Export-ModuleMember -Function Show-HiddenObjects
+} Export-ModuleMember -Function Show-FileExtensions
 
 function Show-HiddenObjects {
     # 1=Show 2=Hide
@@ -846,6 +866,306 @@ function Show-HiddenObjects {
         Write-Host "$Step is " -NoNewline; Write-Host "enabled" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function Show-HiddenObjects
+
+function Disable-Live_Tiles {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('CurrentUser','Computer')]
+        [string] $Scope,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    if ($Automated_Setup) {
+        # Variables - edit as needed
+        if ($Scope) {
+            $Step = "Remove Cortana From Taskbar - $Scope"
+        }
+        $Step = "Remove Cortana From Taskbar"
+        # Static Variables - DO NOT EDIT
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+    }
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        if ($Scope -eq 'CurrentUser') {
+            cmd.exe /c 'REG ADD "HKCU\Software\Policies\Microsoft\Windows\CurrentVersion\Pushnotications" /v NoTileApplictionNotification /d 1 /f /t REG_DWORD' | Out-Null
+        } elseif ($Scope -eq 'Computer') {
+            cmd.exe /c 'REG ADD "HKLM\Software\Policies\Microsoft\Windows\CurrentVersion\Pushnotications" /v NoTileApplictionNotification /d 1 /f /t REG_DWORD' | Out-Null
+        } else {
+            cmd.exe /c 'REG ADD "HKLM\Software\Policies\Microsoft\Windows\CurrentVersion\Pushnotications" /v NoTileApplictionNotification /d 1 /f /t REG_DWORD' | Out-Null
+            cmd.exe /c 'REG ADD "HKCU\Software\Policies\Microsoft\Windows\CurrentVersion\Pushnotications" /v NoTileApplictionNotification /d 1 /f /t REG_DWORD' | Out-Null
+        }
+
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }
+} Export-ModuleMember -Function Disable-Live_Tiles
+
+function Remove-CortanaFromTaskbar {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('CurrentUser','Computer')]
+        [string] $Scope,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    if ($Automated_Setup) {
+        # Variables - edit as needed
+        if ($Scope) {
+            $Step = "Remove Cortana From Taskbar - $Scope"
+        }
+        $Step = "Remove Cortana From Taskbar"
+        # Static Variables - DO NOT EDIT
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+    }
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        if ($Scope -eq 'CurrentUser') {
+            cmd.exe /c 'REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowCortanaButton /d 0 /f /t REG_DWORD' | Out-Null
+        } elseif ($Scope -eq 'Computer') {
+            cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowCortanaButton /d 0 /f /t REG_DWORD' | Out-Null
+        } else {
+            cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowCortanaButton /d 0 /f /t REG_DWORD' | Out-Null
+            cmd.exe /c 'REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowCortanaButton /d 0 /f /t REG_DWORD' | Out-Null
+        }
+
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }
+} Export-ModuleMember -Function Remove-CortanaFromTaskbar
+
+function Remove-PeopleFromTaskbar {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('CurrentUser','Computer')]
+        [string] $Scope,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    if ($Automated_Setup) {
+        # Variables - edit as needed
+        if ($Scope) {
+            $Step = "Remove People From Taskbar - $Scope"
+        }
+        $Step = "Remove People From Taskbar"
+        # Static Variables - DO NOT EDIT
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+    }
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        if ($Scope -eq 'CurrentUser') {
+            cmd.exe /c 'REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People" /v PeopleBand /d 0 /f /t REG_DWORD' | Out-Null
+        } elseif ($Scope -eq 'Computer') {
+            cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People" /v PeopleBand /d 0 /f /t REG_DWORD' | Out-Null
+        } else {
+            cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People" /v PeopleBand /d 0 /f /t REG_DWORD' | Out-Null
+            cmd.exe /c 'REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People" /v PeopleBand /d 0 /f /t REG_DWORD' | Out-Null
+        }
+
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }
+} Export-ModuleMember -Function Remove-PeopleFromTaskbar
+
+function Remove-TaskViewButtonFromTaskbar {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('CurrentUser','Computer')]
+        [string] $Scope,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    if ($Automated_Setup) {
+        # Variables - edit as needed
+        if ($Scope) {
+            $Step = "Remove Task View Button From Taskbar - $Scope"
+        }
+        $Step = "Remove Task View Button From Taskbar"
+        # Static Variables - DO NOT EDIT
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+    }
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        if ($Scope -eq 'CurrentUser') {
+            cmd.exe /c 'REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowTaskViewButton /d 0 /f /t REG_DWORD' | Out-Null
+        } elseif ($Scope -eq 'Computer') {
+            cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowTaskViewButton /d 0 /f /t REG_DWORD' | Out-Null
+        } else {
+            cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowTaskViewButton /d 0 /f /t REG_DWORD' | Out-Null
+            cmd.exe /c 'REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowTaskViewButton /d 0 /f /t REG_DWORD' | Out-Null
+        }
+        
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }
+} Export-ModuleMember -Function Remove-TaskViewButtonFromTaskbar
+
+function Show-ALLSysTrayIcons {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('CurrentUser','Computer')]
+        [string] $Scope,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    if ($Automated_Setup) {
+        # Variables - edit as needed
+        if ($Scope) {
+            $Step = "Show all System Tray Icons - $Scope"
+        }
+        $Step = "Show all System Tray Icons"
+        # Static Variables - DO NOT EDIT
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+    }
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        if ($Scope -eq 'CurrentUser') {
+            cmd.exe /c 'REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /v EnableAutoTray /d 0 /f /t REG_DWORD' | Out-Null
+        } elseif ($Scope -eq 'Computer') {
+            cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer" /v EnableAutoTray /d 0 /f /t REG_DWORD' | Out-Null
+        } else {
+            cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer" /v EnableAutoTray /d 0 /f /t REG_DWORD' | Out-Null
+            cmd.exe /c 'REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /v EnableAutoTray /d 0 /f /t REG_DWORD' | Out-Null
+        }
+
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }
+} Export-ModuleMember -Function Show-ALLSysTrayIcons
+
+function Show-SearchIcon {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('CurrentUser','Computer')]
+        [string] $Scope,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    if ($Automated_Setup) {
+        # Variables - edit as needed
+        if ($Scope) {
+            $Step = "Show Search Icon - $Scope"
+        }
+        $Step = "Show Search Icon"
+        # Static Variables - DO NOT EDIT
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+    }
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        if ($Scope -eq 'CurrentUser') {
+            cmd.exe /c 'REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTaskbarMode /d 1 /f /t REG_DWORD' | Out-Null
+        } elseif ($Scope -eq 'Computer') {
+            cmd.exe /c 'REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTaskbarMode /d 1 /f /t REG_DWORD' | Out-Null
+        } else {
+            cmd.exe /c 'REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTaskbarMode /d 1 /f /t REG_DWORD' | Out-Null
+            cmd.exe /c 'REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTaskbarMode /d 1 /f /t REG_DWORD' | Out-Null
+        }
+
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }
+} Export-ModuleMember -Function Show-SearchIcon
+
+function Hide-NewsIcon {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('CurrentUser','Computer')]
+        [string] $Scope,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    if ($Automated_Setup) {
+        # Variables - edit as needed
+        if ($Scope) {
+            $Step = "Hide News Icon - $Scope"
+        }
+        $Step = "Hide News Icon"
+        # Static Variables - DO NOT EDIT
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+    }
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        if ($Scope -eq 'CurrentUser') {
+            cmd.exe /c 'REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /d 2 /f /t REG_DWORD' | Out-Null
+        } elseif ($Scope -eq 'Computer') {
+            cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /d 2 /f /t REG_DWORD' | Out-Null
+        } else {
+            cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /d 2 /f /t REG_DWORD' | Out-Null
+            cmd.exe /c 'REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /d 2 /f /t REG_DWORD' | Out-Null
+        }
+
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }
+} Export-ModuleMember -Function Hide-NewsIcon
+
+function Restart-Explorer {
+    [CmdletBinding()]
+    param(
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    if ($Automated_Setup) {
+        # Variables - edit as needed
+        $Step = "Restart-Explorer"
+        # Static Variables - DO NOT EDIT
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+    }
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        cmd.exe /c 'taskkill /F /IM explorer.exe && start explorer.exe' | Out-Null
+        
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }
+} Export-ModuleMember -Function Restart-Explorer
+
 ######################################################
 ############## END Of Profile Functions ##############
 ######################################################
@@ -882,7 +1202,7 @@ function Rename-PC {
     If ($PostImage) {$Step = "Rename This PC - Post-Image"}
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SN = (Get-WmiObject win32_bios).SerialNumber
     
@@ -900,7 +1220,7 @@ function Rename-PC {
                     Write-Host "Image name suggestion: <Client Abbreviation>-Image" -ForegroundColor DarkYellow
                     Write-Host "Example: ATI-Image" -ForegroundColor DarkYellow
                     $NewName = Read-Host -Prompt "Please enter desired computer name, and then hit enter. The computer will be renamed and then rebooted."
-                    if ($global:Automated_Setup) {Add-ClientSetting -Name "ImageName" -Value $NewName}
+                    if ($Automated_Setup) {Add-ClientSetting -Name "ImageName" -Value $NewName}
                 }
             } ElseIf (($global:ClientSettings.SetupType -eq "SingleSetup") -or ($Force)) {
                 Write-Host ""
@@ -935,7 +1255,7 @@ function Rename-PC {
                 Rename-Computer -NewName $NewName -Force -ErrorAction Continue
             }
         }
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "`n$Step has been completed" -ForegroundColor Green
         Write-Host "Rebooting in 3..."
         Start-Sleep 1
@@ -948,169 +1268,12 @@ function Rename-PC {
     }
 } Export-ModuleMember -Function Rename-PC
 
-function Get-DomainJoinInfo {
-    # Variables - edit as needed
-    $Step = "Get Domain Join Info"
-
-    # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
-    $CompletionFile = "$StepStatus-Completed.txt"
-    $SkippedFile = "$StepStatus-Skipped.txt"
-
-    If (Test-Path "$StepStatus*") {
-        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
-        If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
-    } else {
-        DO {
-            # Load setting from Client Config if available
-            If ($global:ClientSettings.DomainJoin) {
-                $choice = $global:ClientSettings.DomainJoin
-            } else {
-            # Otherwise ask tech
-                Write-Host ""
-                Write-Host "-=[ $Step ]=-" -ForegroundColor Yellow
-                If ($Global:ClientSettings.SetupType -eq "SingleSetup") {Write-Host "Will you be joining this PC to a domain?"}
-                If ($Global:ClientSettings.SetupType -eq "BuildImage") {Write-Host "After applying this image to PCs, will you be joining them to the domain?"}
-                Write-Host "1. Yes"
-                Write-Host "2. No" 
-                $choice = Read-Host -Prompt "Enter a number, 1 or 2"
-            }
-        } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
-        switch ($choice) {
-            1 {
-                # Save the fact that we DO want to join the domain (either now or later)
-                If (!($global:ClientSettings.DomainJoin -and $global:Automated_Setup)) {
-                    Add-ClientSetting -Name "DomainJoin" -Value $choice
-                }
-                
-                # Get NETBIOS
-                $choice = $null
-                If ($global:ClientSettings.NETBIOS) {
-                    Write-Host "NETBIOS obtained from client config: "$global:ClientSettings.NETBIOS -ForegroundColor Green
-                } else {
-                    DO {
-                        Write-Host ""
-                        Write-Host "What is the NETBIOS Domain name?" -ForegroundColor Yellow
-                        Write-Host "Example: ATI"
-                        $choice = Read-Host -Prompt "Enter the NETBIOS Domain name"
-                    } UNTIL ($choice -ne $null)
-                    if ($global:Automated_Setup) {Add-ClientSetting -Name NETBIOS -Value $choice}
-                }
-
-                # Get DNS Domain Name
-                $choice = $null
-                If ($global:ClientSettings.DNS_Domain_Name) {
-                    Write-Host "DNS Domain Name obtained from client config: "$global:ClientSettings.DNS_Domain_Name -ForegroundColor Green
-                } else {
-                    DO {
-                        Write-Host ""
-                        Write-Host "What is the DNS Domain name?" -ForegroundColor Yellow
-                        Write-Host "Example: ati.local"
-                        $choice = Read-Host -Prompt "Enter the DNS Domain name"
-                    } UNTIL ($choice -ne $null)
-                    if ($global:Automated_Setup) {Add-ClientSetting -Name DNS_Domain_Name -Value $choice}
-                }
-
-                # Get Domain Admin Username
-                $choice = $null
-                If ($global:ClientSettings.Domain_Admin_Username) {
-                    Write-Host "Domain Admin username obtained from client config: "$global:ClientSettings.Domain_Admin_Username -ForegroundColor Green
-                } else {
-                    DO {
-                        Write-Host ""
-                        Write-Host "What is the domain admin username?" -ForegroundColor Yellow
-                        Write-Host "Example: Axxys"
-                        $choice = Read-Host -Prompt "Enter the domain admin username"
-                    } UNTIL ($choice -ne $null)
-                    if ($global:Automated_Setup) {Add-ClientSetting -Name Domain_Admin_Username -Value $choice}
-                }
-
-                # If building an image, need to get naming convention and example
-                If ($global:ClientSettings.SetupType -eq "BuildImage") {
-                    # Get naming convention
-                    $choice = $null
-                    If ($global:ClientSettings.Naming_Convention) {
-                        Write-Host "Naming Convention obtained from client config: "$global:ClientSettings.Naming_Convention -ForegroundColor Green
-                    } else {
-                        DO {
-                            Write-Host ""
-                            Write-Host "What is the PC naming convention?" -ForegroundColor Yellow
-                            Write-Host "Example: ATI-[DT/LT]-XX"
-                            $choice = Read-Host -Prompt "Enter the PC naming convention"
-                        } UNTIL ($choice -ne $null)
-                        if ($global:Automated_Setup) {Add-ClientSetting -Name Naming_Convention -Value $choice}
-                    }
-
-                    # Get PC Name Example
-                    $choice = $null
-                    If ($global:ClientSettings.PC_Name_Example) {
-                        Write-Host "PC Name Example obtained from client config: "$global:ClientSettings.PC_Name_Example -ForegroundColor Green
-                    } else {
-                        DO {
-                            Write-Host ""
-                            Write-Host "What is an example for a PC name?" -ForegroundColor Yellow
-                            Write-Host "Example: ATI-DT-01"
-                            $choice = Read-Host -Prompt "Enter the example PC name"
-                        } UNTIL ($choice -ne $null)
-                        if ($global:Automated_Setup) {Add-ClientSetting -Name PC_Name_Example -Value $choice}
-                    }
-                }
-                # Mark this section as completed
-                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                Write-Host "$Step has been completed" -ForegroundColor Green
-            } # End of Switch(1)
-            2 {
-                # Save the fact that we do NOT want to join the domain
-                If (!($global:ClientSettings.DomainJoin) -and $global:Automated_Setup) {
-                    Add-ClientSetting -Name "DomainJoin" -Value $choice
-                }
-                Write-Host "$Step has been skipped" -ForegroundColor Green
-                
-                # If building an image, still need to get naming convention and example
-                If ($global:ClientSettings.SetupType -eq "BuildImage") {
-                    Write-Host "Basic info only is needed..."
-                    # Get naming convention
-                    $choice = $null
-                    If ($global:ClientSettings.Naming_Convention) {
-                        Write-Host "Naming Convention obtained from client config: " + $global:ClientSettings.Naming_Convention -ForegroundColor Green
-                    } else {
-                        DO {
-                            Write-Host ""
-                            Write-Host "What is the PC naming convention?" -ForegroundColor Yellow
-                            Write-Host "Example: ATI-[DT/LT]-XX"
-                            $choice = Read-Host -Prompt "Enter the PC naming convention"
-                        } UNTIL ($choice -ne $null)
-                        if ($global:Automated_Setup) {Add-ClientSetting -Name Naming_Convention -Value $choice}
-                    }
-
-                    # Get PC Name Example
-                    $choice = $null
-                    If ($global:ClientSettings.PC_Name_Example) {
-                        Write-Host "PC Name Example obtained from client config: " + $global:ClientSettings.PC_Name_Example -ForegroundColor Green
-                    } else {
-                        DO {
-                            Write-Host ""
-                            Write-Host "What is an example for a PC name?" -ForegroundColor Yellow
-                            Write-Host "Example: ATI-DT-01"
-                            $choice = Read-Host -Prompt "Enter the example PC name"
-                        } UNTIL ($choice -ne $null)
-                        if ($global:Automated_Setup) {Add-ClientSetting -Name PC_Name_Example -Value $choice}
-                    }
-                    Write-Host "$Step has been completed" -ForegroundColor Green
-                }
-                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
-                Write-Host ""
-            } # End of Switch(2)
-        } # End of Switch($choice)
-    }
-} Export-ModuleMember -Function Get-DomainJoinInfo
-
 function Sign-Into_VPN {
     # Variables - edit as needed
     $Step = "Sign Into VPN"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If (Test-Path "$StepStatus*") {
@@ -1129,7 +1292,7 @@ function Sign-Into_VPN {
             }
             $choice = Read-Host -Prompt "Type in 'continue' move on to the next step"
         } UNTIL ($choice -eq "continue")
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Sign-Into_VPN
@@ -1139,7 +1302,7 @@ function Set-DefaultApps {
     $Step = "Set Default Apps"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If (Test-Path "$StepStatus*") {
@@ -1150,7 +1313,7 @@ function Set-DefaultApps {
         Pause
         cmd.exe /c "dism /online /export-defaultappassociations:C:\Setup\appassoc.xml" | Out-Null
         cmd.exe /c "dism /online /import-defaultappassociations:C:\Setup\appassoc.xml" | Out-Null
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "Default apps have been set" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function Set-DefaultApps
@@ -1160,7 +1323,7 @@ function CheckPoint-Client_WiFi {
     $Step = "Input Client WiFi"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
 
@@ -1174,7 +1337,7 @@ function CheckPoint-Client_WiFi {
         Write-Host "  Start > Settings > Network & Internet > Wi-Fi > Manage known networks > Add a new network"
         PAUSE
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
     }
 } Export-ModuleMember -Function CheckPoint-Client_WiFi
 
@@ -1183,7 +1346,7 @@ function CheckPoint-Public_Desktop {
     $Step = "Transfer Public Desktop Items"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If (Test-Path "$StepStatus*") {
@@ -1192,14 +1355,14 @@ function CheckPoint-Public_Desktop {
         Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
         Write-Host "!!WARNING!!" -ForegroundColor Yellow
         Write-Host "We are about to copy items"
-        Write-Host "  from:" -NoNewline -ForegroundColor Cyan; Write-Host " $FolderPath_Local_Client_Public_Desktop"
+        Write-Host "  from:" -NoNewline -ForegroundColor Cyan; Write-Host " $Setup_SCOPEImageSetup_PublicDesktop_Fo"
         Write-Host "  to:" -NoNewline -ForegroundColor Cyan; Write-Host " $FolderPath_Local_PublicDesktop"
-        Write-Host "`nPlease take a moment to populate the client's " -NoNewline; Write-Host "$FolderPath_Local_Client_Public_Desktop " -ForegroundColor Cyan -NoNewline; Write-Host "folder, before continuing..."
+        Write-Host "`nPlease take a moment to populate the client's " -NoNewline; Write-Host "$Setup_SCOPEImageSetup_PublicDesktop_Fo " -ForegroundColor Cyan -NoNewline; Write-Host "folder, before continuing..."
         Write-Host "(Such as RDP links, Browser links, VPN Connection Guides, etc...)"
-        New-Item -Path $FolderPath_Local_Client_Public_Desktop -ItemType Directory -Force | Out-Null
+        New-Item -Path $Setup_SCOPEImageSetup_PublicDesktop_Fo -ItemType Directory -Force | Out-Null
         PAUSE
-        If (($items = Get-ChildItem $FolderPath_Local_Client_Public_Desktop).count -gt 0) {Copy-Item -Path $items.FullName -Destination "$FolderPath_Local_PublicDesktop" -Recurse}
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        If (($items = Get-ChildItem $Setup_SCOPEImageSetup_PublicDesktop_Fo).count -gt 0) {Copy-Item -Path $items.FullName -Destination "$FolderPath_Local_PublicDesktop" -Recurse}
+        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Public_Desktop
@@ -1209,7 +1372,7 @@ function CheckPoint-CreateScansFolder {
     $Step = "Create Scans Folder"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
 
@@ -1233,7 +1396,7 @@ function CheckPoint-CreateScansFolder {
             }
         } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
         # Record choice, if needed
-        If (!($global:ClientSettings.ScansFolder) -and $global:Automated_Setup) {
+        If (!($global:ClientSettings.ScansFolder) -and $Automated_Setup) {
             Add-ClientSetting -Name "ScansFolder" -Value $choice
         }
         # Take action based on choice
@@ -1250,7 +1413,7 @@ function CheckPoint-CreateScansFolder {
                         Write-Host "Example: Scans"
                         [string]$choice = Read-Host -Prompt "Enter the Scans folder name"
                     } UNTIL ($choice -ne $null)
-                    if ($global:Automated_Setup) {Add-ClientSetting -Name ScansFolderName -Value $choice}
+                    if ($Automated_Setup) {Add-ClientSetting -Name ScansFolderName -Value $choice}
                 }
 
 
@@ -1264,7 +1427,7 @@ function CheckPoint-CreateScansFolder {
                         Write-Host "Provide the credentials for the Scanner account."
                         $Credentials = Get-Credential
                     } UNTIL (($Credentials.UserName -ne $null) -and ($Credentials.Password -ne $null))
-                    if ($global:Automated_Setup) {
+                    if ($Automated_Setup) {
                         Add-ClientSetting -Name ScannerAccount -Value $Credentials.UserName
                         Add-ClientSetting -Name ScannerAccountPassword -Value ($Credentials.Password | ConvertFrom-SecureString -Key (Get-Content -Path $FilePath_Local_Automated_Setup_RegistryBackup))
                     }
@@ -1298,13 +1461,13 @@ function CheckPoint-CreateScansFolder {
                 Write-Host "shortcut to scans folder created and placed on public desktop" -ForegroundColor Green
 
                 # Mark this section as completed
-                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
             } # End of Switch(1)
             2 {
                 Write-Host "$Step has been skipped" -ForegroundColor Green
                 
-                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host ""
             } # End of Switch(2)
         } # End of Switch($choice)
@@ -1316,7 +1479,7 @@ function CheckPoint-Client_AV {
     $Step = "Install AV agent"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If (Test-Path "$StepStatus*") {
@@ -1324,7 +1487,7 @@ function CheckPoint-Client_AV {
     } else {
         Write-Host "`nIf needed, Install AV agent"
         PAUSE
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Client_AV
@@ -1334,7 +1497,7 @@ function CheckPoint-Bitlocker_Device {
     $Step = "Bitlocker Device"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If (Test-Path "$StepStatus*") {
@@ -1343,7 +1506,7 @@ function CheckPoint-Bitlocker_Device {
         Write-Host ""
         Write-Host "If needed, Bitlocker Device"
         PAUSE
-        if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function CheckPoint-Bitlocker_Device
@@ -1353,7 +1516,7 @@ function Transfer-RMM_Agent {
     $Step = "Transfer RMM Agent"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
 
@@ -1365,7 +1528,7 @@ function Transfer-RMM_Agent {
         # See if installer is already present
         If (Test-Path "$FolderPath_Local_Setup\*Agent_Install*.exe") {
             Write-Host "`nAutomate Agent Installer " -NoNewline; Write-Host "found in $FolderPath_Local_Setup" -ForegroundColor Green
-            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
         # Ask tech to move it there
             DO {
@@ -1385,11 +1548,11 @@ function Transfer-RMM_Agent {
                         PAUSE
                     } UNTIL (Test-Path "$FolderPath_Local_Setup\*Agent_Install*.exe")
                     Write-Host "The Automate Agent Installer under $FolderPath_Local_Setup has been detected" -ForegroundColor Green
-                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 }
                 2 {
                     Write-Host "Placing the Automate Agent Installer under $FolderPath_Local_Setup has been skipped" -ForegroundColor Green
-                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 }
             }
         }
@@ -1401,7 +1564,7 @@ function Transfer-Sophos_Agent {
     $Step = "Transfer Sophos Agent"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
 
@@ -1413,7 +1576,7 @@ function Transfer-Sophos_Agent {
         # See if installer is already present
         If (Test-Path "$FolderPath_Local_Setup\*SophosSetup*.exe") {
             Write-Host "`nSophos Agent Installer " -NoNewline; Write-Host "found in $FolderPath_Local_Setup" -ForegroundColor Green
-            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
         # Ask tech to move it there
             DO {
@@ -1432,11 +1595,11 @@ function Transfer-Sophos_Agent {
                         PAUSE
                     } UNTIL (Test-Path "$FolderPath_Local_Setup\*SophosSetup*.exe")
                     Write-Host "The Sophos Agent Installer under $FolderPath_Local_Setup has been detected" -ForegroundColor Green
-                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 }
                 2 {
                     Write-Host "Placing the Sophos Agent Installer under $FolderPath_Local_Setup has been skipped" -ForegroundColor Green
-                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 }
             }
         }
@@ -1456,7 +1619,7 @@ function Install-Windows_Updates {
     $Step = "Install Windows Updates"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
     $InProgressFile = "$StepStatus-InProgress.txt"
@@ -1487,7 +1650,7 @@ function Install-Windows_Updates {
             }
             If ($choice -eq 1) {
                 # If ClientSetting doesn't exist, update Client Config File
-                If ($global:ClientSettings -and !($global:ClientSettings.WindowsUpdates) -and $global:Automated_Setup) {
+                If ($global:ClientSettings -and !($global:ClientSettings.WindowsUpdates) -and $Automated_Setup) {
                     Add-ClientSetting -Name WindowsUpdates -Value $choice
                 }
                 New-Item $InProgressFile -ItemType File -Force | Out-Null
@@ -1495,10 +1658,10 @@ function Install-Windows_Updates {
                 Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
                 Install-Module PSWindowsUpdate -Force
             } else {
-                If ($global:ClientSettings -and !($global:ClientSettings.WindowsUpdates) -and $global:Automated_Setup) {
+                If ($global:ClientSettings -and !($global:ClientSettings.WindowsUpdates) -and $Automated_Setup) {
                     Add-ClientSetting -Name WindowsUpdates -Value $choice
                 }
-                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step`: " -NoNewline; Write-Host "Skipped"
             }
         }
@@ -1520,8 +1683,8 @@ function Install-Windows_Updates {
                     Write-Host "(There may be additional updates)"
                 }
             } else {
-                Remove-Item $InProgressFile | Out-Null
-                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                if (Test-Path $InProgressFile) {Remove-Item $InProgressFile | Out-Null}
+                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
             }
         }
@@ -1567,7 +1730,7 @@ function Install-Softpaqs {
     $Step = "Install HP Softpaq BIOS, Drivers, and Firmware Updates"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $InProgressFile = "$StepStatus-InProgress.txt"
 
@@ -1617,7 +1780,7 @@ function Install-Softpaqs {
             } else {
                 Write-Host "No updates found!"
                 Remove-Item $InProgressFile | Out-Null
-                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
             }
     }
@@ -1628,7 +1791,7 @@ function CheckPoint-Disk_Cleanup {
     $Step = "Run Disk Cleanup"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
 
@@ -1647,9 +1810,9 @@ function CheckPoint-Disk_Cleanup {
         } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
         If ($choice -eq 1) {
             Run-Disk_Cleanup
-            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
-            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Yellow
         }
     }
@@ -1669,7 +1832,7 @@ function Join-Domain {
     $Step = "Join PC to the domain"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
 
@@ -1680,7 +1843,7 @@ function Join-Domain {
         Write-Host ""
         Write-Host "-=[ $Step ]=-" -ForegroundColor Yellow
         If ($Global:ClientSettings.DomainJoin -eq "2") {
-            if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+            if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             Write-Host "$Step has been skipped"
         } ElseIf ($Global:ClientSettings.DomainJoin -eq "1") {
             Write-Host "Make sure the VPN is connected if remote..." -ForegroundColor Red
@@ -1689,7 +1852,7 @@ function Join-Domain {
             
             Try {
                 Add-Computer -DomainName $Global:ClientSettings.DNS_Domain_Name -Credential (($Global:ClientSettings.NETBIOS)+"\"+($Global:ClientSettings.Domain_Admin_Username)) -Force -Verbose
-                if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host ""
                 Write-Host "$Step has been completed" -ForegroundColor Green
                 Restart-Computer
@@ -1708,7 +1871,7 @@ function Join-Domain {
                 If ($choice -eq 1) {
                     Join-Domain
                 } else {
-                    if ($global:Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                     Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green
                 }
             }
@@ -1727,7 +1890,7 @@ function Remove-AutoLogon {
     $Step = "Remove Auto-Logon"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If ((Test-Path "$StepStatus*") -and !($Force)) {
@@ -1740,7 +1903,7 @@ function Remove-AutoLogon {
         Remove-ItemProperty -Path $WinLogonKey -Name DefaultUserName -Force -ErrorAction SilentlyContinue
         Remove-ItemProperty -Path $WinLogonKey -Name DefaultPassword -Force -ErrorAction SilentlyContinue
     
-        If (!($Force) -and ($global:Automated_Setup -or $global:TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        If (!($Force) -and ($Automated_Setup -or $global:TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Remove-AutoLogon
@@ -1756,7 +1919,7 @@ function Activate-Windows {
     $Step = "Activate Windows"
 
     # Static Variables - DO NOT EDIT
-    $StepStatus = "$FolderPath_Local_AutomatedSetup_Status\"+$Step.Replace(" ","_")
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
     If ((Test-Path "$StepStatus*") -and !($Force)) {

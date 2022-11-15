@@ -13,39 +13,10 @@ Import-Module Install-Software -WarningAction SilentlyContinue -Force
 
 $TechTool = New-TechTool
 $USB = New-ImagingUSB
-
-######################################
-##  STATIC Variables - Do not edit  ##
-######################################
-  $RunOnceKey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce" # This is the registry key that points to what script(s) to run when a user logs in
-  $FilePath_Local_AutomateSetup_Script = "C:\Setup\_Automated_Setup\Automate-Setup.ps1"
-  $ComputerName = Hostname
-  $ClientSettings = $null
-  $Automated_Setup = $true
+$ComputerName = Hostname
+$ClientSettings = $null
+$Automated_Setup = $true
   
-################################################
-##  CUSTOMIZABLE Variables - Edit as desired  ##
-################################################
-  # These variables should be set to $null normally
-  # They are defined in the modules and will default to those values unless specified here
-  # NOTE that if the Automated-Setup script is 
-
-# -=[ Configure-PC related variables ]=-
-  $Target_TimeZone     = $null # Default is "Central Standard Time"
-  # Hibernate & Hiberboot settings: 0=disabled, 1=enabled
-  $Hibernate_Setting   = $null # Default is 0
-  $Hiberboot_Setting   = $null # Default is 0
-  # Power Settings
-  $AC_Monitor_Timeout  = $null # Default is 15
-                     # = 20 # HGA
-  $AC_Standby_Timeout  = $null # Default is 0
-  $DC_Monitor_Timeout  = $null # Default is 10
-                     # = 20 # HGA
-  $DC_Standby_Timeout  = $null # Default is 20
-                     # = 30 # HGA
-  # Close lid actions... 0=Do Nothing, 1=Sleep, 2=Hibernate, 3=Shut Down.
-  $AC_Close_Lid_Action = $null # Default is 0
-  $DC_Close_Lid_Action = $null # Default is 1
 #endregion Initialize
 
 #region Functions

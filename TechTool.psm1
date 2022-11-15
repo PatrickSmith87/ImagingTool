@@ -7,61 +7,47 @@
 #################################################################################################################################################################
 
 #region Module Variables
+
 $TechTool = New-TechTool
 
 # !!ImagingUSB module may not exist yet, so can't relie on using the ImagingUSB class!!
 # Get USB Drive
-foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+$USB = New-ImagingUSB
+
+<#foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
     $Test_Path = "$Drive_Letter" + ":\PC_Setup"
     If (Test-Path $Test_Path -ErrorAction SilentlyContinue) {
         $USB_Drive = "$Drive_Letter" + ":"
     }
-}
+}#>
 
 # VARIABLES
 # -=[ IMAGE MAINTENANCE ]=-
-  $FilePath_ImageMaintenance_DOWNLOAD_Latest_ESD_File = "$USB_Drive\sources\Image-Maintenance\1. Download Latest ESD File.ps1"
-  $FilePath_ImageMaintenance_EXTRACT_WIM_from_ESD     = "$USB_Drive\sources\Image-Maintenance\2. Extract WIM from ESD.ps1"
-  $FilePath_ImageMaintenance_CREATE_Modded_WIM        = "$USB_Drive\sources\Image-Maintenance\3. Create Modded WIM.ps1"
-
+  $ImageMaintenance_DOWNLOAD_Latest_ESD_File_Fi         = $USB.ImageMaint_DOWNLOADLatestESDFile_ps1_Fi
+  $ImageMaintenance_EXTRACT_WIM_from_ESD_Fi             = $USB.ImageMaint_EXTRACTWIMfromESD_ps1_Fi
+  $ImageMaintenance_CREATE_Modded_WIM_Fi                = $USB.ImageMaint_CREATEModdedWIM_ps1_Fi
 # -=[ PC MAINTENANCE ]=-
 # Modules
-  $FolderPath_USB_Modules                             = "$USB_Drive\sources\PC-Maintenance\_modules"
-  $FilePath_USB_AutomateSetup_Module                  = "$USB_Drive\sources\PC-Maintenance\_modules\Automate-Setup\Automate-Setup.psm1"
-  $FilePath_USB_ConfigurePC_Module                    = "$USB_Drive\sources\PC-Maintenance\_modules\Configure-PC\Configure-PC.psm1"
-  $FilePath_USB_InstallSoftware_Module                = "$USB_Drive\sources\PC-Maintenance\_modules\Install-Software\Install-Software.psm1"
-  $FilePath_USB_TuneUpPC_Module                       = "$USB_Drive\sources\PC-Maintenance\_modules\TuneUp-PC\TuneUp-PC.psm1"
-  $FolderPath_Local_Modules                           = "C:\Program Files\WindowsPowerShell\Modules"
-  $FilePath_Local_AutomateSetup_Module                = "C:\Program Files\WindowsPowerShell\Modules\Automate-Setup\Automate-Setup.psm1"
-  $FilePath_Local_ConfigurePC_Module                  = "C:\Program Files\WindowsPowerShell\Modules\Configure-PC\Configure-PC.psm1"
-  $FilePath_Local_InstallSoftware_Module              = "C:\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
-  $FilePath_Local_TuneUpPC_Module                     = "C:\Program Files\WindowsPowerShell\Modules\TuneUp-PC\TuneUp-PC.psm1"
 # 1. Automated Setup
-  $FilePath_USB_Automated_Setup_INJECT_Scripts_Script = "$USB_Drive\sources\PC-Maintenance\1. Automated Setup\1. INJECT-AutomatedSetupScripts.bat"
-  $FilePath_Local_AutomateSetup_Script                = "C:\Setup\_Automated_Setup\Automate-Setup.ps1"
-  $RunOnceKey                                         = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"
+  $FilePath_USB_Automated_Setup_INJECT_Scripts_Script   = $USB.PCMaint_AS_INJECT_Scripts_bat_Fi
 # 2. Configure Automatic Sign In
 # 3. Standardize PC
 # 4. Install Software
 # 5. Update PC
 # 6. Cleanup Hard Drive
-  $FilePath_USB_Cleanup_HD                            = "$USB_Drive\sources\PC-Maintenance\6. Cleanup Hard Drive\CLEANUP HD.ps1"
+  $FilePath_USB_Cleanup_HD                              = $USB.PCMaint_CleanupHardDrive_Cleanup_HD_ps1_Fi
 # 7. Migrate User Profile
-  $FilePath_USB_Migrate_User_Profile_BACKUP           = "$USB_Drive\sources\PC-Maintenance\7. Migrate User Profile\1. BACKUP User Profile.ps1"
-  $FilePath_USB_Migrate_User_Profile_RESTORE          = "$USB_Drive\sources\PC-Maintenance\7. Migrate User Profile\2. RESTORE User Profile.ps1"
-  $FilePath_USB_Migrate_User_Profile_SYNC             = "$USB_Drive\sources\PC-Maintenance\7. Migrate User Profile\3. SYNC User Profile Data.bat"
+  $FilePath_USB_Migrate_User_Profile_BACKUP             = $USB.PCMaint_MigrateUserProfile_BACKUP_ps1_Fi
+  $FilePath_USB_Migrate_User_Profile_RESTORE            = $USB.PCMaint_MigrateUserProfile_RESTORE_ps1_Fi
+  $FilePath_USB_Migrate_User_Profile_SYNC               = $USB.PCMaint_MigrateUserProfile_SYNC_bat_Fi
 # 8. Backup Folder
-  $FilePath_USB_Backup_Folder_BACKUP                  = "$USB_Drive\sources\PC-Maintenance\8. Backup Folder\BACKUP Folder.bat"
-
+  $FilePath_USB_Backup_Folder_BACKUP                    = $USB.PCMaint_BackupFolder_BACKUP_bat_Fi
 # -=[ Imaging USB MAINTENANCE ]=-
-  $FilePath_ImagingUSBMaintenance_BACKUP_Minus_Images       = "$USB_Drive\sources\ImagingUSB-Maintenance\1. BACKUP Imaging Drive - Minus Images.bat"
-  $FilePath_ImagingUSBMaintenance_BACKUP                    = "$USB_Drive\sources\ImagingUSB-Maintenance\2. BACKUP Imaging Drive.bat"
-  $FilePath_ImagingUSBMaintenance_CREATE_AutoDeploy_Package = "$USB_Drive\sources\ImagingUSB-Maintenance\3. CREATE WinPE USB AutoDeploy Package.bat"
-  $FilePath_ImagingUSBMaintenance_CREATE_Package            = "$USB_Drive\sources\ImagingUSB-Maintenance\4. CREATE WinPE USB Package.bat"
-  $FilePath_ImagingUSBMaintenance_RESTORE_Minus_Images      = "$USB_Drive\sources\ImagingUSB-Maintenance\5. RESTORE Imaging Drive - Minus Images.bat"
-  $FilePath_ImagingUSBMaintenance_RESTORE                   = "$USB_Drive\sources\ImagingUSB-Maintenance\6. RESTORE Imaging Drive.bat"
+  $ImagingUSBMaintenance_BACKUP_Minus_Images_Fi         = $USB.USBMaint_BACKUPMinusImages_bat_Fi
+  $ImagingUSBMaintenance_BACKUP_Fi                      = $USB.USBMaint_BACKUP_bat_Fi
+  $ImagingUSBMaintenance_CREATE_AutoDeploy_Package_Fi   = $USB.USBMaint_CREATEAutoDeployPackage_bat_Fi
+  $ImagingUSBMaintenance_RESTORE_Fi                     = $USB.USBMaint_RESTORE_bat_Fi
 
-[string]$WindowsVersion=(Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name DisplayVersion).DisplayVersion
 #endregion Module Variables
 
 #region TechTool Class
@@ -70,33 +56,55 @@ function New-TechTool {
 } Export-ModuleMember -Function New-TechTool
 
 class TechTool {
-    [string]$FilePath_Local_TechTool_bat            = "C:\Users\Public\Desktop\TechTool-RAA.bat"
-    [string]$FilePath_Local_TechTool_ps1            = "C:\Users\Public\Desktop\sources\TechTool.ps1"
-    [string]$FolderPath_Local_Modules               = "C:\Program Files\WindowsPowerShell\Modules"
-    [string]$FilePath_Local_ImagingUSB_Module       = $this.FolderPath_Local_Modules + "\ImagingUSB\ImagingUSB.psm1"
-    [string]$FilePath_Local_AutomateSetup_ps1       = "C:\Setup\_Automated_Setup\Automate-Setup.ps1"
-    [string]$FilePath_Local_AutomateSetup_Module    = $this.FolderPath_Local_Modules + "\Automate-Setup\Automate-Setup.psm1"
-    [string]$FilePath_Local_ConfigurePC_Module      = $this.FolderPath_Local_Modules + "\Configure-PC\Configure-PC.psm1"
-    [string]$FilePath_Local_InstallSoftware_Module  = $this.FolderPath_Local_Modules + "\Install-Software\Install-Software.psm1"
-    [string]$FilePath_Local_TuneUpPC_Module         = $this.FolderPath_Local_Modules + "\TuneUp-PC\TuneUp-PC.psm1"
-    [string]$FilePath_Local_TechTool_Module         = $this.FolderPath_Local_Modules + "\TechTool\TechTool.psm1"
+    [string]$TechTool_bat_Fi                                    = "C:\Users\Public\Desktop\TechTool-RAA.bat"
+    [string]$TechTool_ps1_Fi                                    = "C:\Users\Public\Desktop\sources\TechTool.ps1"
+
+    [string]$Modules_Fo                                         = "C:\Program Files\WindowsPowerShell\Modules"
+    [string]$Module_ImagingUSB_Fi                               = $this.Modules_Fo +                        "\ImagingUSB\ImagingUSB.psm1"
+    [string]$Module_AutomateSetup_Fi                            = $this.Modules_Fo +                        "\Automate-Setup\Automate-Setup.psm1"
+    [string]$Module_ConfigurePC_Fi                              = $this.Modules_Fo +                        "\Configure-PC\Configure-PC.psm1"
+    [string]$Module_InstallSoftware_Fi                          = $this.Modules_Fo +                        "\Install-Software\Install-Software.psm1"
+    [string]$Module_TuneUpPC_Fi                                 = $this.Modules_Fo +                        "\TuneUp-PC\TuneUp-PC.psm1"
+    [string]$Module_TechTool_Fi                                 = $this.Modules_Fo +                        "\TechTool\TechTool.psm1"
+    
+    [string]$Setup_Fo                                           =          "C:\Setup"
+    [string]$Setup_AS_Client_Config_Fo                          = $this.Setup_Fo + "\_Automated_Setup\_Client_Config"
+    [string]$Setup_AS_Client_Config_Repository_Fo               = $this.Setup_Fo + "\_Automated_Setup\_Client_Config\Repository"
+    [string]$Setup_AS_RegistryBackup_Fo                         = $this.Setup_Fo + "\_Automated_Setup\_RegistryBackup"
+    [string]$Setup_AS_Status_Fo                                 = $this.Setup_Fo + "\_Automated_Setup\Status"
+    [string]$Setup_AS_AutomateSetup_ps1                         = $this.Setup_Fo + "\_Automated_Setup\Automate-Setup.ps1"
+    [string]$Setup_DriverCollection_Fo                          = $this.Setup_Fo + "\_Driver_Collection"
+    [string]$Setup_ScriptCollection_Fo                          = $this.Setup_Fo + "\_Script_Collection"
+    [string]$Setup_SoftwareCollection_Fo                        = $this.Setup_Fo + "\_Software_Collection"
+    [string]$Setup_SoftwareCollection_Configs_Fo                = $this.Setup_Fo + "\_Software_Collection\_Software_Configs"
+    [string]$Setup_SoftwareCollection_ODTSoftware_Fo            = $this.Setup_Fo + "\_Software_Collection\ODT"
+    [string]$Setup_SoftwareCollection_ProfileSoftware_Fo        = $this.Setup_Fo + "\_Software_Collection\Profile_Specific_Software"
+    [string]$Setup_SoftwareCollection_Standard_Software_Fo      = $this.Setup_Fo + "\_Software_Collection\Standard_Software"
+    [string]$Setup_SCOPEImageSetup_Fo                           = $this.Setup_Fo + "\SCOPE-Image_Setup"
+    [string]$Setup_SCOPEImageSetup_PublicDesktop_Fo             = $this.Setup_Fo + "\SCOPE-Image_Setup\Public Desktop"
+    [string]$Setup_SCOPEPostImageSetup_Fo                       = $this.Setup_Fo + "\SCOPE-POST_Image_Setup"
+    [string]$Setup_SCOPEUserProfile_Fo                          = $this.Setup_Fo + "\SCOPE-User_Profile"
     
     [void] Update() {
-        $this.Download_GitHub_Repo()
-        $this.Update_Local_Scripts()
-        $this.Import_Modules()
         $USB = New-ImagingUSB
         if ($USB.Exists()) {
             if ($USB.DevTool) {
                 $this.Push_Dev_Scripts()
                 $this.Import_Modules()
             } else {
+                $this.Download_GitHub_Repo()
+                $this.Update_Local_Scripts()
+                $this.Import_Modules()
                 $this.Update_USB_Scripts()
             }
+        } else {
+            $this.Download_GitHub_Repo()
+            $this.Update_Local_Scripts()
+            $this.Import_Modules()
         }
     }
 
-    [void] Download_GitHub_Repo() {
+    [void]hidden Download_GitHub_Repo() {
         # NEEDS TO WORK INDEPENDANTLY OF ANY (OTHER) MODULES OR OTHER PARENT\CHILD SCRIPTS
 
         [string]$Name = "ImagingTool"
@@ -106,7 +114,7 @@ class TechTool {
         $this.Download_GitHub_Repo($Name,$Author,$Branch,$Location)
     }
 
-    [void] Download_GitHub_Repo([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
+    [void]hidden Download_GitHub_Repo([string]$Name,[string]$Author,[string]$Branch,[string]$Location) {
         # NEEDS TO WORK INDEPENDANTLY OF ANY (OTHER) MODULES OR OTHER PARENT\CHILD SCRIPTS 
 
         # Create the Zip file
@@ -131,7 +139,7 @@ class TechTool {
         Write-Host "Download GitHub Repo (to $Location): " -NoNewline; Write-Host "Complete" -ForegroundColor Green
     }
 
-    [void] Update_Local_Scripts() {
+    [void]hidden Update_Local_Scripts() {
         # NEEDS TO WORK INDEPENDANTLY OF ANY (OTHER) MODULES OR OTHER PARENT\CHILD SCRIPTS 
 
         [string]$Location = "C:\temp"
@@ -139,20 +147,20 @@ class TechTool {
         $this.Update_Local_Scripts($Location,$Name)
     }
 
-    [void] Update_Local_Scripts([string]$Location,[string]$Name) {
+    [void]hidden Update_Local_Scripts([string]$Location,[string]$Name) {
         # NEEDS TO WORK INDEPENDANTLY OF ANY (OTHER) MODULES OR OTHER PARENT\CHILD SCRIPTS 
 
         $Source = "$Location\$Name-main"
 
-        $this.Restore("$Source\TechTool-RAA.bat",$this.FilePath_Local_TechTool_bat,"Copy")
-        $this.Restore("$Source\TechTool.ps1",$this.FilePath_Local_TechTool_ps1,"Copy")
-        $this.Restore("$Source\ImagingUSB.psm1",$this.FilePath_Local_ImagingUSB_Module,"Copy")
-        $this.Restore("$Source\Automate-Setup.ps1",$this.FilePath_Local_AutomateSetup_ps1,"Copy")
-        $this.Restore("$Source\Automate-Setup.psm1",$this.FilePath_Local_AutomateSetup_Module,"Copy")
-        $this.Restore("$Source\Configure-PC.psm1",$this.FilePath_Local_ConfigurePC_Module,"Copy")
-        $this.Restore("$Source\Install-Software.psm1",$this.FilePath_Local_InstallSoftware_Module,"Copy")
-        $this.Restore("$Source\TuneUp-PC.psm1",$this.FilePath_Local_TuneUpPC_Module,"Copy")
-        $this.Restore("$Source\TechTool.psm1",$this.FilePath_Local_TechTool_Module,"Copy")
+        $this.Restore("$Source\TechTool-RAA.bat",$this.TechTool_bat_Fi,"Copy")
+        $this.Restore("$Source\TechTool.ps1",$this.TechTool_ps1_Fi,"Copy")
+        $this.Restore("$Source\ImagingUSB.psm1",$this.Module_ImagingUSB_Fi,"Copy")
+        $this.Restore("$Source\Automate-Setup.ps1",$this.Setup_AS_AutomateSetup_ps1,"Copy")
+        $this.Restore("$Source\Automate-Setup.psm1",$this.Module_AutomateSetup_Fi,"Copy")
+        $this.Restore("$Source\Configure-PC.psm1",$this.Module_ConfigurePC_Fi,"Copy")
+        $this.Restore("$Source\Install-Software.psm1",$this.Module_InstallSoftware_Fi,"Copy")
+        $this.Restore("$Source\TuneUp-PC.psm1",$this.Module_TuneUpPC_Fi,"Copy")
+        $this.Restore("$Source\TechTool.psm1",$this.Module_TechTool_Fi,"Copy")
 
         Write-Host "Update Local Scripts: " -NoNewline; Write-Host "Complete" -ForegroundColor Green
     }
@@ -194,7 +202,7 @@ class TechTool {
         }
     }
 
-    [void] Import_Modules() {
+    [void]hidden Import_Modules() {
         Import-Module ImagingUSB -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module Automate-Setup -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module Configure-PC -WarningAction SilentlyContinue -Force | Out-Null
@@ -205,31 +213,29 @@ class TechTool {
         Write-Host "Import Modules: " -NoNewline; Write-Host "Complete" -ForegroundColor Green
     }
 
-    [void] Update_USB_Scripts() {
+    [void]hidden Update_USB_Scripts() {
         [string]$Location = "C:\temp"
         [string]$Name = "ImagingTool"
         $this.Update_USB_Scripts($Location,$Name)
     }
 
-    [void] Update_USB_Scripts([string]$Location,[string]$Name) {
+    [void]hidden Update_USB_Scripts([string]$Location,[string]$Name) {
         # Requires ImagingUSB module
         
-        $Source = "$Location\$Name-main"
+        $GitHubRepo = "$Location\$Name-main"
         $USB = New-ImagingUSB
 
         if ($USB.Exists()) {
-            $WinPEDrive                             = $USB.WinPE_Drive_Letter
-            $this.Restore("$Source\WinPE-Menu.ps1","$WinPEDrive\sources\WinPE-Menu.ps1","Move")
-            
-            $this.Restore("$Source\TechTool-RAA.bat",$USB.FilePath_TechTool_bat,"Move")
-            $this.Restore("$Source\TechTool.ps1",$USB.FilePath_TechTool_ps1,"Move")
-            $this.Restore("$Source\ImagingUSB.psm1",$USB.FilePath_ImagingUSB_Module,"Move")
-            $this.Restore("$Source\Automate-Setup.ps1",$USB.FilePath_AutomateSetup_ps1,"Move")
-            $this.Restore("$Source\Automate-Setup.psm1",$USB.FilePath_AutomateSetup_Module,"Move")
-            $this.Restore("$Source\Configure-PC.psm1",$USB.FilePath_ConfigurePC_Module,"Move")
-            $this.Restore("$Source\Install-Software.psm1",$USB.FilePath_InstallSoftware_Module,"Move")
-            $this.Restore("$Source\TuneUp-PC.psm1",$USB.FilePath_TuneUpPC_Module,"Move")
-            $this.Restore("$Source\TechTool.psm1",$USB.FilePath_TechTool_Module,"Move")
+            $this.Restore("$GitHubRepo\WinPE-Menu.ps1",$USB.WinPE_Menu_ps1_Fi,"Move")
+            $this.Restore("$GitHubRepo\ImagingUSB.psm1",$USB.Module_USB_Fi,"Move")
+            $this.Restore("$GitHubRepo\Automate-Setup.ps1",$USB.PCMaint_Setup_AS_AutomateSetup_ps1_Fi,"Move")
+            $this.Restore("$GitHubRepo\Automate-Setup.psm1",$USB.Module_AutomateSetup_Fi,"Move")
+            $this.Restore("$GitHubRepo\Configure-PC.psm1",$USB.Module_ConfigurePC_Fi,"Move")
+            $this.Restore("$GitHubRepo\Install-Software.psm1",$USB.Module_InstallSoftware_Fi,"Move")
+            $this.Restore("$GitHubRepo\TuneUp-PC.psm1",$USB.Module_TuneUpPC_Fi,"Move")
+            $this.Restore("$GitHubRepo\TechTool.psm1",$USB.Module_TechTool_Fi,"Move")
+            $this.Restore("$GitHubRepo\TechTool.ps1",$USB.TechTool_ps1_Fi,"Move")
+            $this.Restore("$GitHubRepo\TechTool-RAA.bat",$USB.TechTool_bat_Fi,"Move")
 
             Write-Host "Update USB Scripts: " -NoNewline; Write-Host "Complete" -BackgroundColor Green
         } else {
@@ -239,21 +245,19 @@ class TechTool {
 
     [void] Push_Dev_Scripts() {
         # Requires ImagingUSB module
-        
         $USB = New-ImagingUSB
 
         if ($USB.Exists()) {            
-            $this.Restore($USB.FilePath_TechTool_bat,$this.FilePath_Local_TechTool_bat,"Copy")
-            $this.Restore($USB.FilePath_TechTool_ps1,$this.FilePath_Local_TechTool_ps1,"Copy")
-            $this.Restore($USB.FilePath_ImagingUSB_Module,$this.FilePath_Local_ImagingUSB_Module,"Copy")
-            $this.Restore($USB.FilePath_AutomateSetup_ps1,$this.FilePath_Local_AutomateSetup_ps1,"Copy")
-            $this.Restore($USB.FilePath_AutomateSetup_Module,$this.FilePath_Local_AutomateSetup_Module,"Copy")
-            $this.Restore($USB.FilePath_ConfigurePC_Module,$this.FilePath_Local_ConfigurePC_Module,"Copy")
-            $this.Restore($USB.FilePath_InstallSoftware_Module,$this.FilePath_Local_InstallSoftware_Module,"Copy")
-            $this.Restore($USB.FilePath_TuneUpPC_Module,$this.FilePath_Local_TuneUpPC_Module,"Copy")
-            $this.Restore($USB.FilePath_TechTool_Module,$this.FilePath_Local_TechTool_Module,"Copy")
- 
-            $this.fi
+            #$this.Restore($USB.WinPE_Menu_ps1_Fi,"$this.,"Copy")
+            $this.Restore($USB.Module_AutomateSetup_Fi,$this.Module_AutomateSetup_Fi,"Copy")
+            $this.Restore($USB.Module_ConfigurePC_Fi,$this.Module_ConfigurePC_Fi,"Copy")
+            $this.Restore($USB.Module_InstallSoftware_Fi,$this.Module_InstallSoftware_Fi,"Copy")
+            $this.Restore($USB.Module_TuneUpPC_Fi,$this.Module_TuneUpPC_Fi,"Copy")
+            $this.Restore($USB.Module_TechTool_Fi,$this.Module_TechTool_Fi,"Copy")
+            $this.Restore($USB.Module_USB_Fi,$this.Module_ImagingUSB_Fi,"Copy")
+            $this.Restore($USB.PCMaint_AS_AutomateSetup_ps1_Fi,$this.Setup_AS_AutomateSetup_ps1,"Copy")
+            $this.Restore($USB.TechTool_ps1_Fi,$this.TechTool_ps1_Fi,"Copy")
+            $this.Restore($USB.TechTool_bat_Fi,$this.TechTool_bat_Fi,"Copy")
             Write-Host "Push Dev Scripts: " -NoNewline; Write-Host "Complete" -ForegroundColor Green
         } else {
             Write-Host "Imaging USB not detected - " -NoNewline; Write-Host "Not Updated" -ForegroundColor Red
@@ -264,25 +268,23 @@ class TechTool {
         $this.Update_Local_GitHubRepo("C:\Git-Repositories\ImagingTool")
     }
     
-    [void] Update_Local_GitHubRepo([string]$RepoPath) {
+    [void]hidden Update_Local_GitHubRepo([string]$RepoPath) {
         $GitHubRepo = $RepoPath
         $USB = New-ImagingUSB
+        Write-Host "$USB"
 
         if (Test-Path $GitHubRepo) {
             if ($USB.Exists()) {
-                $WinPEDrive                                         = $USB.WinPE_Drive_Letter
-                $this.Restore("$WinPEDrive\sources\WinPE-Menu.ps1","$GitHubRepo\WinPE-Menu.ps1","Copy")
-
-                $this.Restore($USB.FilePath_TechTool_bat,"$GitHubRepo\TechTool-RAA.bat","Copy")
-                $this.Restore($USB.FilePath_TechTool_ps1,"$GitHubRepo\TechTool.ps1","Copy")
-                $this.Restore($USB.FilePath_TechTool_Module,"$GitHubRepo\TechTool.psm1","Copy")
-                $this.Restore($USB.FilePath_ImagingUSB_Module,"$GitHubRepo\ImagingUSB.psm1","Copy")
-                $this.Restore($USB.FilePath_AutomateSetup_ps1,"$GitHubRepo\Automate-Setup.ps1","Copy")
-                $this.Restore($USB.FilePath_AutomateSetup_Module,"$GitHubRepo\Automate-Setup.psm1","Copy")
-                $this.Restore($USB.FilePath_ConfigurePC_Module,"$GitHubRepo\Configure-PC.psm1","Copy")
-                $this.Restore($USB.FilePath_InstallSoftware_Module,"$GitHubRepo\Install-Software.psm1","Copy")
-                $this.Restore($USB.FilePath_TuneUpPC_Module,"$GitHubRepo\TuneUp-PC.psm1","Copy")
-
+                $this.Restore($USB.WinPE_Menu_ps1_Fi,"$GitHubRepo\WinPE-Menu.ps1","Copy")
+                $this.Restore($USB.Module_USB_Fi,"$GitHubRepo\ImagingUSB.psm1","Copy")
+                $this.Restore($USB.PCMaint_AS_AutomateSetup_ps1_Fi,"$GitHubRepo\Automate-Setup.ps1","Copy")
+                $this.Restore($USB.Module_AutomateSetup_Fi,"$GitHubRepo\Automate-Setup.psm1","Copy")
+                $this.Restore($USB.Module_ConfigurePC_Fi,"$GitHubRepo\Configure-PC.psm1","Copy")
+                $this.Restore($USB.Module_InstallSoftware_Fi,"$GitHubRepo\Install-Software.psm1","Copy")
+                $this.Restore($USB.Module_TuneUpPC_Fi,"$GitHubRepo\TuneUp-PC.psm1","Copy")
+                $this.Restore($USB.Module_TechTool_Fi,"$GitHubRepo\TechTool.psm1","Copy")
+                $this.Restore($USB.TechTool_ps1_Fi,"$GitHubRepo\TechTool.ps1","Copy")
+                $this.Restore($USB.TechTool_bat_Fi,"$GitHubRepo\TechTool-RAA.bat","Copy")
                 Write-Host "Files Updated to GitHub Repo Folder: $GitHubRepo" -ForegroundColor Green
             } else {
                 Write-Host "Imaging USB not found"
@@ -293,7 +295,6 @@ class TechTool {
     }
 
     [void] DisplayMenu() {
-        
         $this.Update()
         Main_Menu
     }
@@ -310,25 +311,33 @@ class TechTool {
 function Main_Menu {
     #Clear-Host
     DO {
+        [int]$StepNum = 1
         Write-Host "`n-=[ Main Menu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
-        Write-Host "`n    1. Enter " -NoNewline; Write-Host "PC Maintenance " -NoNewline -ForegroundColor Cyan; Write-Host "menu"
+        Write-Host "`n    $StepNum. Enter " -NoNewline; Write-Host "PC Maintenance " -NoNewline -ForegroundColor Cyan; Write-Host "menu"
         Write-Host "        -Enter this menu to access several scripts that you can use to;" -ForegroundColor DarkGray
         Write-Host "              +Setup a PC               +Install Software" -ForegroundColor DarkGray
         Write-Host "              +Update the OS            +Cleanup System Drive" -ForegroundColor DarkGray
         Write-Host "              +Migrate User Profiles    +Etc.." -ForegroundColor DarkGray
         Write-Host "        -This is the menu you will use 99% of the time" -ForegroundColor Green
-        Write-Host "`n    2. Enter " -NoNewline; Write-Host "Image Maintenance " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
-        Write-Host "        -Enter this menu to create a fresh .wim file of the latest Win10 OS version" -ForegroundColor DarkGray
-        Write-Host "        -This should only need to be done every 6-12 months" -ForegroundColor DarkYellow
-        Write-Host "`n    3. Enter " -NoNewline; Write-Host "Imaging Tool Maintenance " -NoNewline -ForegroundColor DarkGray; Write-Host "menu"
-        Write-Host "        -Enter this menu for Maintenance tasks related to this USB Tool" -ForegroundColor DarkGray
-        Write-Host "        -This menu is intended for developers. An average tech should" -ForegroundColor DarkYellow
-        Write-Host "         not need to use this under normal circumstances" -ForegroundColor DarkYellow
-        Write-Host "`n    4. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "`nEnter a number, 1 thru 4"
+        if ($USB.Exists()) {
+            $StepNum++
+            Write-Host "`n    $StepNum. Enter " -NoNewline; Write-Host "Image Maintenance " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+            Write-Host "        -Enter this menu to create a fresh .wim file of the latest Win10 OS version" -ForegroundColor DarkGray
+            Write-Host "        -This should only need to be done every 6-12 months" -ForegroundColor DarkYellow
+        }
+        If ($USB.DevTool) {
+            $StepNum++
+            Write-Host "`n    $StepNum. Enter " -NoNewline; Write-Host "Imaging Tool Maintenance " -NoNewline -ForegroundColor DarkGray; Write-Host "menu"
+            Write-Host "        -Enter this menu for Maintenance tasks related to this USB Tool" -ForegroundColor DarkGray
+            Write-Host "        -This menu is intended for developers. An average tech should" -ForegroundColor DarkYellow
+            Write-Host "         not need to use this under normal circumstances" -ForegroundColor DarkYellow
+        }
+        $StepNum++
+        Write-Host "`n    $StepNum. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
+        $choice = Read-Host -Prompt "`nEnter a number, 1 thru $StepNum"
         $choice = $choice -as [int]
-    } UNTIL (($choice -ge 1) -and ($choice -le 4))
+    } UNTIL (($choice -ge 1) -and ($choice -le $StepNum))
     Switch ($choice) {
         1 {Clear-Host; PC-Maintenance_submenu}
         2 {Clear-Host; Image-Maintenance_submenu}
@@ -369,7 +378,7 @@ function PC-Maintenance_submenu {
         4 {Clear-Host; Standardize_PC_submenu}
         5 {Clear-Host; Install_Software_submenu}
         6 {Clear-Host; Update_PC_submenu}
-        7 {Clear-Host; Start-Process "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -ArgumentList "-NoExit -Windowstyle maximized -ExecutionPolicy Bypass -File $FilePath_USB_Cleanup_HD"}
+        7 {Clear-Host; Start-Process "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -ArgumentList ("-NoExit -Windowstyle maximized -ExecutionPolicy Bypass -File $FilePath_USB_Cleanup_HD")}
         8 {Clear-Host; Migrate_User_Profile_submenu}
         9 {Clear-Host; Start-Process $FilePath_USB_Backup_Folder_BACKUP}
         10 {Clear-Host; Pull_IntuneHWID}
@@ -405,7 +414,8 @@ function Automated_Setup_submenu {
             Write-Host "    Start-NewImage-RAA.bat (RAA - Run As Admin)"
             Write-Host '-Or select "START Automated Setup program on current OS" in the Automated Setup'
             Write-Host '    submenu'
-            Start-Process $FilePath_USB_Automated_Setup_INJECT_Scripts_Script
+            #Start-Process $FilePath_USB_Automated_Setup_INJECT_Scripts_Script
+            Start-Process powershell -ArgumentList '-command Inject-AutomatedSetupScripts' -WindowStyle Minimized
         }
         2 {Clear-Host; Start-AutomatedSetup}
         3 {Clear-Host; Stop-AutomatedSetup}
@@ -609,9 +619,9 @@ function Image-Maintenance_submenu {
     } UNTIL (($choice -ge 0) -and ($choice -le 4))
     Switch ($choice) {
         0 {Clear-Host; Main_Menu}
-        1 {Clear-Host; & $FilePath_ImageMaintenance_DOWNLOAD_Latest_ESD_File}
-        2 {Clear-Host; & $FilePath_ImageMaintenance_EXTRACT_WIM_from_ESD}
-        3 {Clear-Host; & $FilePath_ImageMaintenance_CREATE_Modded_WIM}
+        1 {Clear-Host; & $ImageMaintenance_DOWNLOAD_Latest_ESD_File_Fi}
+        2 {Clear-Host; & $ImageMaintenance_EXTRACT_WIM_from_ESD_Fi}
+        3 {Clear-Host; & $ImageMaintenance_CREATE_Modded_WIM_Fi}
         4 {EXIT}
     }
     # Recursivly call the Image Maintenance Menu
@@ -643,13 +653,13 @@ function ImagingUSB-Maintenance_submenu {
     } UNTIL (($choice -ge 0) -and ($choice -le 10))
     Switch ($choice) {
         0 {Clear-Host; Main_Menu}
-        1 {Clear-Host; & $FilePath_ImagingUSBMaintenance_BACKUP_Minus_Images}
-        2 {Clear-Host; & $FilePath_ImagingUSBMaintenance_BACKUP}
-        3 {Clear-Host; & $FilePath_ImagingUSBMaintenance_CREATE_AutoDeploy_Package}
+        1 {Clear-Host; & $ImagingUSBMaintenance_BACKUP_Minus_Images_Fi}
+        2 {Clear-Host; & $ImagingUSBMaintenance_BACKUP_Fi}
+        3 {Clear-Host; & $ImagingUSBMaintenance_CREATE_AutoDeploy_Package_Fi}
         4 {Clear-Host; ImagingUSBMaintenance_Create-Package}
         5 {Clear-Host; ImagingUSBMaintenance_Transfer-Package}
         6 {Clear-Host; & $FilePath_ImagingUSBToolMaintenance_RESTORE_Minus_Images}
-        7 {Clear-Host; & $FilePath_ImagingUSBMaintenance_RESTORE}
+        7 {Clear-Host; & $ImagingUSBMaintenance_RESTORE_Fi}
         8 {Clear-Host; $script:TechTool.Download_GitHub_Repo() ;$script:TechTool.Update_USB_Scripts()}
         9 {Clear-Host; $Script:TechTool.Update_Local_GitHubRepo()}
         10 {EXIT}
@@ -722,7 +732,7 @@ function ImagingUSBMaintenance_Create-Package {
     } until (($WinPE_Drive -ne $null) -and ($Imaging_Drive -ne $null)) 
 
     # SET WinPE_USB_Package SOURCE FOLDER ROOT
-    $WinPE_USB_Package_SOURCE = "$Imaging_Drive\sources\ImagingUSB-Maintenance\Create-WinPE_USB_Package\"
+    $WinPE_USB_Package_SOURCE = "$Imaging_Drive\sources\USB-Maintenance\Create-WinPE_USB_Package\"
 
     # SET WinPE_USB_Package DESTINATION FOLDER ROOT
     $WinPE_USB_Package_DESTINATION = "C:\WinPE_USB_Install_Package"
