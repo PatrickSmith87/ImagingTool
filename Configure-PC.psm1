@@ -823,18 +823,33 @@ function Set-ProfileDefaultSettings {
         [switch] $AdminProfile
     )
     
-    Disable-Live_Tiles
-    Remove-CortanaFromTaskbar
-    Remove-PeopleFromTaskbar
-    Remove-TaskViewButtonFromTaskbar
-    Show-SearchIcon
-    If ($AdminProfile) {
-        Show-FileExtensions
-        Show-HiddenObjects
-        Show-ALLSysTrayIcons -Scope CurrentUser
-        Hide-NewsIcon -Scope CurrentUser
+    if ($Automated_Setup) {
+        # Variables - edit as needed
+        $Step = "Set Profile Default Settings"
+        # Static Variables - DO NOT EDIT
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
     }
-    Restart-Explorer
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*")) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        Disable-Live_Tiles
+        Remove-CortanaFromTaskbar
+        Remove-PeopleFromTaskbar
+        Remove-TaskViewButtonFromTaskbar
+        Show-SearchIcon
+        If ($AdminProfile) {
+            Show-FileExtensions
+            Show-HiddenObjects
+            Show-ALLSysTrayIcons -Scope CurrentUser
+            Hide-NewsIcon -Scope CurrentUser
+        }
+        Restart-Explorer
+
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }    
 } Export-ModuleMember -Function Set-ProfileDefaultSettings
 
 function Show-FileExtensions {
@@ -1159,10 +1174,11 @@ function Restart-Explorer {
     If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
+        Start-Sleep 20
         cmd.exe /c 'taskkill /F /IM explorer.exe' | Out-Null
         Start-Sleep 3
         #cmd.exe /c 'start explorer.exe' | Out-Null
-        Start-Process powershell -ArgumentList '-command cmd.exe /c "start explorer.exe"' -WindowStyle Maximized
+        Start-Process powershell -ArgumentList '-command cmd.exe /c "start explorer.exe"' -WindowStyle Hidden
         
         if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
