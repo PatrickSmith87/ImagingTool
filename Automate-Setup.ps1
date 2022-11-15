@@ -113,7 +113,6 @@ Write-Host "-=[ INITIALIZE DEFAULT SYSTEM SETTINGS ]=-" -ForegroundColor DarkGra
 Set-PCDefaultSettings
 # -=[ Setup Local Admin ]=-
 Setup-LocalAdmin
-Pause
 # -=[ Set Profile Default Settings ]=-
 Set-ProfileDefaultSettings -AdminProfile
 # -=[ Determine if tech is setting up a single PC or building an image for capture ]=-
