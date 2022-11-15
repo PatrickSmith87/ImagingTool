@@ -1159,7 +1159,10 @@ function Restart-Explorer {
     If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        cmd.exe /c 'taskkill /F /IM explorer.exe && start explorer.exe' | Out-Null
+        cmd.exe /c 'taskkill /F /IM explorer.exe' | Out-Null
+        Start-Sleep 3
+        #cmd.exe /c 'start explorer.exe' | Out-Null
+        Start-Process powershell -ArgumentList '-command cmd.exe /c "start explorer.exe"' -WindowStyle Maximized
         
         if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green

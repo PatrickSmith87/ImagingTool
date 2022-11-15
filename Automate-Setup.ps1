@@ -115,7 +115,7 @@ Set-PCDefaultSettings
 Setup-LocalAdmin
 Pause
 # -=[ Set Profile Default Settings ]=-
-Set-ProfileDefaultSettings
+Set-ProfileDefaultSettings -AdminProfile
 # -=[ Determine if tech is setting up a single PC or building an image for capture ]=-
 Determine-SetupType
 # -=[ Rename PC\Image ]=-
