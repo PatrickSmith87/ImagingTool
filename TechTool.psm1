@@ -268,7 +268,7 @@ class TechTool {
         $this.Update_Local_GitHubRepo("C:\Git-Repositories\ImagingTool")
     }
     
-    [void]hidden Update_Local_GitHubRepo([string]$RepoPath) {
+    [void] Update_Local_GitHubRepo([string]$RepoPath) {
         $GitHubRepo = $RepoPath
         $USB = New-ImagingUSB
         Write-Host "$USB"
