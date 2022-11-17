@@ -571,7 +571,7 @@ function Migrate_User_Profile_submenu {
         0 {Clear-Host; PC-Maintenance_submenu}
         1 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_BACKUP}
         2 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_RESTORE}
-        3 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_SYNC}
+        3 {Clear-Host; Migrate_User_Profile}
         4 {EXIT}
     }
     #Recursivly call the submenu

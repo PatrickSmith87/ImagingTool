@@ -1185,6 +1185,171 @@ function Restart-Explorer {
     }
 } Export-ModuleMember -Function Restart-Explorer
 
+function Migrate_User_Profile {
+    $Computername = Hostname
+
+    # INTRO
+    Clear-Host
+    Write-Host "`nThis script will migrate user profile data from one computer to another" -ForegroundColor Cyan
+    Write-Host "`nNOTE: " -NoNewline -ForegroundColor Yellow; Write-Host "When this script asks for a username, technically it is asking for the name of the user's profile folder under C:\Users\. If you encounter issues running the script, you may want to confirm that the user's folder doesn't have .LOCAL, .TEMP, or .ATI (or whatever the client's NETBIOS is)`n`n"
+    Pause
+    
+    # Get Source PC
+    Clear-Host
+    Write-Host "`nEnter the name of the source PC. Example: Desktop-01"
+    Write-Host "Or if it is this PC, just hit enter"
+    $SourcePC = Read-Host -Prompt "Source PC"
+    if ($SourcePC -eq "") {$SourcePC = $Computername}
+
+    # Display Source PC, Get Source User
+    Clear-Host
+    Write-Host "`nSource PC: $SourcePC`n"
+    $Username = Read-Host -Prompt "Enter the username for the source PC. Example: psmith"
+    $SourceProfile = "\\$SourcePC\C$\Users\$Username"
+    
+    # Display Source Info, Get Dest PC
+    Clear-Host
+    Write-Host "`nSource PC: " -NoNewline; Write-Host "$SourcePC" -ForegroundColor Cyan
+    Write-Host "Source Username: " -NoNewline; Write-Host "$Username" -ForegroundColor Cyan
+    Write-Host "Source Profile: " -NoNewline; Write-Host "$SourceProfile" -ForegroundColor Cyan
+    Write-Host "`nEnter the name of the destination PC. Example Laptop-05"
+    Write-Host "Or if it is this PC, just hit enter"
+    $DestPC = Read-Host -Prompt "Destination PC"
+    if ($DestPC -eq "") {$DestPC = $Computername}
+
+    # Display Source Info, Get Dest User
+    Clear-Host
+    Write-Host "`nSource PC: " -NoNewline; Write-Host "$SourcePC" -ForegroundColor Cyan
+    Write-Host "Source Username: " -NoNewline; Write-Host "$Username" -ForegroundColor Cyan
+    Write-Host "Source Profile: " -NoNewline; Write-Host "$SourceProfile" -ForegroundColor Cyan
+    Write-Host "`nDestination PC: " -NoNewline; Write-Host "$DestPC" -ForegroundColor Cyan
+    Write-Host "`nEnter the username for the destination PC. If it is the same, just leave blank and hit enter"
+    $Username2 = Read-Host -Prompt "Example: psmith.ATI"
+    if ($Username2 -eq "") {$Username2 = $Username}
+    $DestProfile = "\\$DestPC\C$\Users\$Username2"
+
+    # Transfer Confirmation
+    Clear-Host
+    Write-Host "`nScript will migrate files from"
+    Write-Host "$SourceProfile" -ForegroundColor Cyan
+    Write-Host "to"
+    Write-Host "$DestProfile" -ForegroundColor Cyan
+    Write-Host "`nReview the above information before continuing. When you hit any key, the profile migration will begin"
+    Pause
+
+    # Verify Source Profile Access
+    Clear-Host
+    if (!(Test-Path $SourceProfile)) {
+        DO {
+            Write-Host "`n!!WARNING!! " -ForegroundColor Red -NoNewline; Write-Host "Source profile not found. Open File Explorer and make sure you can reach $SourceProfile. You may need to authenticate to the machine, or enable Network Discovery and File and Printer Sharing settings so that the computers filesystem can be accessed remotely.`n"
+            Pause
+        } Until (Test-Path $SourceProfile)
+    }
+    
+
+    # Verify Dest Profile Access
+    Clear-Host
+    if (!(Test-Path $DestProfile)) {
+        DO {
+            Write-Host "`n!!WARNING!! " -ForegroundColor Red -NoNewline; Write-Host "Destination profile not found."
+            if ($Computername -eq $DestProfile) {
+                Write-Host "Make sure to sign into this computer with the user's credentials in order to create the user's profile on this PC first"
+                Write-Host "THEN run this script to migrate the user's profile data"
+            } else {
+                Write-Host "Open File Explorer and make sure you can reach $DestProfile"
+                Write-Host "You may need to authenticate to the machine, or enable Network Discovery and File and Printer Sharing settings so that the computers filesystem can be accessed remotely."
+            }
+            Pause
+        } Until (Test-Path $DestProfile)
+    }
+
+    # Start Profile Data Migration
+    function Start_Profile_Data_Migration {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string] $SourceProfile,
+
+            [Parameter(Mandatory = $true)]
+            [string] $DestProfile
+        )
+        $what = "/COPYALL /B /E"
+
+        # MIGRATE - User Profile - Minus Hidden, System, Backups, AppData, etc.
+        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_RoboLog.txt /TEE /V /XX /XO /XA:SH /XD *temp ""temporary internet files"" *cache mozilla *desktop.ini* *OneDrive* *DropBox* $SourceProfile\AppData ""$SourceProfile\Application Data"" /XJ /MT:16"
+        $command = "ROBOCOPY $SourceProfile $DestProfile $what $options"
+        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+
+        # MIGRATE - Adobe Acrobat DC Stamps
+        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_AcrobatDCStamps.txt /TEE /V /XX /XO /MT:16"
+        $command = "ROBOCOPY ""$SourceProfile\AppData\Roaming\Adobe\Acrobat\DC\Stamps"" ""$DestProfile\AppData\Roaming\Adobe\Acrobat\DC\Stamps"" $what $options"
+        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+
+        # MIGRATE - Sticky Notes
+        # DOES NOT APPEAR TO BE WORKING!!!?
+        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_StickyNotes.txt /TEE /V /XX /XO /MT:16"
+        $command = "ROBOCOPY ""$SourceProfile\AppData\Roaming\Microsoft\Sticky Notes"" ""$DestProfile\AppData\Roaming\Microsoft\Sticky Notes"" $what $options"
+        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        
+        # MIGRATE - Outlook Signatures
+        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_OutlookSignatures.txt /TEE /V /XX /XO /MT:16"
+        $command = "ROBOCOPY ""$SourceProfile\AppData\Roaming\Microsoft\Signatures"" ""$DestProfile\AppData\Roaming\Microsoft\Signatures"" $what $options"
+        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        
+        # MIGRATE - Firefox Profile
+        $what = "/COPY:DAT /E"
+        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_FirefoxProfile.txt /TEE /V /XX /XO /MT:16"
+        if (Test-Path "$SourceProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*") {
+            $Source = (Get-ChildItem "$SourceProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*").FullName
+        } else {
+            $Source = (Get-ChildItem "$SourceProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release").FullName
+        }
+        if (Test-Path "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*") {
+            $Dest = (Get-ChildItem "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*").FullName
+        } else {
+            $Dest = (Get-ChildItem "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release").FullName
+        }
+        if ($Dest -eq $null) {
+            DO {
+                Clear-Host
+                Write-Host "`nWARNING!! " -NoNewline -ForegroundColor Red; Write-Host "Firefox profile folder on destination PC not found.."
+                Write-Host "On the destination PC, please open and then close firefox to automatically create the Firefox profile folder`n"
+                Pause
+            } Until ($Dest -ne $null)
+        }
+        $command = "ROBOCOPY $Source $Dest $what $options"
+        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        
+        # MIGRATE - Chrome Profile
+        $what = "/COPYALL /E"
+        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_ChromeProfile.txt /TEE /V /MT:16"
+        $Destination = "$DestProfile\AppData\Local\Google\Chrome"
+        if (!(Test-Path $Destination)) {
+            DO {
+                Clear-Host
+                Write-Host "`n!!WARNING!! " -NoNewline -ForegroundColor Red; Write-Host "Chrome profile folder on destination PC not found..."
+	            Write-Host "On the destination PC, open and then close Chrome for it to automatically create the Chrome profile folder`n"
+                Pause
+            } Until (Test-Path $Destination)
+        }
+        $command = "ROBOCOPY ""$SourceProfile\AppData\Local\Google\Chrome"" ""$Destination"" $what $options"
+        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        
+        # Complete!
+        Write-Host "`nUser Migration is complete!!" -ForegroundColor Cyan
+        Write-Host "`nWhat would you like to do now?"
+        Write-Host "1. Run same migration again"
+        Write-Host "2. Run a new migration on different profiles"
+        Write-Host "3. Close this script"
+        [int]$choice = Read-Host -Prompt "Enter your choice (1, 2, or 3)"
+        Switch ($choice) {
+            1 {Clear-Host; Start_Profile_Data_Migration -SourceProfile $SourceProfile -DestProfile $DestProfile}
+            2 {Clear-Host; Migrate_User_Profile}
+            3 {Clear-Host}
+        }
+    }
+    Start_Profile_Data_Migration -SourceProfile $SourceProfile -DestProfile $DestProfile
+} Export-ModuleMember -Function Migrate_User_Profile
 ######################################################
 ############## END Of Profile Functions ##############
 ######################################################
