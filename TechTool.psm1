@@ -228,7 +228,7 @@ class TechTool {
         if ($USB.Exists()) {
             $this.Restore("$GitHubRepo\WinPE-Menu.ps1",$USB.WinPE_Menu_ps1_Fi,"Move")
             $this.Restore("$GitHubRepo\ImagingUSB.psm1",$USB.Module_USB_Fi,"Move")
-            $this.Restore("$GitHubRepo\Automate-Setup.ps1",$USB.PCMaint_Setup_AS_AutomateSetup_ps1_Fi,"Move")
+            $this.Restore("$GitHubRepo\Automate-Setup.ps1",$USB.PCMaint_AS_AutomateSetup_ps1_Fi,"Move")
             $this.Restore("$GitHubRepo\Automate-Setup.psm1",$USB.Module_AutomateSetup_Fi,"Move")
             $this.Restore("$GitHubRepo\Configure-PC.psm1",$USB.Module_ConfigurePC_Fi,"Move")
             $this.Restore("$GitHubRepo\Install-Software.psm1",$USB.Module_InstallSoftware_Fi,"Move")
