@@ -16,7 +16,7 @@ $RunOnceKey                                   = "HKLM:\Software\Microsoft\Window
 $FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
 
 # 1. Automated Setup
-    $FolderPath_Local_Setup                             = $TechTool.FolderPath_Local_Setup
+    $FolderPath_Local_Setup                             = $TechTool.Setup_Fo
     $Setup_AS_Client_Config_Fo                     = $TechTool.Setup_AS_Client_Config_Fo
     $Setup_AS_Client_Config_Fo_Repository          = $TechTool.Setup_AS_Client_Config_Repository_Fo
     $Setup_AS_RegistryBackup_Fo    = $TechTool.Setup_AS_RegistryBackup_Fo

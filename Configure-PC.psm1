@@ -24,7 +24,7 @@ $TechTool = New-TechTool
 $USB = New-ImagingUSB
 
 # -=[ Static Variables ]=-
-if ($FolderPath_Local_Setup -eq $null)                                                 {$FolderPath_Local_Setup = $TechTool.FolderPath_Local_Setup}
+if ($FolderPath_Local_Setup -eq $null)                                                 {$FolderPath_Local_Setup = $TechTool.Setup_Fo}
 if ($Setup_AS_Client_Config_Fo -eq $null)                                 {$Setup_AS_Client_Config_Fo = "C:\Setup\_Automated_Setup\_Client_Config"}
 # NOT USED? if ($FolderPath_Local_AutomatedSetup_SetupScripts -eq $null) {$FolderPath_Local_AutomatedSetup_SetupScripts = "C:\Setup\Automated_Setup\SetupScripts"}
 if ($Setup_AS_Status_Fo -eq $null)                 {$Setup_AS_Status_Fo = "C:\Setup\_Automated_Setup\Status"}
