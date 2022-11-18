@@ -820,7 +820,10 @@ function Set-ProfileDefaultSettings {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false)]
-        [switch] $AdminProfile
+        [switch] $AdminProfile,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $RestartExplorer
     )
     
     if ($Automated_Setup) {
@@ -845,7 +848,7 @@ function Set-ProfileDefaultSettings {
             Show-ALLSysTrayIcons -Scope CurrentUser
             Hide-NewsIcon -Scope CurrentUser
         }
-        Restart-Explorer
+        if ($RestartExplorer) {Restart-Explorer}
 
         if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
@@ -1174,7 +1177,7 @@ function Restart-Explorer {
     If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        Start-Sleep 5
+        Pause
         cmd.exe /c 'taskkill /F /IM explorer.exe' | Out-Null
         Start-Sleep 3
         #cmd.exe /c 'start explorer.exe' | Out-Null

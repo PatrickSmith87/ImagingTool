@@ -113,10 +113,10 @@ Write-Host "-=[ INITIALIZE DEFAULT SYSTEM SETTINGS ]=-" -ForegroundColor DarkGra
 Set-PCDefaultSettings
 # -=[ Setup Local Admin ]=-
 Setup-LocalAdmin
-# -=[ Set Profile Default Settings ]=-
-Set-ProfileDefaultSettings -AdminProfile
 # -=[ Determine if tech is setting up a single PC or building an image for capture ]=-
 Determine-SetupType
+# -=[ Set Profile Default Settings ]=-
+Set-ProfileDefaultSettings -AdminProfile
 # -=[ Rename PC\Image ]=-
 Rename-PC -PreImage
 # -=[ Start Updates In Background ]
