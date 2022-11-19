@@ -106,6 +106,5 @@ if (!(Test-Path $Module_TechTool_Fi)) {
 
 #endregion Script Setup
 
-#$TechTool = New-TechTool
-#$TechTool.DisplayMenu()
-Display-Menu
+$TechTool = New-TechTool
+$TechTool.DisplayMenu()

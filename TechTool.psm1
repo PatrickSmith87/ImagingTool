@@ -257,10 +257,6 @@ class TechTool {
 function New-TechTool {
     [TechTool]::new()
 } Export-ModuleMember -Function New-TechTool
-
-function Display-Menu {
-    $TechTool.DisplayMenu()
-} Export-ModuleMember -Function Display-Menu
 #endregion TechTool Class
 
 #region Module Variables
