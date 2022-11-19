@@ -24,33 +24,31 @@ $TechTool = New-TechTool
 $USB = New-ImagingUSB
 
 # -=[ Static Variables ]=-
-if ($FolderPath_Local_Setup -eq $null)                                                 {$FolderPath_Local_Setup = $TechTool.Setup_Fo}
-if ($Setup_AS_Client_Config_Fo -eq $null)                                 {$Setup_AS_Client_Config_Fo = "C:\Setup\_Automated_Setup\_Client_Config"}
-# NOT USED? if ($FolderPath_Local_AutomatedSetup_SetupScripts -eq $null) {$FolderPath_Local_AutomatedSetup_SetupScripts = "C:\Setup\Automated_Setup\SetupScripts"}
-if ($Setup_AS_Status_Fo -eq $null)                 {$Setup_AS_Status_Fo = "C:\Setup\_Automated_Setup\Status"}
-if ($FilePath_Local_Automated_Setup_RegistryBackup -eq $null)   {$FilePath_Local_Automated_Setup_RegistryBackup = "C:\Setup\_Automated_Setup\_RegistryBackup\registry-backup020622.reg"}
+if ($Setup_Fo -eq $null)                                        {$Setup_Fo = $TechTool.Setup_Fo}
+if ($Setup_AS_Client_Config_Fo -eq $null)                       {$Setup_AS_Client_Config_Fo = $TechTool.Setup_AS_Client_Config_Fo}
+if ($Setup_AS_Status_Fo -eq $null)                              {$Setup_AS_Status_Fo = $TechTool.Setup_AS_Status_Fo}
+if ($FilePath_Local_Automated_Setup_RegistryBackup -eq $null)   {$FilePath_Local_Automated_Setup_RegistryBackup = $TechTool.Setup_AS_RegistryBackup_Fi}
+if ($WinLogonKey -eq $null)                                     {$WinLogonKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"}
+if ($Target_TimeZone -eq $null)                                 {$Target_TimeZone = "Central Standard Time"}
 
-# $Global:ClientSettings <--- NEEDS to stay defined globally as the ClientConfigs are utilized specifically by the Automate-Setup script
-if ($WinLogonKey -eq $null) {$WinLogonKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"}
-if ($Target_TimeZone -eq $null) {$Target_TimeZone = "Central Standard Time"}
 # Power Settings
-if ($AC_Monitor_Timeout -eq $null) {$AC_Monitor_Timeout = 15}
-if ($AC_Standby_Timeout -eq $null) {$AC_Standby_Timeout = 0}
-if ($DC_Monitor_Timeout -eq $null) {$DC_Monitor_Timeout = 10}
-if ($DC_Standby_Timeout -eq $null) {$DC_Standby_Timeout = 20}
-if ($AC_Close_Lid_Action -eq $null) {$AC_Close_Lid_Action = 0}
-if ($DC_Close_Lid_Action -eq $null) {$DC_Close_Lid_Action = 1}
+if ($AC_Monitor_Timeout -eq $null)                              {$AC_Monitor_Timeout = 15}
+if ($AC_Standby_Timeout -eq $null)                              {$AC_Standby_Timeout = 0}
+if ($DC_Monitor_Timeout -eq $null)                              {$DC_Monitor_Timeout = 10}
+if ($DC_Standby_Timeout -eq $null)                              {$DC_Standby_Timeout = 20}
+if ($AC_Close_Lid_Action -eq $null)                             {$AC_Close_Lid_Action = 0}
+if ($DC_Close_Lid_Action -eq $null)                             {$DC_Close_Lid_Action = 1}
 # Hibernate & Hiberboot settings: 0=disabled, 1=enabled
-if ($Hibernate_Setting -eq $null) {$Hibernate_Setting = 0}
-if ($Hiberboot_Setting -eq $null) {$Hiberboot_Setting = 0}
-if ($SN -eq $null) {$SN = (Get-WmiObject win32_bios).SerialNumber}
+if ($Hibernate_Setting -eq $null)                               {$Hibernate_Setting = 0}
+if ($Hiberboot_Setting -eq $null)                               {$Hiberboot_Setting = 0}
+if ($SN -eq $null)                                              {$SN = (Get-WmiObject win32_bios).SerialNumber}
 # Cleanup related
-if ($UnAttend -eq $null) {$UnAttend = "C:\Windows\System32\sysprep\unattend.xml"}
-if ($Setup_SoftwareCollection_Standard_Software_Fo -eq $null) {$Setup_SoftwareCollection_Standard_Software_Fo = "C:\Setup\_Software_Collection\Standard_Software"}
-if ($RunOnceKey -eq $null) {$RunOnceKey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"}
+if ($UnAttend -eq $null)                                        {$UnAttend = "C:\Windows\System32\sysprep\unattend.xml"}
+if ($Setup_SoftwareCollection_StandardSoftware_Fo -eq $null)    {$Setup_SoftwareCollection_StandardSoftware_Fo = $TechTool.Setup_SoftwareCollection_StandardSoftware_Fo}
+if ($RunOnceKey -eq $null)                                      {$RunOnceKey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"}
 
-$FolderPath_Local_PublicDesktop         = "C:\Users\Public\Desktop"
-$Setup_SCOPEImageSetup_PublicDesktop_Fo = "C:\Setup\SCOPE-Image_Setup\Public Desktop"
+$FolderPath_Local_PublicDesktop                                 = $TechTool.PublicDesktop_Fo
+$Setup_SCOPEImageSetup_PublicDesktop_Fo                         = $TechTool.Setup_SCOPEImageSetup_PublicDesktop_Fo
 
 # ALL the Imaging USB paths should be defined centrally here. Let the functions infer paths from the ImagingUSB object's attributes
 #endregion Module Variables
@@ -1713,8 +1711,8 @@ function Transfer-RMM_Agent {
         If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
     } else {
         # See if installer is already present
-        If (Test-Path "$FolderPath_Local_Setup\*Agent_Install*.exe") {
-            Write-Host "`nAutomate Agent Installer " -NoNewline; Write-Host "found in $FolderPath_Local_Setup" -ForegroundColor Green
+        If (Test-Path "$Setup_Fo\*Agent_Install*.exe") {
+            Write-Host "`nAutomate Agent Installer " -NoNewline; Write-Host "found in $Setup_Fo" -ForegroundColor Green
             if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
         # Ask tech to move it there
@@ -1723,7 +1721,7 @@ function Transfer-RMM_Agent {
                 Write-Host "Are you going to place the client agent under C:\Setup?"
                 Write-Host "1. Yes"
                 Write-Host "2. No"
-                Write-Host "NOTE: If you place the Automate Agent under $FolderPath_Local_Setup then it will automatically install on an imaged PC" -ForegroundColor DarkCyan
+                Write-Host "NOTE: If you place the Automate Agent under $Setup_Fo then it will automatically install on an imaged PC" -ForegroundColor DarkCyan
                 $choice = Read-Host -Prompt "Enter a number, 1 or 2"
                 Write-Host ""
             } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
@@ -1733,12 +1731,12 @@ function Transfer-RMM_Agent {
                         Write-Host "Please place the Automate Agent Installer under C:\Setup and then hit enter when ready" -ForegroundColor Yellow
                         Write-Host "Make sure to place the .exe installer, not the .msi installer" -ForegroundColor Red
                         PAUSE
-                    } UNTIL (Test-Path "$FolderPath_Local_Setup\*Agent_Install*.exe")
-                    Write-Host "The Automate Agent Installer under $FolderPath_Local_Setup has been detected" -ForegroundColor Green
+                    } UNTIL (Test-Path "$Setup_Fo\*Agent_Install*.exe")
+                    Write-Host "The Automate Agent Installer under $Setup_Fo has been detected" -ForegroundColor Green
                     if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 }
                 2 {
-                    Write-Host "Placing the Automate Agent Installer under $FolderPath_Local_Setup has been skipped" -ForegroundColor Green
+                    Write-Host "Placing the Automate Agent Installer under $Setup_Fo has been skipped" -ForegroundColor Green
                     if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 }
             }
@@ -1761,8 +1759,8 @@ function Transfer-Sophos_Agent {
         If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
     } else {
         # See if installer is already present
-        If (Test-Path "$FolderPath_Local_Setup\*SophosSetup*.exe") {
-            Write-Host "`nSophos Agent Installer " -NoNewline; Write-Host "found in $FolderPath_Local_Setup" -ForegroundColor Green
+        If (Test-Path "$Setup_Fo\*SophosSetup*.exe") {
+            Write-Host "`nSophos Agent Installer " -NoNewline; Write-Host "found in $Setup_Fo" -ForegroundColor Green
             if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
         # Ask tech to move it there
@@ -1771,21 +1769,21 @@ function Transfer-Sophos_Agent {
                 Write-Host "Are you going to place the client's Sophos Installer under C:\Setup?"
                 Write-Host "1. Yes"
                 Write-Host "2. No"
-                Write-Host "NOTE: If you place the Sophos Installer under $FolderPath_Local_Setup then it will automatically install on an imaged PC" -ForegroundColor DarkCyan
+                Write-Host "NOTE: If you place the Sophos Installer under $Setup_Fo then it will automatically install on an imaged PC" -ForegroundColor DarkCyan
                 [int]$choice = Read-Host -Prompt "Enter a number, 1 or 2"
                 Write-Host ""
             } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
             switch ($choice) {
                 1 {
                     DO {
-                        Write-Host "Please place the Automate Agent Installer under $FolderPath_Local_Setup and then hit enter when ready" -ForegroundColor Yellow
+                        Write-Host "Please place the Automate Agent Installer under $Setup_Fo and then hit enter when ready" -ForegroundColor Yellow
                         PAUSE
-                    } UNTIL (Test-Path "$FolderPath_Local_Setup\*SophosSetup*.exe")
-                    Write-Host "The Sophos Agent Installer under $FolderPath_Local_Setup has been detected" -ForegroundColor Green
+                    } UNTIL (Test-Path "$Setup_Fo\*SophosSetup*.exe")
+                    Write-Host "The Sophos Agent Installer under $Setup_Fo has been detected" -ForegroundColor Green
                     if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 }
                 2 {
-                    Write-Host "Placing the Sophos Agent Installer under $FolderPath_Local_Setup has been skipped" -ForegroundColor Green
+                    Write-Host "Placing the Sophos Agent Installer under $Setup_Fo has been skipped" -ForegroundColor Green
                     if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 }
             }
@@ -1889,10 +1887,7 @@ function Install-Updates_In_Background {
     If ($Script:Manufacturer -eq "HP") {
         # Install HP Image Assistant if not already installed
         If (Test-Path "C:\Program Files\HP\HPIA\HPImageAssistant.exe") {
-            $Software = New-Software
-
-            $SoftwareName = "HP Image Assistant"
-            $Software.Install($SoftwareName)
+            $Software.Install("HP Image Assistant")
 
             $TargetFile = "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
             $WScriptShell = New-Object -ComObject WScript.Shell
@@ -1972,6 +1967,41 @@ function Install-Softpaqs {
             }
     }
 } Export-ModuleMember -Function Install-Softpaqs
+
+function Update-Drivers {
+    #Variables - edit as needed
+    $Step = "Update Drivers"
+    
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
+    $SkippedFile = "$StepStatus-Skipped.txt"
+
+    If (Test-Path "$StepStatus*") {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+        If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
+    } else {
+        $choice = $null
+        DO {
+            Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+            Write-Host "Would you like to $Step ?"
+            Write-Host "1. Yes"
+            Write-Host "2. No"
+            $choice = Read-Host -Prompt "Enter a number, 1 or 2"
+        } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
+        If ($choice -eq 1) {
+            DO {
+                Write-Host ""
+                Write-Host "Please take a minute to run the HP or Dell support assistant tool to update the computer's drivers" -ForeGroundColor Yellow
+                $choice = Read-Host -Prompt "Type in 'continue' move on to the next step"
+            } UNTIL ($choice -eq "continue")
+            if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        } else {
+            Write-Host "$Step has been skipped"
+            if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+        }
+    }
+} Export-ModuleMember -Function Update-Drivers
 
 function CheckPoint-Disk_Cleanup {
     # Variables - edit as needed

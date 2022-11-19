@@ -8,6 +8,7 @@
 
 #region TechTool Class
 class TechTool {
+    [string]$PublicDesktop_Fo                                   = "C:\Users\Public\Desktop"
     [string]$TechTool_bat_Fi                                    = "C:\Users\Public\Desktop\TechTool-RAA.bat"
     [string]$TechTool_ps1_Fi                                    = "C:\Users\Public\Desktop\sources\TechTool.ps1"
 
@@ -23,6 +24,7 @@ class TechTool {
     [string]$Setup_AS_Client_Config_Fo                          = $this.Setup_Fo + "\_Automated_Setup\_Client_Config"
     [string]$Setup_AS_Client_Config_Repository_Fo               = $this.Setup_Fo + "\_Automated_Setup\_Client_Config\Repository"
     [string]$Setup_AS_RegistryBackup_Fo                         = $this.Setup_Fo + "\_Automated_Setup\_RegistryBackup"
+    [string]$Setup_AS_RegistryBackup_Fi                         = $this.Setup_Fo + "\_Automated_Setup\_RegistryBackup\registry-backup020622.reg"
     [string]$Setup_AS_Status_Fo                                 = $this.Setup_Fo + "\_Automated_Setup\Status"
     [string]$Setup_AS_AutomateSetup_ps1                         = $this.Setup_Fo + "\_Automated_Setup\Automate-Setup.ps1"
     [string]$Setup_DriverCollection_Fo                          = $this.Setup_Fo + "\_Driver_Collection"
@@ -31,7 +33,7 @@ class TechTool {
     [string]$Setup_SoftwareCollection_Configs_Fo                = $this.Setup_Fo + "\_Software_Collection\_Software_Configs"
     [string]$Setup_SoftwareCollection_ODTSoftware_Fo            = $this.Setup_Fo + "\_Software_Collection\ODT"
     [string]$Setup_SoftwareCollection_ProfileSoftware_Fo        = $this.Setup_Fo + "\_Software_Collection\Profile_Specific_Software"
-    [string]$Setup_SoftwareCollection_Standard_Software_Fo      = $this.Setup_Fo + "\_Software_Collection\Standard_Software"
+    [string]$Setup_SoftwareCollection_StandardSoftware_Fo       = $this.Setup_Fo + "\_Software_Collection\Standard_Software"
     [string]$Setup_SCOPEImageSetup_Fo                           = $this.Setup_Fo + "\SCOPE-Image_Setup"
     [string]$Setup_SCOPEImageSetup_PublicDesktop_Fo             = $this.Setup_Fo + "\SCOPE-Image_Setup\Public Desktop"
     [string]$Setup_SCOPEPostImageSetup_Fo                       = $this.Setup_Fo + "\SCOPE-POST_Image_Setup"
@@ -256,9 +258,9 @@ function New-TechTool {
     [TechTool]::new()
 } Export-ModuleMember -Function New-TechTool
 
-function Update-TechTool {
-    $TechTool.Update()
-} Export-ModuleMember -Function Update-TechTool
+function Display-Menu {
+    $TechTool.DisplayMenu()
+} Export-ModuleMember -Function Display-Menu
 #endregion TechTool Class
 
 #region Module Variables
@@ -282,7 +284,6 @@ $TechTool = New-TechTool
 # -=[ PC MAINTENANCE ]=-
 # Modules
 # 1. Automated Setup
-  $FilePath_USB_Automated_Setup_INJECT_Scripts_Script   = $USB.PCMaint_AS_INJECT_Scripts_bat_Fi
 # 2. Configure Automatic Sign In
 # 3. Standardize PC
 # 4. Install Software
@@ -292,7 +293,6 @@ $TechTool = New-TechTool
 # 7. Migrate User Profile
   $FilePath_USB_Migrate_User_Profile_BACKUP             = $USB.PCMaint_MigrateUserProfile_BACKUP_ps1_Fi
   $FilePath_USB_Migrate_User_Profile_RESTORE            = $USB.PCMaint_MigrateUserProfile_RESTORE_ps1_Fi
-  $FilePath_USB_Migrate_User_Profile_SYNC               = $USB.PCMaint_MigrateUserProfile_SYNC_bat_Fi
 # 8. Backup Folder
   $FilePath_USB_Backup_Folder_BACKUP                    = $USB.PCMaint_BackupFolder_BACKUP_bat_Fi
 # -=[ Imaging USB MAINTENANCE ]=-
@@ -527,7 +527,7 @@ function Install_Software_submenu {
         5 {Clear-Host; Choose-VPN}
         6 {Clear-Host; Choose-Collaboration_Software}
         7 {Clear-Host; Choose-FileShareApp}
-        8 {Clear-Host; Install-SupportAssistant}
+        8 {Clear-Host; Install-DriverUpdateAssistant}
         9 {Clear-Host; Write-Host "This doesn't do anything yet"}
         10 {Clear-Host; Write-Host "This doesn't do anything yet"}
         11 {Clear-Host; Read-SoftwareConfig}

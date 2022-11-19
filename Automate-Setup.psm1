@@ -12,25 +12,25 @@ This module contains functions that support the Automate-Setup.ps1 functionality
 $TechTool = New-TechTool
 $USB = New-ImagingUSB
 
-$RunOnceKey                                   = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce" # This is the registry key that points to what script(s) to run when a user logs in
-$FilePath_Local_StartAutomatedSetup           = "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
+$RunOnceKey                                         = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce" # This is the registry key that points to what script(s) to run when a user logs in
+$FilePath_Local_StartAutomatedSetup                 = "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
 
 # 1. Automated Setup
-    $FolderPath_Local_Setup                             = $TechTool.Setup_Fo
-    $Setup_AS_Client_Config_Fo                     = $TechTool.Setup_AS_Client_Config_Fo
-    $Setup_AS_Client_Config_Fo_Repository          = $TechTool.Setup_AS_Client_Config_Repository_Fo
-    $Setup_AS_RegistryBackup_Fo    = $TechTool.Setup_AS_RegistryBackup_Fo
-    $Setup_AS_Status_Fo             = $TechTool.Setup_AS_Status_Fo
-    $Setup_AS_AutomateSetup_ps1                   = $TechTool.Setup_AS_AutomateSetup_ps1
-    $Setup_SoftwareCollection_Fo                          = $TechTool.Setup_SoftwareCollection_Fo
-    $Setup_SoftwareCollection_Fo_Configs                  = $TechTool.Setup_SoftwareCollection_Fo_Configs
-    $Setup_SoftwareCollection_ODTSoftware_Fo                      = $TechTool.Setup_SoftwareCollection_ODTSoftware_Fo
-    $Setup_SoftwareCollection_ProfileSoftware_Fo                  = $TechTool.Setup_SoftwareCollection_ProfileSoftware_Fo
-    $Setup_SoftwareCollection_Standard_Software_Fo                 = $TechTool.Setup_SoftwareCollection_Standard_Software_Fo
-    $Setup_SCOPEImageSetup_Fo                 = $TechTool.Setup_SCOPEImageSetup_Fo
-    $Setup_SCOPEImageSetup_PublicDesktop_Fo             = $TechTool.Setup_SCOPEImageSetup_PublicDesktop_Fo
-    $Setup_SCOPEPostImageSetup_Fo            = $TechTool.Setup_SCOPEPostImageSetup_Fo
-    $Setup_SCOPEUserProfile_Fo                = $TechTool.Setup_SCOPEUserProfile_Fo
+    $Setup_Fo                                       = $TechTool.Setup_Fo
+    $Setup_AS_Client_Config_Fo                      = $TechTool.Setup_AS_Client_Config_Fo
+    $Setup_AS_Client_Config_Fo_Repository           = $TechTool.Setup_AS_Client_Config_Repository_Fo
+    $Setup_AS_RegistryBackup_Fo                     = $TechTool.Setup_AS_RegistryBackup_Fo
+    $Setup_AS_Status_Fo                             = $TechTool.Setup_AS_Status_Fo
+    $Setup_AS_AutomateSetup_ps1                     = $TechTool.Setup_AS_AutomateSetup_ps1
+    $Setup_SoftwareCollection_Fo                    = $TechTool.Setup_SoftwareCollection_Fo
+    $Setup_SoftwareCollection_Fo_Configs            = $TechTool.Setup_SoftwareCollection_Fo_Configs
+    $Setup_SoftwareCollection_ODTSoftware_Fo        = $TechTool.Setup_SoftwareCollection_ODTSoftware_Fo
+    $Setup_SoftwareCollection_ProfileSoftware_Fo    = $TechTool.Setup_SoftwareCollection_ProfileSoftware_Fo
+    $Setup_SoftwareCollection_StandardSoftware_Fo   = $TechTool.Setup_SoftwareCollection_StandardSoftware_Fo
+    $Setup_SCOPEImageSetup_Fo                       = $TechTool.Setup_SCOPEImageSetup_Fo
+    $Setup_SCOPEImageSetup_PublicDesktop_Fo         = $TechTool.Setup_SCOPEImageSetup_PublicDesktop_Fo
+    $Setup_SCOPEPostImageSetup_Fo                   = $TechTool.Setup_SCOPEPostImageSetup_Fo
+    $Setup_SCOPEUserProfile_Fo                      = $TechTool.Setup_SCOPEUserProfile_Fo
 #endregion Module Variables
 
 #region Client Config Functions
@@ -56,8 +56,8 @@ function Get-ClientSettings {
         $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Client_Configs_Fo
     }
 
-    # First, check for a Client Config file under $FolderPath_Local_Setup = C:\Setup
-    $ClientConfig = (Get-ChildItem -Path "$FolderPath_Local_Setup\*.ClientConfig" -ErrorAction SilentlyContinue)
+    # First, check for a Client Config file under $Setup_Fo = C:\Setup
+    $ClientConfig = (Get-ChildItem -Path "$Setup_Fo\*.ClientConfig" -ErrorAction SilentlyContinue)
     # Second, check the Local Client Config repository under $Setup_AS_Client_Config_Fo = "C:\Setup\_Automated_Setup\_Client_Config"
     If (!($ClientConfig)) {$ClientConfig = (Get-ChildItem -Path "$Setup_AS_Client_Config_Fo\*.ClientConfig" -ErrorAction SilentlyContinue)} else {$DelFlag = $true; $NewFlag = $true}
     # Third, check the USB Client Configs repository under $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Folders\_Client_Configs"
@@ -121,11 +121,11 @@ function Get-ClientSettings {
         Write-Host "`nStarting a new Client Config..." -ForegroundColor Green
         Write-Host "What is the client's abbreviated name? Example: SFoT, Mustang, etc..." -ForegroundColor Yellow
         Write-Host "Make it a single word with no spaces. The shorter the better." -ForegroundColor Red
-        $input = $null
-        Do {$input = Read-Host -Prompt "Client Abbreviated Name"} Until ($input -ne $null)
+        $choice = $null
+        Do {$choice = Read-Host -Prompt "Client Abbreviated Name"} Until ($choice -ne $null)
         $Global:ClientSettings = [PSCustomObject]@{
             CreationDate = (Get-Date)
-            ClientName = $input
+            ClientName = $choice
         }
         Save-ClientSettings
         $ClientConfig = (Get-ChildItem -Path "$Setup_AS_Client_Config_Fo\*.ClientConfig" -ErrorAction SilentlyContinue)
@@ -137,7 +137,7 @@ function Get-ClientSettings {
         #    $source = "$FolderPath_USB_Automated_Setup_Client_Folders\$ClientName"
         #    $what = '/A-:SH /COPYALL /B /E'
         #    $options = '/R:3 /W:1 /XX /XO'
-        #    $dest = $FolderPath_Local_Setup
+        #    $dest = $Setup_Fo
         #    $command = "ROBOCOPY $source $dest $what $options"
         #    Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized
         #}
@@ -186,9 +186,9 @@ function Save-ClientSettings {
             #Write-Host "REMOVE THIS PAUSE AFTER TROUBLESHOOTING ROBOCOPY"
             #PAUSE
         } else {
-        # If $Final switch and USB is NOT plugged in, save to $FolderPath_Local_Setup = "C:\Setup"
-            $Global:ClientSettings | ConvertTo-Json -depth 1 | Set-Content -Path "$FolderPath_Local_Setup\$ClientConfig_FileName" -Force
-            Write-Host "Saved: " -NoNewline -ForegroundColor Green; Write-Host "$FolderPath_Local_Setup\$ClientConfig_FileName"
+        # If $Final switch and USB is NOT plugged in, save to $Setup_Fo = "C:\Setup"
+            $Global:ClientSettings | ConvertTo-Json -depth 1 | Set-Content -Path "$Setup_Fo\$ClientConfig_FileName" -Force
+            Write-Host "Saved: " -NoNewline -ForegroundColor Green; Write-Host "$Setup_Fo\$ClientConfig_FileName"
             Write-Host "Make sure to move this to your Imaging USB for future use if desired" -ForegroundColor Yellow
         }
     } else {
@@ -259,9 +259,9 @@ function Determine-SetupType {
             Write-Host "Are you setting up a single PC or are you building an image?" -ForegroundColor Yellow
             Write-Host "1. Setting up a single PC"
             Write-Host "2. Building an image that i will capture later"
-            $input = Read-Host -Prompt "Enter a number, 1 or 2"
-        } UNTIL (($input -eq 1) -OR ($input -eq 2))
-        switch ($input) {
+            $choice = Read-Host -Prompt "Enter a number, 1 or 2"
+        } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
+        switch ($choice) {
             1 {Add-ClientSetting -Name "SetupType" -Value SingleSetup}
             2 {Add-ClientSetting -Name "SetupType" -Value BuildImage}
         }
@@ -306,14 +306,14 @@ function CheckPoint-Capture_Image {
             Write-Host "Please continue creating the image" -ForeGroundColor Yellow
             Write-Host "When image is complete, type in 'ready' to get the PC ready to have an image taken" -ForegroundColor Yellow 
             Write-Host "First Disk Cleaner will run to clean up the PC, then the pc will shutdown so that you can take an image" -ForeGroundColor Yellow
-            $input = Read-Host -Prompt "When ready, type in 'ready'"
-        } UNTIL ($input -eq "ready")
+            $choice = Read-Host -Prompt "When ready, type in 'ready'"
+        } UNTIL ($choice -eq "ready")
 
         Run-Disk_Cleanup
         Remove-SuggestedAppxPackages -Final
         Write-Host "`nRemoving unnecessary files to shrink image size"
         Remove-Folder -Folder $Setup_SoftwareCollection_ODTSoftware_Fo
-        Remove-Folder -Folder $Setup_SoftwareCollection_Standard_Software_Fo
+        Remove-Folder -Folder $Setup_SoftwareCollection_StandardSoftware_Fo
     
         New-Item $CompletionFile -ItemType File -Force | Out-Null
         Write-Host "`Hit any key to shut down the computer in order to take an image"
@@ -337,7 +337,7 @@ function Cleanup-AutomatedSetup {
     #Remove-Folder -Folder $Setup_SCOPEUserProfile_Fo
     Remove-Automated_Setup_Files
     Stop-AutomatedSetup
-    New-Item "$FolderPath_Local_Setup\AutomatedSetup-Complete.txt" -ItemType File -Value "Auto-Setup completed and system has been cleaned up" -Force | Out-Null
+    New-Item "$Setup_Fo\AutomatedSetup-Complete.txt" -ItemType File -Value "Auto-Setup completed and system has been cleaned up" -Force | Out-Null
     Write-Host "`nCleanup is complete!" -ForegroundColor Green
 } Export-ModuleMember -Function Cleanup-AutomatedSetup
 
@@ -508,6 +508,11 @@ function Get-DomainJoinInfo {
         } # End of Switch($choice)
     }
 } Export-ModuleMember -Function Get-DomainJoinInfo
+
+function CheckPoint-DriverUpdates {
+    Install-DriverUpdateAssistant
+    Update-Drivers
+} Export-ModuleMember -Function CheckPoint-DriverUpdates
 #endregion Automated-Setup Related Functions
 
 #region Automated-Setup Submenu Functions
@@ -521,7 +526,7 @@ function Inject-AutomatedSetupScripts {
         $USB_ClientConfigs_Folder = $USB.PCSetup_Client_Configs_Fo
         $Local_ClientConfigs_Repo = $TechTool.Setup_AS_Client_Config_Repository_Fo
     $USB_StandardSoftware_Folder = $USB.PCSetup_SoftwareCollection_StandardSoftware_Fo
-    $Local_StandardSoftware_Folder = $TechTool.Setup_SoftwareCollection_Standard_Software_Fo
+    $Local_StandardSoftware_Folder = $TechTool.Setup_SoftwareCollection_StandardSoftware_Fo
         $USB_ODTSoftware_Folder = $USB.PCSetup_SoftwareCollection_ODT_Fo
         $Local_ODTSoftware_Folder = $TechTool.Setup_SoftwareCollection_ODTSoftware_Fo
     $USB_ProfileSoftware_Folder = $USB.PCSetup_SoftwareCollection_ProfileSoftware_Fo
@@ -652,10 +657,10 @@ function Read-ClientConfig {
             }
             $Line = "   $Count" + ": " + "OR, Go Back..."
             Write-Host $Line
-            $input = Read-Host -Prompt "`nWhich Client Config file would you like to read the properties of? (Enter a number from 1 to $Count)"
-        } Until (($input -gt 0) -and ($input -le $Count))
-        If ($input -ne $Count) {
-            $ClientConfig = $ClientConfigs[$input-1]
+            $choice = Read-Host -Prompt "`nWhich Client Config file would you like to read the properties of? (Enter a number from 1 to $Count)"
+        } Until (($choice -gt 0) -and ($choice -le $Count))
+        If ($choice -ne $Count) {
+            $ClientConfig = $ClientConfigs[$choice-1]
             Write-Host ">Loading"$ClientConfig.Name -ForegroundColor Yellow
             $ClientConfigFile = $ClientConfig.FullName
             Get-Member -InputObject (Get-Content -Path $ClientConfigFile | ConvertFrom-Json) -MemberType NoteProperty | Format-Table -Property Name,Definition -AutoSize

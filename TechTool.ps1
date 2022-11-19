@@ -108,4 +108,4 @@ if (!(Test-Path $Module_TechTool_Fi)) {
 
 #$TechTool = New-TechTool
 #$TechTool.DisplayMenu()
-Update-TechTool
+Display-Menu

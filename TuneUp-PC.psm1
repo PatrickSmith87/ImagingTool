@@ -172,8 +172,8 @@ function Install-Driver_Updates {
             DO {
                 Write-Host ""
                 Write-Host "Please take a minute to run the HP or Dell support assistant tool to update the computer's drivers" -ForeGroundColor Yellow
-                $input = Read-Host -Prompt "Type in 'continue' move on to the next step"
-            } UNTIL ($input -eq "continue")
+                $choice = Read-Host -Prompt "Type in 'continue' move on to the next step"
+            } UNTIL ($choice -eq "continue")
             Write-Host "$Step has been completed"
             if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
