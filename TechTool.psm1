@@ -6,55 +6,7 @@
 #################################################################################################################################################################
 #################################################################################################################################################################
 
-#region Module Variables
-
-$TechTool = New-TechTool
-
-# !!ImagingUSB module may not exist yet, so can't relie on using the ImagingUSB class!!
-# Get USB Drive
-$USB = New-ImagingUSB
-
-<#foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
-    $Test_Path = "$Drive_Letter" + ":\PC_Setup"
-    If (Test-Path $Test_Path -ErrorAction SilentlyContinue) {
-        $USB_Drive = "$Drive_Letter" + ":"
-    }
-}#>
-
-# VARIABLES
-# -=[ IMAGE MAINTENANCE ]=-
-  $ImageMaintenance_DOWNLOAD_Latest_ESD_File_Fi         = $USB.ImageMaint_DOWNLOADLatestESDFile_ps1_Fi
-  $ImageMaintenance_EXTRACT_WIM_from_ESD_Fi             = $USB.ImageMaint_EXTRACTWIMfromESD_ps1_Fi
-  $ImageMaintenance_CREATE_Modded_WIM_Fi                = $USB.ImageMaint_CREATEModdedWIM_ps1_Fi
-# -=[ PC MAINTENANCE ]=-
-# Modules
-# 1. Automated Setup
-  $FilePath_USB_Automated_Setup_INJECT_Scripts_Script   = $USB.PCMaint_AS_INJECT_Scripts_bat_Fi
-# 2. Configure Automatic Sign In
-# 3. Standardize PC
-# 4. Install Software
-# 5. Update PC
-# 6. Cleanup Hard Drive
-  $FilePath_USB_Cleanup_HD                              = $USB.PCMaint_CleanupHardDrive_Cleanup_HD_ps1_Fi
-# 7. Migrate User Profile
-  $FilePath_USB_Migrate_User_Profile_BACKUP             = $USB.PCMaint_MigrateUserProfile_BACKUP_ps1_Fi
-  $FilePath_USB_Migrate_User_Profile_RESTORE            = $USB.PCMaint_MigrateUserProfile_RESTORE_ps1_Fi
-  $FilePath_USB_Migrate_User_Profile_SYNC               = $USB.PCMaint_MigrateUserProfile_SYNC_bat_Fi
-# 8. Backup Folder
-  $FilePath_USB_Backup_Folder_BACKUP                    = $USB.PCMaint_BackupFolder_BACKUP_bat_Fi
-# -=[ Imaging USB MAINTENANCE ]=-
-  $USBMaintenance_BACKUP_Minus_Images_Fi                = $USB.USBMaint_BACKUPMinusImages_bat_Fi
-  $USBMaintenance_BACKUP_Fi                             = $USB.USBMaint_BACKUP_bat_Fi
-  $USBMaintenance_CREATE_AutoDeploy_Package_Fi          = $USB.USBMaint_CREATEAutoDeployPackage_bat_Fi
-  $USBMaintenance_RESTORE_Fi                            = $USB.USBMaint_RESTORE_bat_Fi
-
-#endregion Module Variables
-
 #region TechTool Class
-function New-TechTool {
-    [TechTool]::new()
-} Export-ModuleMember -Function New-TechTool
-
 class TechTool {
     [string]$TechTool_bat_Fi                                    = "C:\Users\Public\Desktop\TechTool-RAA.bat"
     [string]$TechTool_ps1_Fi                                    = "C:\Users\Public\Desktop\sources\TechTool.ps1"
@@ -299,7 +251,57 @@ class TechTool {
         Main_Menu
     }
 }
+
+function New-TechTool {
+    [TechTool]::new()
+} Export-ModuleMember -Function New-TechTool
+
+function Update-TechTool {
+    $TechTool.Update()
+} Export-ModuleMember -Function Update-TechTool
 #endregion TechTool Class
+
+#region Module Variables
+# !!ImagingUSB module may not exist yet, so can't relie on using the ImagingUSB class!!
+# Get USB Drive
+$USB = New-ImagingUSB
+$TechTool = New-TechTool
+
+<#foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+    $Test_Path = "$Drive_Letter" + ":\PC_Setup"
+    If (Test-Path $Test_Path -ErrorAction SilentlyContinue) {
+        $USB_Drive = "$Drive_Letter" + ":"
+    }
+}#>
+
+# VARIABLES
+# -=[ IMAGE MAINTENANCE ]=-
+  $ImageMaintenance_DOWNLOAD_Latest_ESD_File_Fi         = $USB.ImageMaint_DOWNLOADLatestESDFile_ps1_Fi
+  $ImageMaintenance_EXTRACT_WIM_from_ESD_Fi             = $USB.ImageMaint_EXTRACTWIMfromESD_ps1_Fi
+  $ImageMaintenance_CREATE_Modded_WIM_Fi                = $USB.ImageMaint_CREATEModdedWIM_ps1_Fi
+# -=[ PC MAINTENANCE ]=-
+# Modules
+# 1. Automated Setup
+  $FilePath_USB_Automated_Setup_INJECT_Scripts_Script   = $USB.PCMaint_AS_INJECT_Scripts_bat_Fi
+# 2. Configure Automatic Sign In
+# 3. Standardize PC
+# 4. Install Software
+# 5. Update PC
+# 6. Cleanup Hard Drive
+  $FilePath_USB_Cleanup_HD                              = $USB.PCMaint_CleanupHardDrive_Cleanup_HD_ps1_Fi
+# 7. Migrate User Profile
+  $FilePath_USB_Migrate_User_Profile_BACKUP             = $USB.PCMaint_MigrateUserProfile_BACKUP_ps1_Fi
+  $FilePath_USB_Migrate_User_Profile_RESTORE            = $USB.PCMaint_MigrateUserProfile_RESTORE_ps1_Fi
+  $FilePath_USB_Migrate_User_Profile_SYNC               = $USB.PCMaint_MigrateUserProfile_SYNC_bat_Fi
+# 8. Backup Folder
+  $FilePath_USB_Backup_Folder_BACKUP                    = $USB.PCMaint_BackupFolder_BACKUP_bat_Fi
+# -=[ Imaging USB MAINTENANCE ]=-
+  $USBMaintenance_BACKUP_Minus_Images_Fi                = $USB.USBMaint_BACKUPMinusImages_bat_Fi
+  $USBMaintenance_BACKUP_Fi                             = $USB.USBMaint_BACKUP_bat_Fi
+  $USBMaintenance_CREATE_AutoDeploy_Package_Fi          = $USB.USBMaint_CREATEAutoDeployPackage_bat_Fi
+  $USBMaintenance_RESTORE_Fi                            = $USB.USBMaint_RESTORE_bat_Fi
+
+#endregion Module Variables
 
 #region Menu Functions
 

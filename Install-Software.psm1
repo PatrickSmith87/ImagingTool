@@ -6,23 +6,6 @@
 #################################################################################################################################################################
 #################################################################################################################################################################
 
-#region Module Variables
-# Variables may be defined from parent script. If not, they will be defined from here.
-# Child scripts should be able to see variables from the parent script...
-# However the child script cannot modify the parent's variables unless the scope is defined.
-# This should not be a problem since the child script does not need to modify these variables.
-# The goal here is to allow the modules to run independantly of the "Automate-Setup" script
-
-# -=[ Static Variables ]=-
-# Variables may be defined from parent script. If not, they will be defined from here.
-$FolderPath_Local_Setup                 = "C:\Setup"
-$Setup_AS_Status_Fo = "C:\Setup\_Automated_Setup\Status"
-$Setup_SoftwareCollection_Fo              = "C:\Setup\_Software_Collection"
-$Setup_SoftwareCollection_ODTSoftware_Fo          = "C:\Setup\_Software_Collection\ODT"
-$Setup_SoftwareCollection_ProfileSoftware_Fo      = "C:\Setup\_Software_Collection\Profile_Specific_Software"
-$Setup_SoftwareCollection_Standard_Software_Fo     = "C:\Setup\_Software_Collection\Standard_Software"
-#endregion Module Variables
-
 #region Classes
 function New-Software {
     [Software]::new()
@@ -422,6 +405,38 @@ class Software {
 }
 #endregion Classes
 
+#region Module Variables
+$Software = New-Software
+$string = "string at module"
+# Variables may be defined from parent script. If not, they will be defined from here.
+# Child scripts should be able to see variables from the parent script...
+# However the child script cannot modify the parent's variables unless the scope is defined.
+# This should not be a problem since the child script does not need to modify these variables.
+# The goal here is to allow the modules to run independantly of the "Automate-Setup" script
+
+# -=[ Static Variables ]=-
+# Variables may be defined from parent script. If not, they will be defined from here.
+$FolderPath_Local_Setup                         = "C:\Setup"
+$Setup_AS_Status_Fo                             = "C:\Setup\_Automated_Setup\Status"
+$Setup_SoftwareCollection_Fo                    = "C:\Setup\_Software_Collection"
+$Setup_SoftwareCollection_ODTSoftware_Fo        = "C:\Setup\_Software_Collection\ODT"
+$Setup_SoftwareCollection_ProfileSoftware_Fo    = "C:\Setup\_Software_Collection\Profile_Specific_Software"
+$Setup_SoftwareCollection_Standard_Software_Fo  = "C:\Setup\_Software_Collection\Standard_Software"
+#endregion Module Variables
+
+#region Just a test function
+function Test-Function {
+    Write-Host "`nFunction Variables:" -ForegroundColor Yellow
+    $string = "string at function"
+    Write-Host "`$USB = $USB"
+    Write-Host "`$TechTool = $TechTool"
+    Write-Host "`$Software = $Software"
+    Write-Host "`$global:string = $global:string"
+    Write-Host "`$script:string = $script:string"
+    Write-Host "`$string = $string"
+} Export-ModuleMember -Function Test-Function
+#endregion Just a test function
+
 #region INSTALLATION FUNCTIONS
 #############################################################
 ############### START OF INSTALLATION FUNCTIONS #############
@@ -690,8 +705,7 @@ function Choose-o365 {
                 $CompletionFile = "$StepStatus-1.txt"
                 #Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
 
-                Write-Host ""
-                Write-Host "Installing $SoftwareName"
+                Write-Host "`nInstalling $SoftwareName"
                 $InstallerPath = "$Setup_SoftwareCollection_ODTSoftware_Fo\Install o365ProPlus1.bat"
                 Start-Process $InstallerPath -Wait
                 Write-Host "Verifying if the software is now installed..."
@@ -709,8 +723,7 @@ function Choose-o365 {
                 $CompletionFile = "$StepStatus-2.txt"
                 #Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
 
-                Write-Host ""
-                Write-Host "Installing $SoftwareName"
+                Write-Host "`nInstalling $SoftwareName"
                 $InstallerPath = "$Setup_SoftwareCollection_ODTSoftware_Fo\Install o365Business1.bat"
                 Start-Process $InstallerPath -Wait
                 Write-Host "Verifying if the software is now installed..."
@@ -728,8 +741,7 @@ function Choose-o365 {
                 $CompletionFile = "$StepStatus-3.txt"
                 #Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
 
-                Write-Host ""
-                Write-Host "Installing $SoftwareName"
+                Write-Host "`nInstalling $SoftwareName"
                 $InstallerPath = "$Setup_SoftwareCollection_ODTSoftware_Fo\Install o365Enterprise_32-bit.bat"
                 Start-Process $InstallerPath -Wait
                 Write-Host "Verifying if the software is now installed..."
@@ -747,8 +759,7 @@ function Choose-o365 {
                 $CompletionFile = "$StepStatus-4.txt"
                 #Install-Software -SoftwareName $SoftwareName -CompletionFile $CompletionFile
 
-                Write-Host ""
-                Write-Host "Installing $SoftwareName"
+                Write-Host "`nInstalling $SoftwareName"
                 $InstallerPath = "$Setup_SoftwareCollection_ODTSoftware_Fo\Install o365Business1_32-bit.bat"
                 Start-Process $InstallerPath -Wait
                 Write-Host "Verifying if the software is now installed..."
@@ -1097,37 +1108,37 @@ function Reinstall-SupportAssistant {
                 Write-Host "Checking Support Assistant Status" -ForegroundColor Yellow
                 If (Test-Path $DellInstallerPath) {
                     #check to see if it's installed
-                    $Software = "Dell Support Assist"
+                    $SoftwareName = "Dell Support Assist"
                     $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-                    If (!(($Global:Installed_Software).DisplayName -match $Software)) {
+                    If (!(($Global:Installed_Software).DisplayName -match $SoftwareName)) {
                         Write-Host "Re-Installing Dell Support Assist"
                         Start-Process "$DellInstallerPath" -Wait
                         Write-Host "Verifying if the software is now installed..."
                         $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-                        If (($Global:Installed_Software).DisplayName -match $Software) {
+                        If (($Global:Installed_Software).DisplayName -match $SoftwareName) {
                             if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                            Write-Host "Installed - $Software" -ForegroundColor Green
+                            Write-Host "Installed - $SoftwareName" -ForegroundColor Green
                         } else {
-                            Write-Host "$Software is not installed" -ForegroundColor Red
+                            Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                             Write-Host "Try Running the installer under $FolderPath_Local_Setup manually" -ForegroundColor Yellow
                         }
                     }
                 } ElseIf (Test-Path $HPInstallerPath) {
                     #check to see if it's installed
-                    $Software = "HP Support Assistant"
+                    $SoftwareName = "HP Support Assistant"
                     If (!(Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -And !(Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
                         Write-Host "Re-Installing HP Support Assistant"
                         Start-Process "$HPInstallerPath" -Wait
                         Write-Host "Verifying if the software is now installed..."
                         If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
                             if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                            Write-Host "Installed - $Software" -ForegroundColor Green
+                            Write-Host "Installed - $SoftwareName" -ForegroundColor Green
                         } else {
-                            Write-Host "$Software is not installed" -ForegroundColor Red
+                            Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                             Write-Host "Try Running the installer under C:\Setup manually" -ForegroundColor Yellow
                         }
                     } else {
-                        Write-Host "It appears that $Software is already installed"
+                        Write-Host "It appears that $SoftwareName is already installed"
                         If (Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") {Write-Host "Found: C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico"}
                         If (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe") {Write-Host "Found: C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe"}
                     }
@@ -1179,33 +1190,33 @@ function Install-SupportAssistant {
                 $Software.Install($SoftwareName,$CompletionFile)
             }
             2 {
-                $Software = "Dell SupportAssist"
-                Write-Host "`nInstalling $Software"
+                $SoftwareName = "Dell SupportAssist"
+                Write-Host "`nInstalling $SoftwareName"
                 $InstallerPath = "$Setup_SoftwareCollection_Standard_Software_Fo\Dell_Support_Assist_Installer.exe"
                 Copy-Item -Path $InstallerPath -Destination $FolderPath_Local_Setup -Force
                 Start-Process "$InstallerPath" -Wait
                 Write-Host "Verifying if the software is now installed..."
                 $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-                If (($Global:Installed_Software).DisplayName -match $Software) {
-                    Write-Host "Installed - $Software" -ForegroundColor Green
+                If (($Global:Installed_Software).DisplayName -match $SoftwareName) {
+                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
                     if ($Automated_Setup) {New-Item "$StepStatus-DellSA.txt" -ItemType File -Force | Out-Null}
                 } else {
-                    Write-Host "$Software is not installed" -ForegroundColor Red
+                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
                 }
             }
             3 {
-                $Software = "HP Support Assistant"
-                Write-Host "`nInstalling $Software"
+                $SoftwareName = "HP Support Assistant"
+                Write-Host "`nInstalling $SoftwareName"
                 $InstallerPath = "$Setup_SoftwareCollection_Standard_Software_Fo\HP_Support_Assistant.exe"
                 Copy-Item -Path $InstallerPath -Destination $FolderPath_Local_Setup -Force
                 Start-Process "$InstallerPath" -Wait
                 Write-Host "Verifying if the software is now installed..."
                 If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
-                    Write-Host "Installed - $Software" -ForegroundColor Green
+                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
                     if ($Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
                 } else {
-                    Write-Host "$Software is not installed" -ForegroundColor Red
+                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
                 }
             }
@@ -1268,35 +1279,35 @@ function Install-SupportAssistant2 {
         }
         switch ($choice) {
             1 {
-                $Software = "Dell Support Assist"
-                Write-Host "`nInstalling $Software"
+                $SoftwareName = "Dell Support Assist"
+                Write-Host "`nInstalling $SoftwareName"
                 $InstallerPath = "$Setup_SoftwareCollection_Standard_Software_Fo\Dell_Support_Assist_Installer.exe"
                 Copy-Item -Path $InstallerPath -Destination $FolderPath_Local_Setup -Force
                 Start-Process "$InstallerPath" -Wait
                 Write-Host "Verifying if the software is now installed..."
                 $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-                If (($Global:Installed_Software).DisplayName -match $Software) {
-                    Write-Host "Installed - $Software" -ForegroundColor Green
+                If (($Global:Installed_Software).DisplayName -match $SoftwareName) {
+                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
                     if ($Automated_Setup) {New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null}
                 } else {
-                    Write-Host "$Software is not installed" -ForegroundColor Red
+                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
                 }
             }
             2 {
-                $Software = "HP Support Assistant"
+                $SoftwareName = "HP Support Assistant"
                 Write-Host ""
-                Write-Host "Downloading $Software"
+                Write-Host "Downloading $SoftwareName"
                 # Download Installer
                 $Local_Working_Dir    = $Setup_SoftwareCollection_Standard_Software_Fo
                 $Installer_Local_Path = "$Local_Working_Dir\HP_Support_Assistant.exe"
                 $Installer_URL = "https://ftp.ext.hp.com/pub/softpaq/sp138501-139000/sp138693.exe"
                 (New-Object System.Net.WebClient).DownloadFile($Installer_URL, $Installer_Local_Path)
                 # Extract
-                Write-Host "Extracting $Software"
+                Write-Host "Extracting $SoftwareName"
                 Start-Process $Installer_Local_Path -ArgumentList '/s /e /f "C:\Setup\HP Support Assistant"' -WorkingDirectory "C:\Setup" -Wait
                 # Install
-                Write-Host "Installing $Software"
+                Write-Host "Installing $SoftwareName"
                 Start-Process $Installer_Local_Path -ArgumentList '/S /v/qn' -WorkingDirectory "C:\Setup\HP Support Assistant" -Wait
                 #Start-Process $Installer_Local_Path -ArgumentList '/S' -WorkingDirectory "C:\Setup\HP Support Assistant" -Wait
                 # Not sure if the /v/qn works in the argumentlist...
@@ -1305,10 +1316,10 @@ function Install-SupportAssistant2 {
 
                 Write-Host "Verifying if the software is now installed..."
                 If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
-                    Write-Host "Installed - $Software" -ForegroundColor Green
+                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
                     if ($Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
                 } else {
-                    Write-Host "$Software is not installed" -ForegroundColor Red
+                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
                 }
             }

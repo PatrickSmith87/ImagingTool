@@ -11,11 +11,13 @@ Import-Module Configure-PC -WarningAction SilentlyContinue -Force
 Import-Module Install-Software -WarningAction SilentlyContinue -Force
 #Clear-Host
 
-$TechTool = New-TechTool
-$USB = New-ImagingUSB
+#$TechTool = New-TechTool
+#$USB = New-ImagingUSB
+#$Software = New-Software
 $ComputerName = Hostname
 $ClientSettings = $null
 $Automated_Setup = $true
+$string = "string at script"
   
 #endregion Initialize
 
@@ -101,7 +103,7 @@ Remove-StartAutomatedSetup_BatchFile
 Write-Host "Computername: " -NoNewline; Write-Host "$ComputerName" -ForegroundColor Cyan
 Write-Host ">Starting Automated Setup...`n" -ForegroundColor Yellow
 # -=[ Update Automated Setup Scripts ]=-
-$script:TechTool.Update()
+Update-TechTool
 # -=[ LOAD CLIENT SETTINGS ]=-
 Write-Host "-=[ LOAD CLIENT SETTINGS ]=-" -ForegroundColor DarkGray
 Get-ClientSettings

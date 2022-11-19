@@ -514,6 +514,97 @@ function Get-DomainJoinInfo {
 ##############################################################################
 ############## Imaging Tool - Automated Setup Submenu Functions ##############
 ##############################################################################
+function Inject-AutomatedSetupScripts {
+    #region Function Variables
+    $USB_AutomatedSetup_HomeDir = $USB.PCMaint_AS_HomeDir_Fo
+    $Local_AutomatedSetup_HomeDir = $TechTool.Setup_Fo
+        $USB_ClientConfigs_Folder = $USB.PCSetup_Client_Configs_Fo
+        $Local_ClientConfigs_Repo = $TechTool.Setup_AS_Client_Config_Repository_Fo
+    $USB_StandardSoftware_Folder = $USB.PCSetup_SoftwareCollection_StandardSoftware_Fo
+    $Local_StandardSoftware_Folder = $TechTool.Setup_SoftwareCollection_Standard_Software_Fo
+        $USB_ODTSoftware_Folder = $USB.PCSetup_SoftwareCollection_ODT_Fo
+        $Local_ODTSoftware_Folder = $TechTool.Setup_SoftwareCollection_ODTSoftware_Fo
+    $USB_ProfileSoftware_Folder = $USB.PCSetup_SoftwareCollection_ProfileSoftware_Fo
+    $Local_ProfileSoftware_Folder = $TechTool.Setup_SoftwareCollection_ProfileSoftware_Fo
+        $USB_DriverCollection_Folder = $USB.PCSetup_DriverCollection_Fo
+        $Local_DriverCollection_Folder = $TechTool.Setup_DriverCollection_Fo
+    $USB_ScriptCollection_Folder = $USB.PCSetup_ScriptCollection_Fo
+    $Local_ScriptCollection_Folder = $TechTool.Setup_ScriptCollection_Fo
+    #endregion Function Variables
+
+    #region Edit Registry
+    ###########################
+    ## -=[ EDIT REGISTRY ]=- ##
+    ###########################
+
+    # -=[ Disable Live Tiles ]=-
+    cmd.exe /c 'REG ADD "HKLM\Software\Policies\Microsoft\Windows\CurrentVersion\Pushnotications" /v NoTileApplictionNotification /d 1 /f /t REG_DWORD'# | Out-Null
+    
+    # -=[ Remove "Cortana" button from the taskbar ]=-
+    cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowCortanaButton /d 0 /f /t REG_DWORD'# | Out-Null
+    
+    # -=[ Remove "People" icon from the taskbar ]=-
+    cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People" /v PeopleBand /d 0 /f /t REG_DWORD'# | Out-Null
+    
+    # -=[ Remove "TaskViewButton" from the taskbar ]=-
+    cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowTaskViewButton /d 0 /f /t REG_DWORD'# | Out-Null
+
+    # -=[ Show ALL system tray icons ]=-
+    cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer" /v EnableAutoTray /d 0 /f /t REG_DWORD'# | Out-Null
+
+    # Set Searchbar as Icon rather than Search Box
+    cmd.exe /c 'REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTaskbarMode /d 1 /f /t REG_DWORD'# | Out-Null
+    
+    # Do not show News & Interests button
+    cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /d 2 /f /t REG_DWORD'# | Out-Null
+    #endregion Edit Registry
+
+    #region Deploy Setup Package
+    ##################################
+    ## -=[ Deploy_Setup_Package ]=- ##
+    ##################################
+
+    # -=[ Transfer Setup Core ]=-
+    XCOPY "$USB_AutomatedSetup_HomeDir\Setup\*" "$Local_AutomatedSetup_HomeDir\" /E /Y
+
+    # -=[ Transfer Client Configs ]=-
+    XCOPY "$USB_ClientConfigs_Folder\*" "$Local_ClientConfigs_Repo\" /E /Y
+
+    # -=[ Transfer Public Desktop ]=-
+    XCOPY "$USB_AutomatedSetup_HomeDir\PublicDesktop\*" "C:\Users\Public\Desktop\" /E /Y
+
+    # -=[ Transfer C:\Setup\Software\Standard_Software ]=-
+    XCOPY "$USB_StandardSoftware_Folder\*" "$Local_StandardSoftware_Folder\" /E /Y
+
+    # -=[ Transfer C:\Setup\Software\ODT ]=-
+    XCOPY "$USB_ODTSoftware_Folder\Install o365ProPlus1.bat" "$Local_ODTSoftware_Folder\Install o365ProPlus1.bat*" /Y
+    XCOPY "$USB_ODTSoftware_Folder\Install o365Business1.bat" "$Local_ODTSoftware_Folder\Install o365Business1.bat*" /Y
+    XCOPY "$USB_ODTSoftware_Folder\Install o365Enterprise_32-bit.bat" "$Local_ODTSoftware_Folder\Install o365Enterprise_32-bit.bat*" /Y
+    XCOPY "$USB_ODTSoftware_Folder\Install o365Business1_32-bit.bat" "$Local_ODTSoftware_Folder\Install o365Business1_32-bit.bat*" /Y
+    XCOPY "$USB_ODTSoftware_Folder\o365Business1.xml" "$Local_ODTSoftware_Folder\o365Business1.xml*" /Y
+    XCOPY "$USB_ODTSoftware_Folder\o365Business1_32-bit.xml" "$Local_ODTSoftware_Folder\o365Business1_32-bit.xml*" /Y
+    XCOPY "$USB_ODTSoftware_Folder\o365ProPlus1.xml" "$Local_ODTSoftware_Folder\o365ProPlus1.xml*" /Y
+    XCOPY "$USB_ODTSoftware_Folder\o365Enterprise_32-bit.xml" "$Local_ODTSoftware_Folder\o365Enterprise_32-bit.xml*" /Y
+    XCOPY "$USB_ODTSoftware_Folder\setup.exe" "$Local_ODTSoftware_Folder\setup.exe*" /Y
+    XCOPY "$USB_ODTSoftware_Folder\Office\*" "$Local_ODTSoftware_Folder\Office\" /E /Y
+
+    # -=[ Transfer C:\Setup\Standard_Software\Profile_Specific_Software ]=-
+    XCOPY "$USB_ProfileSoftware_Folder\*" "$Local_ProfileSoftware_Folder\" /E /Y
+
+    # -=[ Transfer Driver Collection ]=-
+    XCOPY "$USB_DriverCollection_Folder\*" "$Local_DriverCollection_Folder\" /E /Y
+
+    # -=[ Transfer Script Collection ]=-
+    XCOPY "$USB_ScriptCollection_Folder\*" "$Local_ScriptCollection_Folder\" /E /Y
+
+    #endregion Deploy Setup Package
+
+    ###################################
+    ## -=[ Start Automated Setup ]=- ##
+    ###################################
+    #IF EXIST "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat" CALL "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
+} Export-ModuleMember -Function Inject-AutomatedSetupScripts
+
 function Start-AutomatedSetup {
     if (!(Test-Path $Setup_AS_AutomateSetup_ps1)) {
         Write-Host "`nAutomated Setup program is not detected on the current computer" -ForegroundColor Red
