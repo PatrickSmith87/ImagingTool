@@ -257,6 +257,10 @@ class TechTool {
 function New-TechTool {
     [TechTool]::new()
 } Export-ModuleMember -Function New-TechTool
+
+function Update-TechTool {
+    $TechTool.Update()
+} Export-ModuleMember -Function Update-TechTool
 #endregion TechTool Class
 
 #region Module Variables
