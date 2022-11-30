@@ -23,7 +23,7 @@ $FilePath_Local_StartAutomatedSetup                 = "C:\Users\Public\Desktop\S
     $Setup_AS_Status_Fo                             = $TechTool.Setup_AS_Status_Fo
     $Setup_AS_AutomateSetup_ps1                     = $TechTool.Setup_AS_AutomateSetup_ps1
     $Setup_SoftwareCollection_Fo                    = $TechTool.Setup_SoftwareCollection_Fo
-    $Setup_SoftwareCollection_Fo_Configs            = $TechTool.Setup_SoftwareCollection_Fo_Configs
+    $Setup_SoftwareCollection_Configs_Fo            = $TechTool.Setup_SoftwareCollection_Configs_Fo
     $Setup_SoftwareCollection_ODTSoftware_Fo        = $TechTool.Setup_SoftwareCollection_ODTSoftware_Fo
     $Setup_SoftwareCollection_ProfileSoftware_Fo    = $TechTool.Setup_SoftwareCollection_ProfileSoftware_Fo
     $Setup_SoftwareCollection_StandardSoftware_Fo   = $TechTool.Setup_SoftwareCollection_StandardSoftware_Fo
@@ -53,7 +53,7 @@ function Get-ClientSettings {
     
     # Get USB Paths
     if ($USB.Exists()) {
-        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Client_Configs_Fo
+        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.PCSetup_Client_Configs_Fo
     }
 
     # First, check for a Client Config file under $Setup_Fo = C:\Setup
@@ -62,47 +62,48 @@ function Get-ClientSettings {
     If (!($ClientConfig)) {$ClientConfig = (Get-ChildItem -Path "$Setup_AS_Client_Config_Fo\*.ClientConfig" -ErrorAction SilentlyContinue)} else {$DelFlag = $true; $NewFlag = $true}
     # Third, check the USB Client Configs repository under $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Folders\_Client_Configs"
     If (!($ClientConfig)) {
-        $NewFlag = $true
-        $ClientConfigs = (Get-ChildItem -Path "$FolderPath_USB_Automated_Setup_Client_Configs\*.ClientConfig" -ErrorAction SilentlyContinue)
-        If ($ClientConfigs.Count -gt 0) {
-            Write-Host "Imaging Tool Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
-            Do {
-                $Count = 1
-                Write-Host "`n   -=[ Available Client Config Files ]=-"
-                ForEach ($Config in $ClientConfigs) {
-                    $Line = "   $Count" + ": " + $Config.Name
+        if ($USB.Exists()) {
+            $NewFlag = $true
+            $ClientConfigs = (Get-ChildItem -Path "$FolderPath_USB_Automated_Setup_Client_Configs\*.ClientConfig" -ErrorAction SilentlyContinue)
+            If ($ClientConfigs.Count -gt 0) {
+                Write-Host "Imaging Tool Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
+                Do {
+                    $Count = 1
+                    Write-Host "`n   -=[ Available Client Config Files ]=-"
+                    ForEach ($Config in $ClientConfigs) {
+                        $Line = "   $Count" + ": " + $Config.Name
+                        Write-Host $Line
+                        $Count++
+                    }
+                    $Line = "   $Count" + ": " + "OR, start a new Client Config..."
                     Write-Host $Line
-                    $Count++
+                    [int]$choice = Read-Host -Prompt "`nWhich Client Config file would you like to load? (Enter a number from 1 to $Count)"
+                } Until (($choice -gt 0) -and ($choice -le $Count))
+                If ($choice -ne $Count) {
+                    $ClientConfig = $ClientConfigs[$choice-1]
                 }
-                $Line = "   $Count" + ": " + "OR, start a new Client Config..."
-                Write-Host $Line
-                [int]$choice = Read-Host -Prompt "`nWhich Client Config file would you like to load? (Enter a number from 1 to $Count)"
-            } Until (($choice -gt 0) -and ($choice -le $Count))
-            If ($choice -ne $Count) {
-                $ClientConfig = $ClientConfigs[$choice-1]
             }
-        }
-    } 
-    if (!($ClientConfig)) {
-    # Fourth, check the Local Client Configs repository under $Setup_AS_Client_Config_Fo_Repository = "C:\Setup\_Automated_Setup\_Client_Config\Repository"
-        $NewFlag = $true
-        $ClientConfigs = (Get-ChildItem -Path "$Setup_AS_Client_Config_Fo_Repository\*.ClientConfig" -ErrorAction SilentlyContinue)
-        If ($ClientConfigs.Count -gt 0) {
-            Write-Host "Local Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
-            Do {
-                $Count = 1
-                Write-Host "`n   -=[ Available Client Config Files ]=-"
-                ForEach ($Config in $ClientConfigs) {
-                    $Line = "   $Count" + ": " + $Config.Name
+        } else {
+            # Fourth, check the Local Client Configs repository under $Setup_AS_Client_Config_Fo_Repository = "C:\Setup\_Automated_Setup\_Client_Config\Repository"
+            $NewFlag = $true
+            $ClientConfigs = (Get-ChildItem -Path "$Setup_AS_Client_Config_Fo_Repository\*.ClientConfig" -ErrorAction SilentlyContinue)
+            If ($ClientConfigs.Count -gt 0) {
+                Write-Host "Local Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
+                Do {
+                    $Count = 1
+                    Write-Host "`n   -=[ Available Client Config Files ]=-"
+                    ForEach ($Config in $ClientConfigs) {
+                        $Line = "   $Count" + ": " + $Config.Name
+                        Write-Host $Line
+                        $Count++
+                    }
+                    $Line = "   $Count" + ": " + "OR, start a new Client Config..."
                     Write-Host $Line
-                    $Count++
+                    [int]$choice = Read-Host -Prompt "`nWhich Client Config file would you like to load? (Enter a number from 1 to $Count)"
+                } Until (($choice -gt 0) -and ($choice -le $Count))
+                If ($choice -ne $Count) {
+                    $ClientConfig = $ClientConfigs[$choice-1]
                 }
-                $Line = "   $Count" + ": " + "OR, start a new Client Config..."
-                Write-Host $Line
-                [int]$choice = Read-Host -Prompt "`nWhich Client Config file would you like to load? (Enter a number from 1 to $Count)"
-            } Until (($choice -gt 0) -and ($choice -le $Count))
-            If ($choice -ne $Count) {
-                $ClientConfig = $ClientConfigs[$choice-1]
             }
         }
     }
@@ -121,16 +122,16 @@ function Get-ClientSettings {
         Write-Host "`nStarting a new Client Config..." -ForegroundColor Green
         Write-Host "What is the client's abbreviated name? Example: SFoT, Mustang, etc..." -ForegroundColor Yellow
         Write-Host "Make it a single word with no spaces. The shorter the better." -ForegroundColor Red
-        $choice = $null
-        Do {$choice = Read-Host -Prompt "Client Abbreviated Name"} Until ($choice -ne $null)
+        $AbbreviatedName = $null
+        Do {$AbbreviatedName = Read-Host -Prompt "Client Abbreviated Name"} Until ($null -ne $choice)
         $Global:ClientSettings = [PSCustomObject]@{
             CreationDate = (Get-Date)
-            ClientName = $choice
+            ClientName = $AbbreviatedName
         }
         Save-ClientSettings
         $ClientConfig = (Get-ChildItem -Path "$Setup_AS_Client_Config_Fo\*.ClientConfig" -ErrorAction SilentlyContinue)
         Write-Host "Client Config File started: "$ClientConfig.Name -ForegroundColor Green
-        Write-Host ""
+        Write-Host
     }
     if ($NewFlag = $true) {
         #if (Test-Path "$USB_Drive") {
@@ -159,18 +160,17 @@ function Save-ClientSettings {
 
     # Get USB Paths
     if ($USB.Exists()) {
-        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Client_Configs_Fo
+        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.PCSetup_Client_Configs_Fo
     }
 
     If ($Final) {
-        Write-Host ""
         If (!($USB.Exists())) {
-            Write-Host "WARNING:" -ForegroundColor Red -NoNewline; Write-Host " Conducting final save of $ClientConfig_FileName and the Imaging Tool is not detected"
+            Write-Host "`nWARNING:" -ForegroundColor Red -NoNewline; Write-Host " Conducting final save of $ClientConfig_FileName and the Imaging Tool is not detected"
             Write-Host "If you want $ClientConfig_FileName to be saved to your Imaging Tool, " -NoNewline; Write-Host "plug it in now" -NoNewline -ForegroundColor Red; Write-Host " before continuing"
             Pause
             # Get USB Paths
             if ($USB.Exists()) {
-                $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Client_Configs_Fo
+                $FolderPath_USB_Automated_Setup_Client_Configs = $USB.PCSetup_Client_Configs_Fo
             }
         }
         # If $Final switch and USB is plugged in, save to USB at $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\PC_Setup\Client_Configs"
@@ -397,7 +397,7 @@ function Get-DomainJoinInfo {
                         Write-Host "`nWhat is the NETBIOS Domain name?" -ForegroundColor Yellow
                         Write-Host "Example: ATI"
                         $choice = Read-Host -Prompt "Enter the NETBIOS Domain name"
-                    } UNTIL ($choice -ne $null)
+                    } UNTIL ($null -ne $choice)
                     if ($Automated_Setup) {Add-ClientSetting -Name NETBIOS -Value $choice}
                 }
 
@@ -411,7 +411,7 @@ function Get-DomainJoinInfo {
                         Write-Host "What is the DNS Domain name?" -ForegroundColor Yellow
                         Write-Host "Example: ati.local"
                         $choice = Read-Host -Prompt "Enter the DNS Domain name"
-                    } UNTIL ($choice -ne $null)
+                    } UNTIL ($null -ne $choice)
                     if ($Automated_Setup) {Add-ClientSetting -Name DNS_Domain_Name -Value $choice}
                 }
 
@@ -425,7 +425,7 @@ function Get-DomainJoinInfo {
                         Write-Host "What is the domain admin username?" -ForegroundColor Yellow
                         Write-Host "Example: Axxys"
                         $choice = Read-Host -Prompt "Enter the domain admin username"
-                    } UNTIL ($choice -ne $null)
+                    } UNTIL ($null -ne $choice)
                     if ($Automated_Setup) {Add-ClientSetting -Name Domain_Admin_Username -Value $choice}
                 }
 
@@ -441,7 +441,7 @@ function Get-DomainJoinInfo {
                             Write-Host "What is the PC naming convention?" -ForegroundColor Yellow
                             Write-Host "Example: ATI-[DT/LT]-XX"
                             $choice = Read-Host -Prompt "Enter the PC naming convention"
-                        } UNTIL ($choice -ne $null)
+                        } UNTIL ($null -ne $choice)
                         if ($Automated_Setup) {Add-ClientSetting -Name Naming_Convention -Value $choice}
                     }
 
@@ -455,12 +455,12 @@ function Get-DomainJoinInfo {
                             Write-Host "What is an example for a PC name?" -ForegroundColor Yellow
                             Write-Host "Example: ATI-DT-01"
                             $choice = Read-Host -Prompt "Enter the example PC name"
-                        } UNTIL ($choice -ne $null)
-                        if (Automated_Setup) {Add-ClientSetting -Name PC_Name_Example -Value $choice}
+                        } UNTIL ($null -ne $choice)
+                        if ($Automated_Setup) {Add-ClientSetting -Name PC_Name_Example -Value $choice}
                     }
                 }
                 # Mark this section as completed
-                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step has been completed" -ForegroundColor Green
             } # End of Switch(1)
             2 {
@@ -483,7 +483,7 @@ function Get-DomainJoinInfo {
                             Write-Host "What is the PC naming convention?" -ForegroundColor Yellow
                             Write-Host "Example: ATI-[DT/LT]-XX"
                             $choice = Read-Host -Prompt "Enter the PC naming convention"
-                        } UNTIL ($choice -ne $null)
+                        } UNTIL ($null -ne $choice)
                         if ($Automated_Setup) {Add-ClientSetting -Name Naming_Convention -Value $choice}
                     }
 
@@ -497,7 +497,7 @@ function Get-DomainJoinInfo {
                             Write-Host "What is an example for a PC name?" -ForegroundColor Yellow
                             Write-Host "Example: ATI-DT-01"
                             $choice = Read-Host -Prompt "Enter the example PC name"
-                        } UNTIL ($choice -ne $null)
+                        } UNTIL ($null -ne $choice)
                         if ($Automated_Setup) {Add-ClientSetting -Name PC_Name_Example -Value $choice}
                     }
                     Write-Host "$Step has been completed" -ForegroundColor Green
@@ -508,108 +508,12 @@ function Get-DomainJoinInfo {
         } # End of Switch($choice)
     }
 } Export-ModuleMember -Function Get-DomainJoinInfo
-
-function CheckPoint-DriverUpdates {
-    Install-DriverUpdateAssistant
-    Update-Drivers
-} Export-ModuleMember -Function CheckPoint-DriverUpdates
 #endregion Automated-Setup Related Functions
 
 #region Automated-Setup Submenu Functions
 ##############################################################################
 ############## Imaging Tool - Automated Setup Submenu Functions ##############
 ##############################################################################
-function Inject-AutomatedSetupScripts {
-    #region Function Variables
-    $USB_AutomatedSetup_HomeDir = $USB.PCMaint_AS_HomeDir_Fo
-    $Local_AutomatedSetup_HomeDir = $TechTool.Setup_Fo
-        $USB_ClientConfigs_Folder = $USB.PCSetup_Client_Configs_Fo
-        $Local_ClientConfigs_Repo = $TechTool.Setup_AS_Client_Config_Repository_Fo
-    $USB_StandardSoftware_Folder = $USB.PCSetup_SoftwareCollection_StandardSoftware_Fo
-    $Local_StandardSoftware_Folder = $TechTool.Setup_SoftwareCollection_StandardSoftware_Fo
-        $USB_ODTSoftware_Folder = $USB.PCSetup_SoftwareCollection_ODT_Fo
-        $Local_ODTSoftware_Folder = $TechTool.Setup_SoftwareCollection_ODTSoftware_Fo
-    $USB_ProfileSoftware_Folder = $USB.PCSetup_SoftwareCollection_ProfileSoftware_Fo
-    $Local_ProfileSoftware_Folder = $TechTool.Setup_SoftwareCollection_ProfileSoftware_Fo
-        $USB_DriverCollection_Folder = $USB.PCSetup_DriverCollection_Fo
-        $Local_DriverCollection_Folder = $TechTool.Setup_DriverCollection_Fo
-    $USB_ScriptCollection_Folder = $USB.PCSetup_ScriptCollection_Fo
-    $Local_ScriptCollection_Folder = $TechTool.Setup_ScriptCollection_Fo
-    #endregion Function Variables
-
-    #region Edit Registry
-    ###########################
-    ## -=[ EDIT REGISTRY ]=- ##
-    ###########################
-
-    # -=[ Disable Live Tiles ]=-
-    cmd.exe /c 'REG ADD "HKLM\Software\Policies\Microsoft\Windows\CurrentVersion\Pushnotications" /v NoTileApplictionNotification /d 1 /f /t REG_DWORD'# | Out-Null
-    
-    # -=[ Remove "Cortana" button from the taskbar ]=-
-    cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowCortanaButton /d 0 /f /t REG_DWORD'# | Out-Null
-    
-    # -=[ Remove "People" icon from the taskbar ]=-
-    cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People" /v PeopleBand /d 0 /f /t REG_DWORD'# | Out-Null
-    
-    # -=[ Remove "TaskViewButton" from the taskbar ]=-
-    cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowTaskViewButton /d 0 /f /t REG_DWORD'# | Out-Null
-
-    # -=[ Show ALL system tray icons ]=-
-    cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer" /v EnableAutoTray /d 0 /f /t REG_DWORD'# | Out-Null
-
-    # Set Searchbar as Icon rather than Search Box
-    cmd.exe /c 'REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTaskbarMode /d 1 /f /t REG_DWORD'# | Out-Null
-    
-    # Do not show News & Interests button
-    cmd.exe /c 'REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /d 2 /f /t REG_DWORD'# | Out-Null
-    #endregion Edit Registry
-
-    #region Deploy Setup Package
-    ##################################
-    ## -=[ Deploy_Setup_Package ]=- ##
-    ##################################
-
-    # -=[ Transfer Setup Core ]=-
-    XCOPY "$USB_AutomatedSetup_HomeDir\Setup\*" "$Local_AutomatedSetup_HomeDir\" /E /Y
-
-    # -=[ Transfer Client Configs ]=-
-    XCOPY "$USB_ClientConfigs_Folder\*" "$Local_ClientConfigs_Repo\" /E /Y
-
-    # -=[ Transfer Public Desktop ]=-
-    XCOPY "$USB_AutomatedSetup_HomeDir\PublicDesktop\*" "C:\Users\Public\Desktop\" /E /Y
-
-    # -=[ Transfer C:\Setup\Software\Standard_Software ]=-
-    XCOPY "$USB_StandardSoftware_Folder\*" "$Local_StandardSoftware_Folder\" /E /Y
-
-    # -=[ Transfer C:\Setup\Software\ODT ]=-
-    XCOPY "$USB_ODTSoftware_Folder\Install o365ProPlus1.bat" "$Local_ODTSoftware_Folder\Install o365ProPlus1.bat*" /Y
-    XCOPY "$USB_ODTSoftware_Folder\Install o365Business1.bat" "$Local_ODTSoftware_Folder\Install o365Business1.bat*" /Y
-    XCOPY "$USB_ODTSoftware_Folder\Install o365Enterprise_32-bit.bat" "$Local_ODTSoftware_Folder\Install o365Enterprise_32-bit.bat*" /Y
-    XCOPY "$USB_ODTSoftware_Folder\Install o365Business1_32-bit.bat" "$Local_ODTSoftware_Folder\Install o365Business1_32-bit.bat*" /Y
-    XCOPY "$USB_ODTSoftware_Folder\o365Business1.xml" "$Local_ODTSoftware_Folder\o365Business1.xml*" /Y
-    XCOPY "$USB_ODTSoftware_Folder\o365Business1_32-bit.xml" "$Local_ODTSoftware_Folder\o365Business1_32-bit.xml*" /Y
-    XCOPY "$USB_ODTSoftware_Folder\o365ProPlus1.xml" "$Local_ODTSoftware_Folder\o365ProPlus1.xml*" /Y
-    XCOPY "$USB_ODTSoftware_Folder\o365Enterprise_32-bit.xml" "$Local_ODTSoftware_Folder\o365Enterprise_32-bit.xml*" /Y
-    XCOPY "$USB_ODTSoftware_Folder\setup.exe" "$Local_ODTSoftware_Folder\setup.exe*" /Y
-    XCOPY "$USB_ODTSoftware_Folder\Office\*" "$Local_ODTSoftware_Folder\Office\" /E /Y
-
-    # -=[ Transfer C:\Setup\Standard_Software\Profile_Specific_Software ]=-
-    XCOPY "$USB_ProfileSoftware_Folder\*" "$Local_ProfileSoftware_Folder\" /E /Y
-
-    # -=[ Transfer Driver Collection ]=-
-    XCOPY "$USB_DriverCollection_Folder\*" "$Local_DriverCollection_Folder\" /E /Y
-
-    # -=[ Transfer Script Collection ]=-
-    XCOPY "$USB_ScriptCollection_Folder\*" "$Local_ScriptCollection_Folder\" /E /Y
-
-    #endregion Deploy Setup Package
-
-    ###################################
-    ## -=[ Start Automated Setup ]=- ##
-    ###################################
-    #IF EXIST "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat" CALL "C:\Users\Public\Desktop\Start-AutomatedSetup-RAA.bat"
-} Export-ModuleMember -Function Inject-AutomatedSetupScripts
-
 function Start-AutomatedSetup {
     if (!(Test-Path $Setup_AS_AutomateSetup_ps1)) {
         Write-Host "`nAutomated Setup program is not detected on the current computer" -ForegroundColor Red
@@ -631,7 +535,7 @@ function Remove-Automated_Setup_Files {
         #Remove-Item $UnAttend -ErrorAction SilentlyContinue | Out-Null
         Remove-Item $Setup_AS_RegistryBackup_Fo -Recurse | Out-Null
         Remove-Item $Setup_AS_Client_Config_Fo -Recurse | Out-Null
-        Remove-Folder -Folder $Setup_SoftwareCollection_Fo_Configs
+        Remove-Folder -Folder $Setup_SoftwareCollection_Configs_Fo
         Write-Host "Automated Setup files have been removed from the PC" -ForegroundColor Green
 } Export-ModuleMember -Function Remove-Automated_Setup_Files
 
@@ -640,7 +544,7 @@ function Read-ClientConfig {
 
     # Get USB Paths
     if ($USB.Exists()) {
-        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.Client_Configs_Fo
+        $FolderPath_USB_Automated_Setup_Client_Configs = $USB.PCSetup_Client_Configs_Fo
     }
 
     # Check the USB Client Configs repository under $FolderPath_USB_Automated_Setup_Client_Configs = "$USB_Drive\sources\PC-Maintenance\1. Automated Setup\Client_Configs"

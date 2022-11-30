@@ -307,7 +307,7 @@ class Software {
             #Write-Host "`$Installer_Path = $Installer_Path"
             Copy-Item -Path $USB_Installer_Path -Destination $Installer_Path
         # Otherwise download the installer if possible
-        } elseif ($Installer_URL -ne $null) {
+        } elseif ($null -ne $Installer_URL) {
             #Write-Host "`$Installer_URL = $Installer_URL"
             #Write-Host "`$Local_Installer_Path = $Local_Installer_Path"
             if (!($Local_Installer_Path)) {New-Item -Path "$Local_Installer_Path" -ItemType Directory -Force}
@@ -330,7 +330,7 @@ class Software {
                 Write-Host "`nWARNING: " -ForegroundColor Red -NoNewline; Write-Host "Was not able to locate an installer for $SoftwareName on the local host"
             }
             Write-Host "  >You will need to " -NoNewline; Write-Host "download" -ForegroundColor Cyan -NoNewline; Write-Host " this software and " -NoNewline; Write-Host "install" -ForegroundColor Cyan -NoNewline; Write-Host " it " -NoNewline; Write-Host "manually" -ForegroundColor Red -NoNewline; Write-Host "..."
-            If ($Installer_Manual_URL -ne $null) {Write-Host "  >Opening Download portal now" -ForegroundColor Green; Start-Process $Installer_Manual_URL}
+            If ($null -ne $Installer_Manual_URL) {Write-Host "  >Opening Download portal now" -ForegroundColor Green; Start-Process $Installer_Manual_URL}
             Write-Host "`nPlease also place a copy of $Installer_Name in the $Installer_Source folder on the Imaging Tool" -ForegroundColor Yellow
             Write-Host "  >If you do this, you will not need to download it next time"
             Write-Host "`nOnce the software has been installed," -ForegroundColor Yellow
@@ -352,7 +352,7 @@ class Software {
                 if ($Installer_Path -like "*.exe") {
                     if ($Installer_Arguments) {$Arguments = ($Installer_Arguments).Split(",")}
                     #Write-Host 'Troubleshooting Info - $Arguments = '$Arguments
-                    if ($Arguments -eq $null) {
+                    if ($null -eq $Arguments) {
                         #Write-Host "Troubleshooting Info: Start-Process $Installer_Path -WorkingDirectory $Working_Dir -Wait"
                         Start-Process $Installer_Path -WorkingDirectory $Working_Dir -Wait
                     } else {
@@ -371,9 +371,9 @@ class Software {
         }
 
         # Verify Installation Status and Create CompletionFile if install is successful
-        If (($Installer_Verification_Path -ne $null) -and ($CompletionFile -ne "none")) {
+        If (($null -ne $Installer_Verification_Path) -and ($CompletionFile -ne "none")) {
             $this.Verify_Installation_Success($SoftwareName,$Installer_Verification_Path,$CompletionFile)
-        } elseif ($Installer_Verification_Path -ne $null) {
+        } elseif ($null -ne $Installer_Verification_Path) {
             $this.Verify_Installation_Success($SoftwareName,$Installer_Verification_Path)
         } else {
             Write-Host "WARNING!!" -ForegroundColor Red -NoNewline; Write-Host ": Software config does not have a Verification Path to reference"
@@ -421,10 +421,9 @@ $USB = New-ImagingUSB
 # Variables may be defined from parent script. If not, they will be defined from here.
 $Setup_Fo                                       = $TechTool.Setup_Fo
 $Setup_AS_Status_Fo                             = $TechTool.Setup_AS_Status_Fo
-$Setup_SoftwareCollection_Fo                    = $TechTool.Setup_SoftwareCollection_Fo
 $Setup_SoftwareCollection_ODTSoftware_Fo        = $TechTool.Setup_SoftwareCollection_ODTSoftware_Fo
 $Setup_SoftwareCollection_ProfileSoftware_Fo    = $TechTool.Setup_SoftwareCollection_ProfileSoftware_Fo
-$Setup_SoftwareCollection_StandardSoftware_Fo  = $TechTool.Setup_SoftwareCollection_StandardSoftware_Fo
+$Setup_SoftwareCollection_StandardSoftware_Fo   = $TechTool.Setup_SoftwareCollection_StandardSoftware_Fo
 #endregion Module Variables
 
 #region Just a test function
@@ -1114,79 +1113,40 @@ function Install-DriverUpdateAssistant {
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
-    $SkippedFile = "$StepStatus-Skipped.txt"
+    $CompletionFile = "$StepStatus-Completed.txt"
     
-    If (Test-Path "$StepStatus*") {
-        If (Test-Path "$StepStatus-DellSA.txt") {Write-Host "Dell Support Assistant" -NoNewline; Write-Host " has been installed" -ForegroundColor Green}
-        If (Test-Path "$StepStatus-DellCU.txt") {Write-Host "Dell Command | Update" -NoNewline; Write-Host " has been installed" -ForegroundColor Green}
-        If (Test-Path "$StepStatus-HP.txt") {Write-Host "HP Support Assistant" -NoNewline; Write-Host " has been installed" -ForegroundColor Green}
-        If (Test-Path $SkippedFile) {Write-Host "Both Dell and HP Support Assistant Installations" -NoNewline; Write-Host " have been skipped"}
+    If (Test-Path $CompletionFile) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        $choice = $null
-        DO {
-            Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
-            Write-Host "Which Driver Update Assistant would you like to install?"
-            Write-Host "1. Dell Command | Update" -NoNewline; Write-Host " <--- Suggested for Dell PCs" -ForegroundColor Green
-            Write-Host "2. Dell SupportAssist"
-            Write-Host "3. HP Support Assistant"
-            Write-Host "4. HP Image Assistant" -NoNewline; Write-Host "    <--- Suggested for HP PCs" -ForegroundColor Green
-            Write-Host "5. None"
-            [int]$choice = Read-Host -Prompt "Enter a number, 1 through 5"
-        } UNTIL (($choice -ge 1) -and ($choice -le 5))
-        switch ($choice) {
-            1 {
-                $Software.Install("EXTRACT Dell Command | Update")
-                $Software.Install("INSTALL Dell Command | Update","$StepStatus-DellCU.txt")
-            }
-            2 {
-                $SoftwareName = "Dell SupportAssist"
-                Write-Host "`nInstalling $SoftwareName"
-                $InstallerPath = "$Setup_SoftwareCollection_StandardSoftware_Fo\Dell_Support_Assist_Installer.exe"
-                Copy-Item -Path $InstallerPath -Destination $Setup_Fo -Force
-                Start-Process "$InstallerPath" -Wait
-                Write-Host "Verifying if the software is now installed..."
-                $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-                If (($Global:Installed_Software).DisplayName -match $SoftwareName) {
-                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    if ($Automated_Setup) {New-Item "$StepStatus-DellSA.txt" -ItemType File -Force | Out-Null}
-                } else {
-                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
-                    Write-Host "Reboot or just relog to re-attempt install"
-                }
-            }
-            3 {
-                $SoftwareName = "HP Support Assistant"
-                Write-Host "`nInstalling $SoftwareName"
-                $InstallerPath = "$Setup_SoftwareCollection_StandardSoftware_Fo\HP_Support_Assistant.exe"
-                Copy-Item -Path $InstallerPath -Destination $Setup_Fo -Force
-                Start-Process "$InstallerPath" -Wait
-                Write-Host "Verifying if the software is now installed..."
-                If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
-                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    if ($Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
-                } else {
-                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
-                    Write-Host "Reboot or just relog to re-attempt install"
-                }
-            }
-            4 {
-                $Software.Install("HP Image Assistant","$StepStatus-HPIA.txt")
+        Get-Manufacturer
+        If ($Manufacturer -eq "HP") {
+            # Install HP Image Assistant if not already installed
+            $HP_Image_Assistant_Program = "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
+            If (!(Test-Path $HP_Image_Assistant_Program)) {
+                $Software.Install("HP Image Assistant",$CompletionFile)
 
-                $TargetFile = "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
                 $WScriptShell = New-Object -ComObject WScript.Shell
 
                 $Shortcut = $WScriptShell.CreateShortcut("$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\HP Image Assistant.lnk")
-                $Shortcut.TargetPath = $TargetFile
+                $Shortcut.TargetPath = $HP_Image_Assistant_Program
                 $Shortcut.Save()
 
                 $Shortcut = $WScriptShell.CreateShortcut("C:\Users\Public\Desktop\HP Image Assistant.lnk")
-                $Shortcut.TargetPath = $TargetFile
+                $Shortcut.TargetPath = $HP_Image_Assistant_Program
                 $Shortcut.Save()
             }
-            5 {
-                Write-Host "All Driver Update Assistant installations have been skipped" -ForegroundColor Green
-                if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
-            }
+        } elseif ($Manufacturer -eq "Dell") {
+            # Install Dell Command | Update if not already installed
+            $Software.Install("EXTRACT Dell Command | Update")
+            $Software.Install("INSTALL Dell Command | Update",$CompletionFile)
+        } else {
+            Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+            Write-Host "`n`$Manufacturer = $Manufacturer"
+            Write-Host "Manufacturer not detected to be either HP or Dell"
+            Write-Host "Please manually install a driver update assistant before continuing with the setup"
+            DO {$choice = Read-Host -Prompt "`nType in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
+            if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
         }
     }
 } Export-ModuleMember -Function Install-DriverUpdateAssistant

@@ -9,8 +9,11 @@
 #region TechTool Class
 class TechTool {
     [string]$PublicDesktop_Fo                                   = "C:\Users\Public\Desktop"
-    [string]$TechTool_bat_Fi                                    = "C:\Users\Public\Desktop\TechTool-RAA.bat"
-    [string]$TechTool_ps1_Fi                                    = "C:\Users\Public\Desktop\sources\TechTool.ps1"
+    [string]$CurrentUserDesktop                                 = "$env:USERPROFILE\Desktop"
+    #[string]$TechTool_bat_Fi                                    = "C:\Users\Public\Desktop\TechTool-RAA.bat"
+    #[string]$TechTool_ps1_Fi                                    = "C:\Users\Public\Desktop\sources\TechTool.ps1"
+    [string]$TechTool_bat_Fi                                    = $this.CurrentUserDesktop + "\TechTool-RAA.bat"
+    [string]$TechTool_ps1_Fi                                    = $this.CurrentUserDesktop + "\sources\TechTool.ps1"
 
     [string]$Modules_Fo                                         = "C:\Program Files\WindowsPowerShell\Modules"
     [string]$Module_ImagingUSB_Fi                               = $this.Modules_Fo +                        "\ImagingUSB\ImagingUSB.psm1"
@@ -19,7 +22,7 @@ class TechTool {
     [string]$Module_InstallSoftware_Fi                          = $this.Modules_Fo +                        "\Install-Software\Install-Software.psm1"
     [string]$Module_TuneUpPC_Fi                                 = $this.Modules_Fo +                        "\TuneUp-PC\TuneUp-PC.psm1"
     [string]$Module_TechTool_Fi                                 = $this.Modules_Fo +                        "\TechTool\TechTool.psm1"
-    
+
     [string]$Setup_Fo                                           =          "C:\Setup"
     [string]$Setup_AS_Client_Config_Fo                          = $this.Setup_Fo + "\_Automated_Setup\_Client_Config"
     [string]$Setup_AS_Client_Config_Repository_Fo               = $this.Setup_Fo + "\_Automated_Setup\_Client_Config\Repository"
@@ -259,7 +262,22 @@ function New-TechTool {
 } Export-ModuleMember -Function New-TechTool
 
 function Update-TechTool {
-    $TechTool.Update()
+    $USB = New-ImagingUSB
+    if ($USB.Exists()) {
+        if ($USB.DevTool) {
+            $TechTool.Push_Dev_Scripts()
+            $TechTool.Import_Modules()
+        } else {
+            $TechTool.Download_GitHub_Repo()
+            $TechTool.Update_Local_Scripts()
+            $TechTool.Import_Modules()
+            $TechTool.Update_USB_Scripts()
+        }
+    } else {
+        $TechTool.Download_GitHub_Repo()
+        $TechTool.Update_Local_Scripts()
+        $TechTool.Import_Modules()
+    }
 } Export-ModuleMember -Function Update-TechTool
 #endregion TechTool Class
 
@@ -269,38 +287,14 @@ function Update-TechTool {
 $USB = New-ImagingUSB
 $TechTool = New-TechTool
 
-<#foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
-    $Test_Path = "$Drive_Letter" + ":\PC_Setup"
-    If (Test-Path $Test_Path -ErrorAction SilentlyContinue) {
-        $USB_Drive = "$Drive_Letter" + ":"
-    }
-}#>
-
 # VARIABLES
 # -=[ IMAGE MAINTENANCE ]=-
-  $ImageMaintenance_DOWNLOAD_Latest_ESD_File_Fi         = $USB.ImageMaint_DOWNLOADLatestESDFile_ps1_Fi
-  $ImageMaintenance_EXTRACT_WIM_from_ESD_Fi             = $USB.ImageMaint_EXTRACTWIMfromESD_ps1_Fi
-  $ImageMaintenance_CREATE_Modded_WIM_Fi                = $USB.ImageMaint_CREATEModdedWIM_ps1_Fi
-# -=[ PC MAINTENANCE ]=-
-# Modules
-# 1. Automated Setup
-# 2. Configure Automatic Sign In
-# 3. Standardize PC
-# 4. Install Software
-# 5. Update PC
-# 6. Cleanup Hard Drive
-  $FilePath_USB_Cleanup_HD                              = $USB.PCMaint_CleanupHardDrive_Cleanup_HD_ps1_Fi
-# 7. Migrate User Profile
-  $FilePath_USB_Migrate_User_Profile_BACKUP             = $USB.PCMaint_MigrateUserProfile_BACKUP_ps1_Fi
-  $FilePath_USB_Migrate_User_Profile_RESTORE            = $USB.PCMaint_MigrateUserProfile_RESTORE_ps1_Fi
-# 8. Backup Folder
-  $FilePath_USB_Backup_Folder_BACKUP                    = $USB.PCMaint_BackupFolder_BACKUP_bat_Fi
-# -=[ Imaging USB MAINTENANCE ]=-
-  $USBMaintenance_BACKUP_Minus_Images_Fi                = $USB.USBMaint_BACKUPMinusImages_bat_Fi
-  $USBMaintenance_BACKUP_Fi                             = $USB.USBMaint_BACKUP_bat_Fi
-  $USBMaintenance_CREATE_AutoDeploy_Package_Fi          = $USB.USBMaint_CREATEAutoDeployPackage_bat_Fi
-  $USBMaintenance_RESTORE_Fi                            = $USB.USBMaint_RESTORE_bat_Fi
+$ImageMaintenance_DOWNLOAD_Latest_ESD_File_Fi         = $USB.ImageMaint_DOWNLOADLatestESDFile_ps1_Fi
+$ImageMaintenance_EXTRACT_WIM_from_ESD_Fi             = $USB.ImageMaint_EXTRACTWIMfromESD_ps1_Fi
+$ImageMaintenance_CREATE_Modded_WIM_Fi                = $USB.ImageMaint_CREATEModdedWIM_ps1_Fi
 
+# -=[ Imaging USB MAINTENANCE ]=-
+$USBMaintenance_CREATE_AutoDeploy_Package_Fi          = $USB.USBMaint_CREATEAutoDeployPackage_bat_Fi
 #endregion Module Variables
 
 #region Menu Functions
@@ -326,14 +320,14 @@ function Main_Menu {
             $StepNum++
             Write-Host "`n    $StepNum. Enter " -NoNewline; Write-Host "Image Maintenance " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
             Write-Host "        -Enter this menu to create a fresh .wim file of the latest Win10 OS version" -ForegroundColor DarkGray
-            Write-Host "        -This should only need to be done every 6-12 months" -ForegroundColor DarkYellow
+            Write-Host "        -This should only need to be done every 6-12 months" -ForegroundColor Yellow
         }
         If ($USB.DevTool) {
             $StepNum++
             Write-Host "`n    $StepNum. Enter " -NoNewline; Write-Host "Imaging Tool Maintenance " -NoNewline -ForegroundColor DarkGray; Write-Host "menu"
             Write-Host "        -Enter this menu for Maintenance tasks related to this USB Tool" -ForegroundColor DarkGray
-            Write-Host "        -This menu is intended for developers. An average tech should" -ForegroundColor DarkYellow
-            Write-Host "         not need to use this under normal circumstances" -ForegroundColor DarkYellow
+            Write-Host "        -This menu is intended for developers. An average tech should" -ForegroundColor Yellow
+            Write-Host "         not need to use this under normal circumstances" -ForegroundColor Yellow
         }
         $StepNum++
         Write-Host "`n    $StepNum. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
@@ -341,9 +335,9 @@ function Main_Menu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 1) -and ($choice -le $StepNum))
     Switch ($choice) {
-        1 {Clear-Host; PC-Maintenance_submenu}
-        2 {Clear-Host; Image-Maintenance_submenu}
-        3 {Clear-Host; ImagingUSB-Maintenance_submenu}
+        1 {Clear-Host; Enter-PC_Maintenance_Menu}
+        2 {Clear-Host; Enter-Image_Maintenance_Menu}
+        3 {Clear-Host; Enter-ImagingUSB_Maintenance_Menu}
         4 {EXIT}
     }
 } Export-ModuleMember -Function Main_Menu
@@ -353,7 +347,7 @@ function Main_Menu {
 #########################################################################################################################################
 ############################################################ PC Maintenance #############################################################
 #########################################################################################################################################
-function PC-Maintenance_submenu {
+function Enter-PC_Maintenance_Menu {
     DO {
         Write-Host "`n-=[ PC Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -364,9 +358,9 @@ function PC-Maintenance_submenu {
         Write-Host "4. Enter " -NoNewline; Write-Host "Standardize PC " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
         Write-Host "5. Enter " -NoNewline; Write-Host "Install Software " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
         Write-Host "6. Enter " -NoNewline; Write-Host "Update PC " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
-        Write-Host "7. Enter " -NoNewline; Write-Host "Cleanup Hard Drive " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "7. Enter " -NoNewline; Write-Host "Cleanup System Drive " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
         Write-Host "8. Enter " -NoNewline; Write-Host "Migrate User Profile " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
-        Write-Host "9. Enter " -NoNewline; Write-Host "Backup Folder " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "9. Enter " -NoNewline; Write-Host "Sync Folder " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
         Write-Host "10. Pull " -NoNewline; Write-Host "Intune " -NoNewline -ForegroundColor DarkYellow; Write-Host "Hardware ID " -ForegroundColor DarkCyan
         Write-Host "11. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
         $choice = Read-Host -Prompt "Enter a number, 0 thru 11"
@@ -380,15 +374,15 @@ function PC-Maintenance_submenu {
         4 {Clear-Host; Standardize_PC_submenu}
         5 {Clear-Host; Install_Software_submenu}
         6 {Clear-Host; Update_PC_submenu}
-        7 {Clear-Host; Start-Process "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -ArgumentList ("-NoExit -Windowstyle maximized -ExecutionPolicy Bypass -File $FilePath_USB_Cleanup_HD")}
+        7 {Clear-Host; Cleanup-System_Drive}
         8 {Clear-Host; Migrate_User_Profile_submenu}
-        9 {Clear-Host; Start-Process $FilePath_USB_Backup_Folder_BACKUP}
+        9 {Clear-Host; Sync_Folder}
         10 {Clear-Host; Pull_IntuneHWID}
         11 {EXIT}
     }
     # Recursivly call the PC Maintenance Menu
-    PC-Maintenance_submenu
-}
+    Enter-PC_Maintenance_Menu
+} Export-ModuleMember -Function Enter-PC_Maintenance_Menu
 
 function Automated_Setup_submenu {    
     DO {
@@ -406,7 +400,7 @@ function Automated_Setup_submenu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 7))
     Switch ($choice) {
-        0 {Clear-Host; PC-Maintenance_submenu}
+        0 {Clear-Host; Enter-PC_Maintenance_Menu}
         1 {
             Clear-Host
             Write-Host "`nInjecting the Automated Setup program in the background..." -ForegroundColor Green
@@ -429,7 +423,7 @@ function Automated_Setup_submenu {
     
     #Recursivly call the submenu
     Automated_Setup_submenu
-} # End of Automated_Setup_submenu
+} Export-ModuleMember -Function Automated_Setup_submenu # End of Automated_Setup_submenu
 
 function TuneUp-PC_submenu {
     DO {
@@ -444,7 +438,7 @@ function TuneUp-PC_submenu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 4))
     Switch ($choice) {
-        0 {Clear-Host; PC-Maintenance_submenu}
+        0 {Clear-Host; Enter-PC_Maintenance_Menu}
         1 {Clear-Host; Inject-TuneUp_PC}
         2 {Clear-Host; Start-TuneUp_PC}
         3 {Clear-Host; Stop-TuneUp_AtLogon}
@@ -453,7 +447,7 @@ function TuneUp-PC_submenu {
 
     #Recursivly call the submenu
     TuneUp-PC_submenu
-} # End of TuneUp-PC_submenu
+} Export-ModuleMember -Function TuneUp-PC_submenu # End of TuneUp-PC_submenu
 
 function Configure_Automatic_Sign_In_submenu {
     DO {
@@ -467,14 +461,14 @@ function Configure_Automatic_Sign_In_submenu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 3))
     Switch ($choice) {
-        0 {Clear-Host; PC-Maintenance_submenu}
+        0 {Clear-Host; Enter-PC_Maintenance_Menu}
         1 {Clear-Host; Enable-AutoLogon}
         2 {Clear-Host; Remove-AutoLogon}
         3 {EXIT}
     }
     #Recursivly call the submenu
     Configure_Automatic_Sign_In_submenu
-} # End of Configure_Automatic_Sign_In_submenu
+} Export-ModuleMember -Function Configure_Automatic_Sign_In_submenu # End of Configure_Automatic_Sign_In_submenu
 
 function Standardize_PC_submenu {
     DO {
@@ -487,13 +481,13 @@ function Standardize_PC_submenu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 2))
     Switch ($choice) {
-        0 {Clear-Host; PC-Maintenance_submenu}
+        0 {Clear-Host; Enter-PC_Maintenance_Menu}
         1 {Clear-Host; Set-PCDefaultSettings}
         2 {EXIT}
     }
     #Recursivly call the submenu
     Standardize_PC_submenu
-} # End of Standardize_PC_submenu
+} Export-ModuleMember -Function Standardize_PC_submenu # End of Standardize_PC_submenu
 
 function Install_Software_submenu {
     DO {
@@ -519,7 +513,7 @@ function Install_Software_submenu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 13))
     Switch ($choice) {
-        0 {Clear-Host; PC-Maintenance_submenu}
+        0 {Clear-Host; Enter-PC_Maintenance_Menu}
         1 {Clear-Host; Install-Image_Softwares}
         2 {Clear-Host; Choose-Browser}
         3 {Clear-Host; Choose-PDF_Viewer}
@@ -536,7 +530,7 @@ function Install_Software_submenu {
     }
     #Recursivly call the submenu
     Install_Software_submenu
-} # End of Install_Software_submenu
+} Export-ModuleMember -Function Install_Software_submenu # End of Install_Software_submenu
 
 function Update_PC_submenu {
     DO {
@@ -549,13 +543,13 @@ function Update_PC_submenu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 2))
     Switch ($choice) {
-        0 {Clear-Host; PC-Maintenance_submenu}
+        0 {Clear-Host; Enter-PC_Maintenance_Menu}
         1 {Clear-Host; Install-Windows_Updates -RebootAllowed}
         2 {EXIT}
     }
     #Recursivly call the submenu
     Update_PC_submenu
-} # End of Update_PC_submenu
+} Export-ModuleMember -Function Update_PC_submenu # End of Update_PC_submenu
 
 function Migrate_User_Profile_submenu {
     DO {
@@ -566,48 +560,30 @@ function Migrate_User_Profile_submenu {
         Write-Host "2. " -NoNewline; Write-Host "RESTORE " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Transwiz" -ForegroundColor DarkCyan -NoNewline; Write-Host "  -Not developed yet" -ForegroundColor DarkRed
         Write-Host "3. " -NoNewline; Write-Host "SYNC " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Sync-UserProfileData script" -ForegroundColor Green
         Write-Host "4. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "Enter a number, 0 thru 4"
-        $choice = $choice -as [int]
+        [int]$choice = Read-Host -Prompt "Enter a number, 0 thru 4"
     } UNTIL (($choice -ge 0) -and ($choice -le 4))
     Switch ($choice) {
-        0 {Clear-Host; PC-Maintenance_submenu}
-        1 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_BACKUP}
-        2 {Clear-Host; Start-Process $FilePath_USB_Migrate_User_Profile_RESTORE}
-        3 {Clear-Host; Migrate_User_Profile}
+        0 {Clear-Host; Enter-PC_Maintenance_Menu}
+        1 {Clear-Host; Write-Host "`nDoes not function yet..." -ForegroundColor Red}
+        2 {Clear-Host; Write-Host "`nDoes not function yet..." -ForegroundColor Red}
+        3 {
+            Clear-Host
+            Write-Host "`nRunning the Migrate User Profile script in the background..." -ForegroundColor Green
+            #Start-Process $FilePath_USB_Automated_Setup_INJECT_Scripts_Script
+            Start-Process powershell -ArgumentList '-command Migrate_User_Profile' -WindowStyle Maximized
+        }
         4 {EXIT}
     }
     #Recursivly call the submenu
     Migrate_User_Profile_submenu
-} # End of Migrate_User_Profile_submenu
-
-function Pull_IntuneHWID {
-    # Get The USB Drive Letter
-    foreach ($letter in (Get-PSDrive -PSProvider FileSystem).Name) {
-        $TestPath = "$letter" + ":\PC_Setup"
-        If (Test-Path $TestPath) {
-            $USB = "$letter" + ":"
-        }
-    }
-
-    If (Test-Path $USB) {
-        #New-Item -Type Directory -Path "$USB\HWID" -Force
-        Set-Location -Path "$USB\"
-        $OriginalPath = $env:Path
-        $env:Path += ";$USB\sources\PC-Maintenance\Get-WindowsAutoPilotInfo"
-        Write-Host ""
-        #Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned -Force
-        Get-WindowsAutopilotInfo -OutputFile IntuneAutopilot_HWID.csv -Append
-        Write-Host "`nSaved\Added to " -NoNewline; Write-Host "$USB\IntuneAutopilot_HWID.csv" -ForegroundColor Cyan
-        $env:Path = $OriginalPath
-    }
-}
+} Export-ModuleMember -Function Migrate_User_Profile_submenu # End of Migrate_User_Profile_submenu
 #endregion PC Maintenance
 
 #region Image Maintenance
 #########################################################################################################################################
 ########################################################### Image Maintenance ###########################################################
 #########################################################################################################################################
-function Image-Maintenance_submenu {
+function Enter-Image_Maintenance_Menu {
     DO {
         Write-Host "`n-=[ Image Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -627,23 +603,23 @@ function Image-Maintenance_submenu {
         4 {EXIT}
     }
     # Recursivly call the Image Maintenance Menu
-    Image-Maintenance_submenu
-}
+    Enter-Image_Maintenance_Menu
+} Export-ModuleMember -Function Enter-Image_Maintenance_Menu
 #endregion Image Maintenance
 
 #region Imaging USB Maintenance
 ########################################################################################################################################
 ########################################################## USB Maintenance #############################################################
 ########################################################################################################################################
-function ImagingUSB-Maintenance_submenu {
+function Enter-ImagingUSB_Maintenance_Menu {
     DO {
         Write-Host "`n-=[ Tool Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
         Write-Host "0. " -NoNewline; Write-Host "BACK TO MAIN MENU" -ForegroundColor DarkGray
         Write-Host "1. " -NoNewline; Write-Host "BACKUP " -NoNewline -ForegroundColor Green; Write-Host "Imaging Drive (Minus Images - Can save a lot of time and local disk space)"
         Write-Host "2. " -NoNewline; Write-Host "BACKUP " -NoNewline -ForegroundColor Green; Write-Host "Imaging Drive"
-        Write-Host "3. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "WinPE USB AutoDeploy Package"
-        Write-Host "4. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "WinPE USB Package"
+        Write-Host "3. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "AutoDeploy Imaging USB Install Package"
+        Write-Host "4. " -NoNewline; Write-Host "CREATE " -NoNewline -ForegroundColor Cyan; Write-Host "Standard Imaging USB Install Package"
         Write-Host "5. " -NoNewline; Write-Host "TRANSFER " -NoNewline -ForegroundColor Cyan; Write-Host "WinPE USB Package to Axxys Storage"
         Write-Host "6. " -NoNewline; Write-Host "RESTORE " -NoNewline -ForegroundColor DarkCyan; Write-Host "Imaging Drive (Minus Images - Can save a lot of time and local disk space)"
         Write-Host "7. " -NoNewline; Write-Host "RESTORE " -NoNewline -ForegroundColor DarkCyan; Write-Host "Imaging Drive"
@@ -655,159 +631,39 @@ function ImagingUSB-Maintenance_submenu {
     } UNTIL (($choice -ge 0) -and ($choice -le 10))
     Switch ($choice) {
         0 {Clear-Host; Main_Menu}
-        1 {Clear-Host; & $USBMaintenance_BACKUP_Minus_Images_Fi}
-        2 {Clear-Host; & $USBMaintenance_BACKUP_Fi}
-        3 {Clear-Host; & $USBMaintenance_CREATE_AutoDeploy_Package_Fi}
-        4 {Clear-Host; ImagingUSBMaintenance_Create-Package}
-        5 {Clear-Host; ImagingUSBMaintenance_Transfer-Package}
-        6 {Clear-Host; & $FilePath_ImagingUSBToolMaintenance_RESTORE_Minus_Images}
-        7 {Clear-Host; & $USBMaintenance_RESTORE_Fi}
-        8 {Clear-Host; $script:TechTool.Download_GitHub_Repo() ;$script:TechTool.Update_USB_Scripts()}
-        9 {Clear-Host; $Script:TechTool.Update_Local_GitHubRepo()}
+        1 {
+            Clear-Host
+            Write-Host "`nRunning the script in the background..." -ForegroundColor Green
+            Write-Host "Logfile: " -NoNewline; Write-Host "C:\ImagingUSB_Backup_Log.txt`n" -ForegroundColor Cyan
+            Start-Process powershell -ArgumentList '-command Backup-ImagingUSB -WithoutImages' -WindowStyle Minimized
+        }
+        2 {
+            Clear-Host
+            Write-Host "`nRunning the script in the background..." -ForegroundColor Green
+            Write-Host "Logfile: " -NoNewline; Write-Host "C:\ImagingUSB_Backup_Log.txt`n" -ForegroundColor Cyan
+            Start-Process powershell -ArgumentList '-command Backup-ImagingUSB -WithoutImages' -WindowStyle Minimized
+        }
+        3 {Clear-Host; New-AutoDeploy_ImagingUSB_InstallPackage}
+        4 {Clear-Host; New-Standard_ImagingUSB_InstallPackage}
+        5 {Clear-Host; Move-Imaging_USB_Package_To_Axxys_Storage}
+        6 {
+            Clear-Host
+            Write-Host "`nRunning the script in the background..." -ForegroundColor Green
+            Write-Host "Logfile: " -NoNewline; Write-Host "C:\ImagingUSB_Restore_Log.txt`n" -ForegroundColor Cyan
+            Start-Process powershell -ArgumentList '-command Restore-ImagingUSB -WithoutImages' -WindowStyle Minimized
+        }
+        7 {
+            Clear-Host
+            Write-Host "`nRunning the script in the background..." -ForegroundColor Green
+            Write-Host "Logfile: " -NoNewline; Write-Host "C:\ImagingUSB_Restore_Log.txt`n" -ForegroundColor Cyan
+            Start-Process powershell -ArgumentList '-command Restore-ImagingUSB' -WindowStyle Minimized
+        }
+        8 {Clear-Host; $TechTool.Download_GitHub_Repo() ;$TechTool.Update_USB_Scripts()}
+        9 {Clear-Host; $TechTool.Update_Local_GitHubRepo()}
         10 {EXIT}
     }
-    ImagingUSB-Maintenance_submenu
-}
-
-function ImagingUSBMaintenance_Transfer-Package {
-    $what = '/A-:SH /B /E'
-    $options = '/R:5 /W:6 /LOG:C:\Transfer-Package_Backup_Log.txt /TEE /V /XO /XX'
-    $source = "C:\WinPE_USB_Install_Package"
-    $dest = "\\ATIQNAP1\Tech"
-        
-    DO {
-        [int]$error = 0
-        if (Test-Path $source) {
-            Write-Host "$source " -NoNewline; Write-Host "`nfound" -ForegroundColor green
-        } else {
-            $error++
-            Write-Host "$source " -NoNewline; Write-Host "`nmissing" -ForegroundColor red
-        }
-        if (Test-Path $dest) {
-            Write-Host "$dest " -NoNewline; Write-Host "found" -ForegroundColor green
-        } else {
-            $error++
-            Write-Host "$dest " -NoNewline; Write-Host "missing" -ForegroundColor red
-        }
-        if ($error -gt 0) {
-            Write-Host "WARNING!!! Was not able to find either the destination or source" -ForegroundColor Red
-            Write-Host "Hit any key to check and try again"
-            Pause
-        }
-    } until ($error -eq 0)
-    
-    $dest = "$dest\Axxys_Imaging_And_PC_Setup_Tool"
-    if (!(Test-Path $dest)) {New-Item $dest -ItemType Directory | Out-Null}
-    $dest = "$dest\WinPE_USB_Install_Package"
-    if (!(Test-Path $dest)) {New-Item $dest -ItemType Directory | Out-Null}
-    
-    Write-Host "`nTransferring " -NoNewline; Write-Host "$source" -ForegroundColor Cyan
-    Write-Host "to " -NoNewline; Write-Host "$dest" -ForegroundColor Cyan
-    Write-Host "now..."
-
-    $command = "ROBOCOPY $source $dest $what $options"
-    Start-Process cmd.exe -ArgumentList "/c $command" -Wait
-    Write-Host "`nTransfer is " -NoNewline; Write-Host "Complete!" -ForegroundColor Green
-}
-
-function ImagingUSBMaintenance_Create-Package {
-    Write-Host "`nDO NOT EJECT the Imaging USB" -ForegroundColor Red
-    DO {
-        # SET WinPE & Imaging Drives
-        foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
-            $WinPE_Test_Path = "$Drive_Letter" + ":\en-us\bootmgr.efi.mui"
-            $Imaging_Test_Path = "$Drive_Letter" + ":\Images"
-            If (Test-Path $WinPE_Test_Path) {
-                $WinPE_Drive = "$Drive_Letter" + ":"
-            }
-            If (Test-Path $Imaging_Test_Path) {
-                $Imaging_Drive = "$Drive_Letter" + ":"
-            }
-        }
-
-        Write-Host "`nWinPE Drive: " -NoNewline; Write-Host "$WinPE_Drive" -ForegroundColor Cyan
-        Write-Host "Imaging Drive: " -NoNewline; Write-Host "$Imaging_Drive" -ForegroundColor Cyan
-        if (($WinPE_Drive -eq $null) -or ($Imaging_Drive -eq $null)) {
-            Write-Host "`nWARNING!!! Could not detect either the WinPE or Imaging partition drives" -ForegroundColor Red
-            Write-Host "Hit any key to check and try again"
-        }
-    } until (($WinPE_Drive -ne $null) -and ($Imaging_Drive -ne $null)) 
-
-    # SET WinPE_USB_Package SOURCE FOLDER ROOT
-    $WinPE_USB_Package_SOURCE = "$Imaging_Drive\sources\USB-Maintenance\Create-WinPE_USB_Package\"
-
-    # SET WinPE_USB_Package DESTINATION FOLDER ROOT
-    $WinPE_USB_Package_DESTINATION = "C:\WinPE_USB_Install_Package"
-
-    # Set ROBOCOPY What and Options
-    $what = '/A-:SH /B /E'
-    $options = '/R:5 /W:6 /XO /XX'
-
-    # START TRANSFERS
-    Write-Host "`nDownloading\Updating " -NoNewline; Write-Host "$WinPE_USB_Package_DESTINATION" -ForegroundColor Cyan
-
-    # 0. WinPE USB Package Shell - "C:\WinPE_USB_Install_Package\"
-        $command = "ROBOCOPY $WinPE_USB_Package_SOURCE $WinPE_USB_Package_DESTINATION $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-
-    # 1. WinPE Drive Files
-        $WinPE_Dest = "$WinPE_USB_Package_DESTINATION\sources\Create_WinPE_USB\WinPE_Drive"
-    
-        # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\WinPE_Drive
-        # P:\
-        $command = "XCOPY $WinPE_Drive\autorun.inf $WinPE_Dest\autorun.inf* /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-        $command = "attrib +h $WinPE_Dest\autorun.inf"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-    
-        # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\WinPE_Drive
-        # P:\sources
-        $command = "XCOPY $WinPE_Drive\sources\WinPE.ico $WinPE_Dest\sources\WinPE.ico* /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-        $command = "XCOPY $WinPE_Drive\sources\WinPE-Menu.ps1 $WinPE_Dest\sources\WinPE-Menu.ps1* /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-
-    # 2. Imaging Drive Files
-        $Imaging_Dest = "$WinPE_USB_Package_DESTINATION\sources\Create_WinPE_USB\Imaging_Drive"
-
-        # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\Imaging_Drive
-        # I:\
-        $command = "XCOPY $Imaging_Drive\autorun.inf $Imaging_Dest\autorun.inf* /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-        $command = "attrib +h $Imaging_Dest\autorun.inf"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-        $command = "XCOPY $Imaging_Drive\TechTool-RAA.bat $Imaging_Dest\TechTool-RAA.bat* /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-        $command = "XCOPY $Imaging_Drive\Get-WindowsAutoPilotInfo-RAA.bat $Imaging_Dest\Get-WindowsAutoPilotInfo-RAA.bat* /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-
-        # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\Imaging_Drive\sources
-        # I:\sources
-        $command = "ROBOCOPY $Imaging_Drive\sources\ $Imaging_Dest\sources\ $what $options /XF DevTool"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-        $command = "attrib +h $Imaging_Dest\sources"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-
-        # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\Imaging_Drive\Images
-        # I:\Images
-        $command = "ROBOCOPY $Imaging_Drive\Images\ $Imaging_Dest\Images\ $what $options /XF *.wim *.esd"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-
-        # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\Imaging_Drive\PC_Setup
-        # I:\PC_Setup
-        $command = "ROBOCOPY $Imaging_Drive\PC_Setup\ $Imaging_Dest\PC_Setup\ $what /MIR $options /XD Client_Folders ODT Personal_Software"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-
-        # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\Imaging_Drive\PC_Setup\Client_Folders
-        # I:\PC_Setup\Client_Folders
-        #if (!(test-path "$Imaging_Dest\PC_Setup\Client_Folders")) {New-Item "$Imaging_Dest\PC_Setup\Client_Folders" -ItemType Directory -Force | Out-Null}
-        # Not needed since copying a child folder (the next command) will automatically create this parent folder
-
-        # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\Imaging_Drive\PC_Setup\Client_Folders\_Client_Configs
-        # I:\PC_Setup\Client_Folders\_Client_Configs
-        $command = "ROBOCOPY $Imaging_Drive\PC_Setup\Client_Folders\_Client_Configs\ $Imaging_Dest\PC_Setup\Client_Folders\_Client_Configs $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-
-        # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\Imaging_Drive\PC_Setup\Client_Folders\Axxys
-        # I:\PC_Setup\Client_Folders\Axxys
-        $command = "ROBOCOPY $Imaging_Drive\PC_Setup\Client_Folders\Axxys\ $Imaging_Dest\PC_Setup\Client_Folders\Axxys\ $what $options"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-
-        # C:\WinPE_USB_Install_Package\sources\Create_WinPE_USB\Imaging_Drive\PC_Setup\_Software_Collection\ODT
-        # I:\PC_Setup\_Software_Collection\ODT
-        $command = "XCOPY $Imaging_Drive\PC_Setup\_Software_Collection\ODT\*.bat $Imaging_Dest\PC_Setup\_Software_Collection\ODT\*.bat /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-        $command = "XCOPY $Imaging_Drive\PC_Setup\_Software_Collection\ODT\*.xml $Imaging_Dest\PC_Setup\_Software_Collection\ODT\*.xml /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-        $command = "XCOPY $Imaging_Drive\PC_Setup\_Software_Collection\ODT\*.exe $Imaging_Dest\PC_Setup\_Software_Collection\ODT\*.exe /h /Y"; Start-Process cmd.exe -ArgumentList "/c $command" -WindowStyle Minimized -Wait
-    
-
-    # TRANSFERS COMPLETED
-    Write-Host "`nDownload\Update of " -NoNewline; Write-Host "$WinPE_USB_Package_DESTINATION" -NoNewline -ForegroundColor Cyan; Write-Host " is " -NoNewline; Write-Host "Complete" -ForegroundColor Green
-}
+    Enter-ImagingUSB_Maintenance_Menu
+} Export-ModuleMember -Function Enter-ImagingUSB_Maintenance_Menu
 #endregion Imaging USB Maintenance
 
 #endregion Menu Functions

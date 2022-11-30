@@ -6,23 +6,19 @@
 ##############################################################################
 ##############################################################################
 #region Initialize
-Import-Module Automate-Setup -WarningAction SilentlyContinue -Force
-Import-Module Configure-PC -WarningAction SilentlyContinue -Force
-Import-Module Install-Software -WarningAction SilentlyContinue -Force
+#Import-Module Automate-Setup -WarningAction SilentlyContinue -Force
+#Import-Module Configure-PC -WarningAction SilentlyContinue -Force
+#Import-Module Install-Software -WarningAction SilentlyContinue -Force
 #Clear-Host
 
-#$TechTool = New-TechTool
-#$USB = New-ImagingUSB
-#$Software = New-Software
 $ComputerName = Hostname
 $ClientSettings = $null
 $Automated_Setup = $true
 $string = "string at script"
-  
 #endregion Initialize
 
 #region Functions
-function Build-Image {
+function Start-Build_Image {
 ############################################
 ##     -=[ SOFTWARE INSTALLATIONS ]=-     ##
 ############################################
@@ -39,8 +35,7 @@ function Build-Image {
 #############################
 ##     -=[ UPDATES ]=-     ##
 #############################
-    CheckPoint-DriverUpdates
-    Install-Windows_Updates -RebootAllowed
+    Update-System -RebootAllowed
 
 ###################################
 ##     -=[ Capture Image ]=-     ##
@@ -62,14 +57,14 @@ function Build-Image {
     Join-Domain
 }
 
-function Single-Setup {
+function Start-Single_Setup {
 ############################################
 ##     -=[ SOFTWARE INSTALLATIONS ]=-     ##
 ############################################    
     Transfer-RMM_Agent
     Transfer-Sophos_Agent
     Install-RMM_Agent
-    Install-AV_Agent #CheckPoint-Client_AV # Moved to start of Single-Setup because installation issues happen if AV is pushed through RMM agent while PC is busy installing other softwares or reboots while AV is still trying to install
+    Install-AV_Agent #CheckPoint-Client_AV # Moved to start of Start-Single_Setup because installation issues happen if AV is pushed through RMM agent while PC is busy installing other softwares or reboots while AV is still trying to install
     Install-Image_Softwares
 
 #####################################
@@ -82,8 +77,7 @@ function Single-Setup {
 #############################
 ##     -=[ UPDATES ]=-     ##
 #############################
-    CheckPoint-DriverUpdates
-    Install-Windows_Updates -RebootAllowed
+    Update-System -RebootAllowed
 }
 #endregion Functions
 
@@ -122,12 +116,12 @@ Set-ProfileDefaultSettings -AdminProfile
 # -=[ Rename PC\Image ]=-
 Rename-PC -PreImage
 # -=[ Start Updates In Background ]
-Start-Process powershell -ArgumentList '-command Install-Updates_In_Background' -WindowStyle Minimized
+Start-Process powershell -ArgumentList '-command Update-System' -WindowStyle Minimized
 
 If ($ClientSettings.SetupType -eq "BuildImage") {
-    Build-Image
+    Start-Build_Image
 } elseif ($ClientSettings.SetupType -eq "SingleSetup") {
-    Single-Setup
+    Start-Single_Setup
 }
 
 ########################################

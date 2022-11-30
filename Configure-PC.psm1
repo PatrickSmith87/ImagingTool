@@ -18,34 +18,34 @@ such as through the Imaging Tool Menu, or just from command line
 # However the child script cannot modify the parent's variables unless the scope is defined.
 # This should not be a problem since the child script does not need to modify these variables.
 # The goal here is to allow the modules to run independantly of the "Automate-Setup" script
-
-
 $TechTool = New-TechTool
 $USB = New-ImagingUSB
 
 # -=[ Static Variables ]=-
-if ($Setup_Fo -eq $null)                                        {$Setup_Fo = $TechTool.Setup_Fo}
-if ($Setup_AS_Client_Config_Fo -eq $null)                       {$Setup_AS_Client_Config_Fo = $TechTool.Setup_AS_Client_Config_Fo}
-if ($Setup_AS_Status_Fo -eq $null)                              {$Setup_AS_Status_Fo = $TechTool.Setup_AS_Status_Fo}
-if ($FilePath_Local_Automated_Setup_RegistryBackup -eq $null)   {$FilePath_Local_Automated_Setup_RegistryBackup = $TechTool.Setup_AS_RegistryBackup_Fi}
-if ($WinLogonKey -eq $null)                                     {$WinLogonKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"}
-if ($Target_TimeZone -eq $null)                                 {$Target_TimeZone = "Central Standard Time"}
+if ($null -eq $Setup_Fo)                                        {$Setup_Fo                                          = $TechTool.Setup_Fo}
+if ($null -eq $Setup_AS_Client_Config_Fo)                       {$Setup_AS_Client_Config_Fo                         = $TechTool.Setup_AS_Client_Config_Fo}
+if ($null -eq $Setup_AS_Status_Fo)                              {$Setup_AS_Status_Fo                                = $TechTool.Setup_AS_Status_Fo}
+if ($null -eq $FilePath_Local_Automated_Setup_RegistryBackup)   {$FilePath_Local_Automated_Setup_RegistryBackup     = $TechTool.Setup_AS_RegistryBackup_Fi}
+if ($null -eq $WinLogonKey)                                     {$WinLogonKey                                       = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"}
+if ($null -eq $Target_TimeZone)                                 {$Target_TimeZone                                   = "Central Standard Time"}
 
 # Power Settings
-if ($AC_Monitor_Timeout -eq $null)                              {$AC_Monitor_Timeout = 15}
-if ($AC_Standby_Timeout -eq $null)                              {$AC_Standby_Timeout = 0}
-if ($DC_Monitor_Timeout -eq $null)                              {$DC_Monitor_Timeout = 10}
-if ($DC_Standby_Timeout -eq $null)                              {$DC_Standby_Timeout = 20}
-if ($AC_Close_Lid_Action -eq $null)                             {$AC_Close_Lid_Action = 0}
-if ($DC_Close_Lid_Action -eq $null)                             {$DC_Close_Lid_Action = 1}
-# Hibernate & Hiberboot settings: 0=disabled, 1=enabled
-if ($Hibernate_Setting -eq $null)                               {$Hibernate_Setting = 0}
-if ($Hiberboot_Setting -eq $null)                               {$Hiberboot_Setting = 0}
-if ($SN -eq $null)                                              {$SN = (Get-WmiObject win32_bios).SerialNumber}
+if ($null -eq $AC_Monitor_Timeout)                              {$AC_Monitor_Timeout                                = 15}
+if ($null -eq $AC_Standby_Timeout)                              {$AC_Standby_Timeout                                = 0}
+if ($null -eq $DC_Monitor_Timeout)                              {$DC_Monitor_Timeout                                = 10}
+if ($null -eq $DC_Standby_Timeout)                              {$DC_Standby_Timeout                                = 20}
+if ($null -eq $AC_Close_Lid_Action)                             {$AC_Close_Lid_Action                               = 0}
+if ($null -eq $DC_Close_Lid_Action)                             {$DC_Close_Lid_Action                               = 1}
+
+#                                                                   Hibernate & Hiberboot settings: 0=disabled, 1=enabled
+if ($null -eq $Hibernate_Setting)                               {$Hibernate_Setting                                 = 0}
+if ($null -eq $Hiberboot_Setting)                               {$Hiberboot_Setting                                 = 0}
+if ($null -eq $SN)                                              {$SN                                                = (Get-WmiObject win32_bios).SerialNumber}
+
 # Cleanup related
-if ($UnAttend -eq $null)                                        {$UnAttend = "C:\Windows\System32\sysprep\unattend.xml"}
-if ($Setup_SoftwareCollection_StandardSoftware_Fo -eq $null)    {$Setup_SoftwareCollection_StandardSoftware_Fo = $TechTool.Setup_SoftwareCollection_StandardSoftware_Fo}
-if ($RunOnceKey -eq $null)                                      {$RunOnceKey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"}
+if ($null -eq $UnAttend)                                        {$UnAttend                                          = "C:\Windows\System32\sysprep\unattend.xml"}
+if ($null -eq $Setup_SoftwareCollection_StandardSoftware_Fo)    {$Setup_SoftwareCollection_StandardSoftware_Fo      = $TechTool.Setup_SoftwareCollection_StandardSoftware_Fo}
+if ($null -eq $RunOnceKey)                                      {$RunOnceKey                                        = "HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce"}
 
 $FolderPath_Local_PublicDesktop                                 = $TechTool.PublicDesktop_Fo
 $Setup_SCOPEImageSetup_PublicDesktop_Fo                         = $TechTool.Setup_SCOPEImageSetup_PublicDesktop_Fo
@@ -462,7 +462,7 @@ function Toggle-UAC {
     $CompletionFile = "$StepStatus-Completed.txt"
 
     # Load setting from Client Config if available
-    $Setting = $null; If ($global:ClientSettings.UAC -ne $null) {$Setting = $global:ClientSettings.UAC}
+    $Setting = $null; If ($null -ne $global:ClientSettings.UAC) {$Setting = $global:ClientSettings.UAC}
 
     If (Test-Path "$StepStatus*") {
         If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
@@ -597,7 +597,7 @@ function Set-LocalAdmin {
                 Write-Host "If you haven't created it yet, it will be created for you."
                 Write-Host "If you are already signed into the desired local administrator account, please enter the credentials anyway. (NOTE: In this case, make sure you enter the credentials correctly!)" -ForegroundColor Yellow
                 $Credentials = Get-Credential
-            } UNTIL ($Credentials -ne $null)
+            } UNTIL ($null -ne $Credentials)
             if ($Automated_Setup) {
                 Add-ClientSetting -Name LocalAdminName -Value $Credentials.UserName
                 Add-ClientSetting -Name LocalAdminPassword -Value ($Credentials.Password | ConvertFrom-SecureString -Key (Get-Content -Path $FilePath_Local_Automated_Setup_RegistryBackup))
@@ -824,10 +824,11 @@ function Set-ProfileDefaultSettings {
         [switch] $RestartExplorer
     )
     
+    # Variables - edit as needed
+    $Step = "Set Profile Default Settings"
+
+    # Static Variables - DO NOT EDIT
     if ($Automated_Setup) {
-        # Variables - edit as needed
-        $Step = "Set Profile Default Settings"
-        # Static Variables - DO NOT EDIT
         $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
         $CompletionFile = "$StepStatus-Completed.txt"
     }
@@ -841,8 +842,8 @@ function Set-ProfileDefaultSettings {
         Remove-TaskViewButtonFromTaskbar
         Show-SearchIcon
         If ($AdminProfile) {
-            Show-FileExtensions
-            Show-HiddenObjects
+            Show-FileExtensions -Scope CurrentUser
+            Show-HiddenObjects -Scope CurrentUser
             Show-ALLSysTrayIcons -Scope CurrentUser
             Hide-NewsIcon -Scope CurrentUser
         }
@@ -854,32 +855,80 @@ function Set-ProfileDefaultSettings {
 } Export-ModuleMember -Function Set-ProfileDefaultSettings
 
 function Show-FileExtensions {
-    # 0=Show 1=Hide
-    $Step = "Show File Extensions"
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('CurrentUser','Computer')]
+        [string] $Scope,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    # Variables - edit as needed
+    if ($Scope) {$Step = "Show File Extensions - $Scope"} else {$Step = "Show File Extensions"}
+
+    # Static Variables - DO NOT EDIT
+    if ($Automated_Setup) {
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+    }
     $Key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-    if ((Get-ItemProperty -Path $Key -Name HideFileExt -ErrorAction SilentlyContinue).HideFileExt -ne 0) {
-        Write-Host ""
-        Write-Host "$Step is " -NoNewline; Write-Host "disabled" -ForeGroundColor Red
-        Write-Host "Enabling " -ForeGroundColor Yellow -NoNewline; Write-Host "$Step..."
-        Set-ItemProperty -Path $Key -Name HideFileExt -Value 0 -Force
-        Write-Host "$Step is " -NoNewline; Write-Host "enabled" -ForeGroundColor Green
+    # 0=Show 1=Hide
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        Write-Host "$Step is " -NoNewline; Write-Host "enabled" -ForeGroundColor Green
+        if ($Scope -eq 'CurrentUser') {
+            Set-ItemProperty -Path $Key -Name HideFileExt -Value 0 -Force
+        } elseif ($Scope -eq 'Computer') {
+            Set-ItemProperty -Path $Key -Name HideFileExt -Value 0 -Force
+        } else {
+            Set-ItemProperty -Path $Key -Name HideFileExt -Value 0 -Force
+            Set-ItemProperty -Path $Key -Name HideFileExt -Value 0 -Force
+        }
+
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Show-FileExtensions
 
 function Show-HiddenObjects {
-    # 1=Show 2=Hide
-    $Step = "Show Hidden Objects"
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('CurrentUser','Computer')]
+        [string] $Scope,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    # Variables - edit as needed
+    if ($Scope) {$Step = "Show Hidden Objects - $Scope"} else {$Step = "Show Hidden Objects"}
+
+    # Static Variables - DO NOT EDIT
+    if ($Automated_Setup) {
+        $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+        $CompletionFile = "$StepStatus-Completed.txt"
+    }
     $Key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-    if ((Get-ItemProperty -Path $Key -name Hidden -ErrorAction SilentlyContinue).Hidden -ne 1) {
-        Write-Host ""
-        Write-Host "$Step is " -NoNewline; Write-Host "disabled" -ForeGroundColor Red
-        Write-Host "Enabling " -ForeGroundColor Yellow -NoNewline; Write-Host "$Step..."
-        Set-ItemProperty -Path $Key -Name Hidden -Value 1 -Force
-        Write-Host "$Step is " -NoNewline; Write-Host "enabled" -ForeGroundColor Green
+    # 1=Show 2=Hide
+
+    If (($Automated_Setup) -and (Test-Path "$StepStatus*") -and (!($Force))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        Write-Host "$Step is " -NoNewline; Write-Host "enabled" -ForeGroundColor Green
+        if ($Scope -eq 'CurrentUser') {
+            Set-ItemProperty -Path $Key -Name Hidden -Value 1 -Force
+        } elseif ($Scope -eq 'Computer') {
+            Set-ItemProperty -Path $Key -Name Hidden -Value 1 -Force
+        } else {
+            Set-ItemProperty -Path $Key -Name Hidden -Value 1 -Force
+            Set-ItemProperty -Path $Key -Name Hidden -Value 1 -Force
+        }
+
+        if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Show-HiddenObjects
 
@@ -894,13 +943,11 @@ function Disable-Live_Tiles {
         [switch] $Force
     )
 
+    # Variables - edit as needed
+    if ($Scope) {$Step = "Remove Cortana From Taskbar - $Scope"} else {$Step = "Remove Cortana From Taskbar"}
+    
+    # Static Variables - DO NOT EDIT
     if ($Automated_Setup) {
-        # Variables - edit as needed
-        if ($Scope) {
-            $Step = "Remove Cortana From Taskbar - $Scope"
-        }
-        $Step = "Remove Cortana From Taskbar"
-        # Static Variables - DO NOT EDIT
         $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
         $CompletionFile = "$StepStatus-Completed.txt"
     }
@@ -933,13 +980,11 @@ function Remove-CortanaFromTaskbar {
         [switch] $Force
     )
 
+    # Variables - edit as needed
+    if ($Scope) {$Step = "Remove Cortana From Taskbar - $Scope"} else {$Step = "Remove Cortana From Taskbar"}
+
+    # Static Variables - DO NOT EDIT
     if ($Automated_Setup) {
-        # Variables - edit as needed
-        if ($Scope) {
-            $Step = "Remove Cortana From Taskbar - $Scope"
-        }
-        $Step = "Remove Cortana From Taskbar"
-        # Static Variables - DO NOT EDIT
         $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
         $CompletionFile = "$StepStatus-Completed.txt"
     }
@@ -957,7 +1002,7 @@ function Remove-CortanaFromTaskbar {
         }
 
         if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        Write-Host "$Step is " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Remove-CortanaFromTaskbar
 
@@ -972,13 +1017,11 @@ function Remove-PeopleFromTaskbar {
         [switch] $Force
     )
 
+    # Variables - edit as needed
+    if ($Scope) {$Step = "Remove People From Taskbar - $Scope"} else {$Step = "Remove People From Taskbar"}
+
+    # Static Variables - DO NOT EDIT
     if ($Automated_Setup) {
-        # Variables - edit as needed
-        if ($Scope) {
-            $Step = "Remove People From Taskbar - $Scope"
-        }
-        $Step = "Remove People From Taskbar"
-        # Static Variables - DO NOT EDIT
         $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
         $CompletionFile = "$StepStatus-Completed.txt"
     }
@@ -996,7 +1039,7 @@ function Remove-PeopleFromTaskbar {
         }
 
         if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        Write-Host "$Step is " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Remove-PeopleFromTaskbar
 
@@ -1011,13 +1054,11 @@ function Remove-TaskViewButtonFromTaskbar {
         [switch] $Force
     )
 
+    # Variables - edit as needed
+    if ($Scope) {$Step = "Remove Task View Button From Taskbar - $Scope"} else {$Step = "Remove Task View Button From Taskbar"}
+
+    # Static Variables - DO NOT EDIT
     if ($Automated_Setup) {
-        # Variables - edit as needed
-        if ($Scope) {
-            $Step = "Remove Task View Button From Taskbar - $Scope"
-        }
-        $Step = "Remove Task View Button From Taskbar"
-        # Static Variables - DO NOT EDIT
         $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
         $CompletionFile = "$StepStatus-Completed.txt"
     }
@@ -1035,7 +1076,7 @@ function Remove-TaskViewButtonFromTaskbar {
         }
         
         if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        Write-Host "$Step is " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Remove-TaskViewButtonFromTaskbar
 
@@ -1050,13 +1091,11 @@ function Show-ALLSysTrayIcons {
         [switch] $Force
     )
 
+    # Variables - edit as needed
+    if ($Scope) {$Step = "Show all System Tray Icons - $Scope"} else {$Step = "Show all System Tray Icons"}
+
+    # Static Variables - DO NOT EDIT
     if ($Automated_Setup) {
-        # Variables - edit as needed
-        if ($Scope) {
-            $Step = "Show all System Tray Icons - $Scope"
-        }
-        $Step = "Show all System Tray Icons"
-        # Static Variables - DO NOT EDIT
         $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
         $CompletionFile = "$StepStatus-Completed.txt"
     }
@@ -1074,7 +1113,7 @@ function Show-ALLSysTrayIcons {
         }
 
         if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        Write-Host "$Step is " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Show-ALLSysTrayIcons
 
@@ -1089,13 +1128,11 @@ function Show-SearchIcon {
         [switch] $Force
     )
 
+    # Variables - edit as needed
+    if ($Scope) {$Step = "Show Search Icon - $Scope"} else {$Step = "Show Search Icon"}
+
+    # Static Variables - DO NOT EDIT
     if ($Automated_Setup) {
-        # Variables - edit as needed
-        if ($Scope) {
-            $Step = "Show Search Icon - $Scope"
-        }
-        $Step = "Show Search Icon"
-        # Static Variables - DO NOT EDIT
         $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
         $CompletionFile = "$StepStatus-Completed.txt"
     }
@@ -1113,7 +1150,7 @@ function Show-SearchIcon {
         }
 
         if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        Write-Host "$Step is " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Show-SearchIcon
 
@@ -1128,13 +1165,11 @@ function Hide-NewsIcon {
         [switch] $Force
     )
 
+    # Variables - edit as needed
+    if ($Scope) {$Step = "Hide News Icon - $Scope"} else {$Step = "Hide News Icon"}
+    
+    # Static Variables - DO NOT EDIT
     if ($Automated_Setup) {
-        # Variables - edit as needed
-        if ($Scope) {
-            $Step = "Hide News Icon - $Scope"
-        }
-        $Step = "Hide News Icon"
-        # Static Variables - DO NOT EDIT
         $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
         $CompletionFile = "$StepStatus-Completed.txt"
     }
@@ -1152,22 +1187,22 @@ function Hide-NewsIcon {
         }
 
         if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        Write-Host "$Step is " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Hide-NewsIcon
 
 function Restart-Explorer {
     [CmdletBinding()]
     param(
-
         [Parameter(Mandatory = $false)]
         [switch] $Force
     )
 
+    # Variables - edit as needed
+    $Step = "Restart-Explorer"
+
+    # Static Variables - DO NOT EDIT
     if ($Automated_Setup) {
-        # Variables - edit as needed
-        $Step = "Restart-Explorer"
-        # Static Variables - DO NOT EDIT
         $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
         $CompletionFile = "$StepStatus-Completed.txt"
     }
@@ -1182,11 +1217,12 @@ function Restart-Explorer {
         Start-Process powershell -ArgumentList '-command cmd.exe /c "start explorer.exe"' -WindowStyle Hidden
         
         if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        Write-Host "$Step is " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Restart-Explorer
 
 function Migrate_User_Profile {
+    $Host.UI.RawUI.BackgroundColor = 'Black'
     $Computername = Hostname
 
     # INTRO
@@ -1204,7 +1240,7 @@ function Migrate_User_Profile {
 
     # Display Source PC, Get Source User
     Clear-Host
-    Write-Host "`nSource PC: $SourcePC`n"
+    Write-Host "`nSource PC: " -NoNewline; Write-Host "$SourcePC" -ForegroundColor Cyan
     $Username = Read-Host -Prompt "Enter the username for the source PC. Example: psmith"
     $SourceProfile = "\\$SourcePC\C$\Users\$Username"
     
@@ -1274,32 +1310,36 @@ function Migrate_User_Profile {
             [Parameter(Mandatory = $true)]
             [string] $DestProfile
         )
-        $what = "/COPYALL /B /E"
+        $what = @("/COPYALL","/B","/E")
 
         # MIGRATE - User Profile - Minus Hidden, System, Backups, AppData, etc.
-        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_RoboLog.txt /TEE /V /XX /XO /XA:SH /XD *temp ""temporary internet files"" *cache mozilla *desktop.ini* *OneDrive* *DropBox* $SourceProfile\AppData ""$SourceProfile\Application Data"" /XJ /MT:16"
-        $command = "ROBOCOPY $SourceProfile $DestProfile $what $options"
-        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        $options = @("/R:2","/W:3","/LOG:$DestProfile\MigrateUser_RoboLog.txt","/TEE","/V","/XX","/XO","/XA:SH","/XD","*temp","""temporary internet files""","*cache","mozilla","*desktop.ini*","*OneDrive*","*DropBox*","$SourceProfile\AppData","""$SourceProfile\Application Data""","/XJ","/MT:16")
+        $cmdArgs = @("$SourceProfile","$DestProfile",$what,$options)
+        #$command = "ROBOCOPY $SourceProfile $DestProfile $what $options"
+        #Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        Robocopy @cmdArgs
 
         # MIGRATE - Adobe Acrobat DC Stamps
-        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_AcrobatDCStamps.txt /TEE /V /XX /XO /MT:16"
-        $command = "ROBOCOPY ""$SourceProfile\AppData\Roaming\Adobe\Acrobat\DC\Stamps"" ""$DestProfile\AppData\Roaming\Adobe\Acrobat\DC\Stamps"" $what $options"
-        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        $options = @("/R:2","/W:3","/LOG:$DestProfile\MigrateUser_AcrobatDCStamps.txt","/TEE","/V","/XX","/XO","/MT:16")
+        $cmdArgs = @("$SourceProfile\AppData\Roaming\Adobe\Acrobat\DC\Stamps","$DestProfile\AppData\Roaming\Adobe\Acrobat\DC\Stamps",$what,$options)
+        #$command = "ROBOCOPY ""$SourceProfile\AppData\Roaming\Adobe\Acrobat\DC\Stamps"" ""$DestProfile\AppData\Roaming\Adobe\Acrobat\DC\Stamps"" $what $options"
+        #Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        Robocopy @cmdArgs
 
         # MIGRATE - Sticky Notes
         # DOES NOT APPEAR TO BE WORKING!!!?
-        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_StickyNotes.txt /TEE /V /XX /XO /MT:16"
-        $command = "ROBOCOPY ""$SourceProfile\AppData\Roaming\Microsoft\Sticky Notes"" ""$DestProfile\AppData\Roaming\Microsoft\Sticky Notes"" $what $options"
-        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        $options = @("/R:2","/W:3","/LOG:$DestProfile\MigrateUser_StickyNotes.txt","/TEE","/V","/XX","/XO","/MT:16")
+        $cmdArgs = @("$SourceProfile\AppData\Roaming\Microsoft\Sticky Notes","$DestProfile\AppData\Roaming\Microsoft\Sticky Notes",$what,$options)
+        Robocopy @cmdArgs
         
         # MIGRATE - Outlook Signatures
-        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_OutlookSignatures.txt /TEE /V /XX /XO /MT:16"
-        $command = "ROBOCOPY ""$SourceProfile\AppData\Roaming\Microsoft\Signatures"" ""$DestProfile\AppData\Roaming\Microsoft\Signatures"" $what $options"
-        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        $options = @("/R:2","/W:3","/LOG:$DestProfile\MigrateUser_OutlookSignatures.txt","/TEE","/V","/XX","/XO","/MT:16")
+        $cmdArgs = @("$SourceProfile\AppData\Roaming\Microsoft\Signatures","$DestProfile\AppData\Roaming\Microsoft\Signatures",$what,$options)
+        Robocopy @cmdArgs
         
         # MIGRATE - Firefox Profile
-        $what = "/COPY:DAT /E"
-        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_FirefoxProfile.txt /TEE /V /XX /XO /MT:16"
+        $what = @("/COPY:DAT","/E")
+        $options = @("/R:2","/W:3","/LOG:$DestProfile\MigrateUser_FirefoxProfile.txt","/TEE","/V","/XX","/XO","/MT:16")
         if (Test-Path "$SourceProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*") {
             $Source = (Get-ChildItem "$SourceProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*").FullName
         } else {
@@ -1310,20 +1350,20 @@ function Migrate_User_Profile {
         } else {
             $Dest = (Get-ChildItem "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release").FullName
         }
-        if ($Dest -eq $null) {
+        if ($null -eq $Dest) {
             DO {
                 Clear-Host
                 Write-Host "`nWARNING!! " -NoNewline -ForegroundColor Red; Write-Host "Firefox profile folder on destination PC not found.."
                 Write-Host "On the destination PC, please open and then close firefox to automatically create the Firefox profile folder`n"
                 Pause
-            } Until ($Dest -ne $null)
+            } Until ($null -ne $Dest)
         }
-        $command = "ROBOCOPY $Source $Dest $what $options"
-        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        $cmdArgs = @("$Source","$Dest",$what,$options)
+        Robocopy @cmdArgs
         
         # MIGRATE - Chrome Profile
-        $what = "/COPYALL /E"
-        $options = "/R:2 /W:3 /LOG:$DestProfile\MigrateUser_ChromeProfile.txt /TEE /V /MT:16"
+        $what = @("/COPYALL","/E")
+        $options = @("/R:2","/W:3","/LOG:$DestProfile\MigrateUser_ChromeProfile.txt","/TEE","/V","/MT:16")
         $Destination = "$DestProfile\AppData\Local\Google\Chrome"
         if (!(Test-Path $Destination)) {
             DO {
@@ -1333,8 +1373,8 @@ function Migrate_User_Profile {
                 Pause
             } Until (Test-Path $Destination)
         }
-        $command = "ROBOCOPY ""$SourceProfile\AppData\Local\Google\Chrome"" ""$Destination"" $what $options"
-        Start-Process cmd.exe -ArgumentList "/c $command" -Wait
+        $cmdArgs = @("$SourceProfile\AppData\Local\Google\Chrome","$Destination",$what,$options)
+        Robocopy @cmdArgs
         
         # Complete!
         Write-Host "`nUser Migration is complete!!" -ForegroundColor Cyan
@@ -1360,6 +1400,105 @@ function Migrate_User_Profile {
 ###########################################################
 ############## START Of Configure PC Scripts ##############
 ###########################################################
+function Pull_IntuneHWID {
+    # Get The USB Drive Letter
+    foreach ($letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+        $TestPath = "$letter" + ":\PC_Setup"
+        If (Test-Path $TestPath) {
+            $USB = "$letter" + ":"
+        }
+    }
+
+    If (Test-Path $USB) {
+        #New-Item -Type Directory -Path "$USB\HWID" -Force
+        Set-Location -Path "$USB\"
+        $OriginalPath = $env:Path
+        $env:Path += ";$USB\sources\PC-Maintenance\Get-WindowsAutoPilotInfo"
+        Write-Host ""
+        #Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned -Force
+        Get-WindowsAutopilotInfo -OutputFile IntuneAutopilot_HWID.csv -Append
+        Write-Host "`nSaved\Added to " -NoNewline; Write-Host "$USB\IntuneAutopilot_HWID.csv" -ForegroundColor Cyan
+        $env:Path = $OriginalPath
+    }
+} Export-ModuleMember -Function Pull_IntuneHWID
+
+function Sync_Folder {
+    $Host.UI.RawUI.BackgroundColor = 'Black'
+    $Computername = Hostname
+
+    # INTRO
+    Clear-Host
+    Write-Host "`nThis script will sync data from one folder to another" -ForegroundColor Cyan
+    Pause
+    
+    # Get Source Folder
+    Do {
+        Clear-Host
+        Write-Host "`nEnter the name of the source folder"
+        Write-Host "Example 1: \\DT-01\c$\SourceFolder"
+        Write-Host "Example 2: C:\SourceFolder"
+        Write-Host "Note: This PC is $Computername"
+        $SourceFolder = Read-Host -Prompt "Source Folder"
+    } Until ($SourceFolder -ne "")
+    Write-Host "`nSource Folder: " -NoNewline; Write-Host "$SourceFolder" -ForegroundColor Cyan
+
+    # Verify Source Folder Access
+    Clear-Host
+    if (!(Test-Path $SourceFolder)) {
+        DO {
+            Write-Host "`n!!WARNING!! " -ForegroundColor Red -NoNewline; Write-Host "Source folder not found. Open File Explorer and make sure you can reach $SourceFolder. You may need to authenticate to the machine, or enable Network Discovery and File and Printer Sharing settings so that the computers filesystem can be accessed remotely.`n"
+            Pause
+        } Until (Test-Path $SourceFolder)
+    }
+
+    # Display Source Folder, Get Destination Folder
+    Do {
+        Clear-Host
+        Write-Host "`nSource Folder: " -NoNewline; Write-Host "$SourceFolder" -ForegroundColor Cyan
+        Write-Host "`nEnter the name of the destination folder"
+        Write-Host "Example 1: \\DT-01\c$\DestinationFolder"
+        Write-Host "Example 2: C:\DestinationFolder"
+        Write-Host "Note: This PC is $Computername"
+        $DestFolder = Read-Host -Prompt "Destination Folder"
+    } Until ($DestFolder -ne "")
+    Write-Host "`nDestination Folder: " -NoNewline; Write-Host "$DestFolder" -ForegroundColor Cyan
+    
+    # Verify Destination Folder Access
+    Clear-Host
+    if (!(Test-Path $DestFolder)) {
+        DO {
+            Write-Host "`n!!WARNING!! " -ForegroundColor Red -NoNewline; Write-Host "Destination folder not found. Open File Explorer and make sure you can reach $DestFolder. You may need to authenticate to the machine, or enable Network Discovery and File and Printer Sharing settings so that the computers filesystem can be accessed remotely.`n"
+            Pause
+        } Until (Test-Path $DestFolder)
+    }
+
+    # Transfer Confirmation
+    Clear-Host
+    Write-Host "`nScript will migrate files from"
+    Write-Host "$SourceFolder" -ForegroundColor Cyan
+    Write-Host "to"
+    Write-Host "$DestFolder" -ForegroundColor Cyan
+    Write-Host "`nReview the above information before continuing. When you hit any key, the folder migration will begin"
+    Pause
+
+    # Start Data Migration
+    function Start_Data_Sync {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string] $SourceFolder,
+
+            [Parameter(Mandatory = $true)]
+            [string] $DestFolder
+        )
+        $what = @("/COPYALL","/B","/MIR")
+        $options = @("/R:5","/W:5","/LOG+:$DestFolder\DataSync_RoboLog.txt","/TEE","/V","/XX","/XO","/MT:16")
+        $cmdArgs = @("$SourceFolder","$DestFolder",$what,$options)
+        Robocopy @cmdArgs
+    }
+    Start_Data_Sync -SourceFolder $SourceFolder -DestFolder $DestFolder
+} Export-ModuleMember -Function Sync_Folder
+
 function Rename-PC {
     [CmdletBinding(DefaultParameterSetName="A")]
     param(
@@ -1597,7 +1736,7 @@ function CheckPoint-CreateScansFolder {
                         Write-Host "What is the desired name for the Scans folder?" -ForegroundColor Yellow
                         Write-Host "Example: Scans"
                         [string]$choice = Read-Host -Prompt "Enter the Scans folder name"
-                    } UNTIL ($choice -ne $null)
+                    } UNTIL ($null -ne $choice)
                     if ($Automated_Setup) {Add-ClientSetting -Name ScansFolderName -Value $choice}
                 }
 
@@ -1611,7 +1750,7 @@ function CheckPoint-CreateScansFolder {
                     DO {
                         Write-Host "Provide the credentials for the Scanner account."
                         $Credentials = Get-Credential
-                    } UNTIL (($Credentials.UserName -ne $null) -and ($Credentials.Password -ne $null))
+                    } UNTIL (($null -ne $Credentials.UserName) -and ($null -ne $Credentials.Password))
                     if ($Automated_Setup) {
                         Add-ClientSetting -Name ScannerAccount -Value $Credentials.UserName
                         Add-ClientSetting -Name ScannerAccountPassword -Value ($Credentials.Password | ConvertFrom-SecureString -Key (Get-Content -Path $FilePath_Local_Automated_Setup_RegistryBackup))
@@ -1791,217 +1930,9 @@ function Transfer-Sophos_Agent {
     }
 } Export-ModuleMember -Function Transfer-Sophos_Agent
 
-function Install-Windows_Updates {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $false)]
-        [switch] $RebootAllowed,
-        [Parameter(Mandatory = $false)]
-        [switch] $Force
-    )
-
-    # Variables - edit as needed
-    $Step = "Install Windows Updates"
-
-    # Static Variables - DO NOT EDIT
-    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
-    $CompletionFile = "$StepStatus-Completed.txt"
-    $SkippedFile = "$StepStatus-Skipped.txt"
-    $InProgressFile = "$StepStatus-InProgress.txt"
-
-    If ((Test-Path $CompletionFile) -or (Test-Path $SkippedFile) -and !($Force)) {
-        # If task is completed or skipped...
-        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
-        If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
-    } else {
-        # If task is not completed (or was forced)...
-        
-        # Choice
-        If (!(Test-Path $InProgressFile)) {
-            If ($Force) {
-                $choice = 1
-            } elseIf ($global:ClientSettings.WindowsUpdates) {
-                $choice = $global:ClientSettings.WindowsUpdates
-            } else {
-                DO {
-                    Write-Host ""
-                    Write-Host "-=[ $Step ]=-" -ForegroundColor Yellow
-                    Write-Host "Would you like to $Step ?"
-                    Write-Host "1. Yes"
-                    Write-Host "2. No"
-                    Write-Host "Note: If you are in a rush, you may want to skip this" -ForegroundColor Cyan
-                    [int]$choice = Read-Host -Prompt "Enter a number, 1 or 2"
-                } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
-            }
-            If ($choice -eq 1) {
-                # If ClientSetting doesn't exist, update Client Config File
-                If ($global:ClientSettings -and !($global:ClientSettings.WindowsUpdates) -and $Automated_Setup) {
-                    Add-ClientSetting -Name WindowsUpdates -Value $choice
-                }
-                New-Item $InProgressFile -ItemType File -Force | Out-Null
-                Write-Host "Installing Windows Update Provider"
-                Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
-                Install-Module PSWindowsUpdate -Force
-            } else {
-                If ($global:ClientSettings -and !($global:ClientSettings.WindowsUpdates) -and $Automated_Setup) {
-                    Add-ClientSetting -Name WindowsUpdates -Value $choice
-                }
-                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
-                Write-Host "$Step`: " -NoNewline; Write-Host "Skipped"
-            }
-        }
-
-        # Keep installing updates and rebooting when needed until fully up to date
-        If (Test-Path $InProgressFile) {
-            Write-Host "Checking for available Windows Updates..."
-            $Updates = Get-WindowsUpdate
-            If ($Updates.count -gt 0) {
-                Write-Host "Installing all available Windows Updates..."
-                if ($RebootAllowed) {
-                    Get-WindowsUpdate -AcceptAll -Install -AutoReboot
-                    Restart-Computer -Force | Out-Null
-                    Write-Host "Should be restarting soon..." -ForegroundColor Red
-                    Pause
-                } else {
-                    Get-WindowsUpdate -AcceptAll -Install -IgnoreReboot
-                    Write-Host "Completed" -ForegroundColor Green
-                    Write-Host "(There may be additional updates)"
-                }
-            } else {
-                if (Test-Path $InProgressFile) {Remove-Item $InProgressFile | Out-Null}
-                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
-            }
-        }
-    }
-} Export-ModuleMember -Function Install-Windows_Updates
-
 function Get-Manufacturer {
     $Script:Manufacturer = (Get-WmiObject -Class:Win32_ComputerSystem).Manufacturer
-    return $Script:Manufacturer
 } Export-ModuleMember -Function Get-Manufacturer
-
-function Install-Updates_In_Background {
-    Install-Windows_Updates -Force
-    Get-Manufacturer
-    If ($Script:Manufacturer -eq "HP") {
-        # Install HP Image Assistant if not already installed
-        If (Test-Path "C:\Program Files\HP\HPIA\HPImageAssistant.exe") {
-            $Software.Install("HP Image Assistant")
-
-            $TargetFile = "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
-            $WScriptShell = New-Object -ComObject WScript.Shell
-
-            $Shortcut = $WScriptShell.CreateShortcut("$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\HP Image Assistant.lnk")
-            $Shortcut.TargetPath = $TargetFile
-            $Shortcut.Save()
-
-            $Shortcut = $WScriptShell.CreateShortcut("C:\Users\Public\Desktop\HP Image Assistant.lnk")
-            $Shortcut.TargetPath = $TargetFile
-            $Shortcut.Save()
-        }
-        Install-Softpaqs
-    } else {
-        Write-Host "`$Script:Manufacturer = $Script:Manufacturer"
-    }
-    PAUSE
-} Export-ModuleMember -Function Install-Updates_In_Background
-
-function Install-Softpaqs {
-    # Variables - edit as needed
-    $Step = "Install HP Softpaq BIOS, Drivers, and Firmware Updates"
-
-    # Static Variables - DO NOT EDIT
-    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
-    $CompletionFile = "$StepStatus-Completed.txt"
-    $InProgressFile = "$StepStatus-InProgress.txt"
-
-    If (Test-Path $CompletionFile) {
-        # If task is completed or skipped...
-        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
-    } else {
-        # If task is not completed...
-        
-        # Mark as InProgress if not already
-        If (!(Test-Path $InProgressFile)) {New-Item $InProgressFile -ItemType File -Force | Out-Null}
-
-        # Keep installing updates and rebooting when needed until fully up to date
-        Write-Host "Checking for & Installing HP Softpaq BIOS, Drivers, and Firmware Updates..."
-
-        # Get USB Paths
-        $USB = New-ImagingUSB
-        if ($USB.Exists()) {
-            $USB_Drive = $USB.Drive_Letter
-            $FolderPath_USB_Driver_Collection = "$USB_Drive\PC_Setup\_Driver_Collection"
-        }
-
-        # Check for updates
-        Write-Host "Checking for available updates..."
-        $Arguments = '/Operation:Analyze /Action:List /Category:BIOS,Drivers,Firmware /Selection:All /Silent /ReportFolder:"C:\Setup\HPIA_Logs" /BIOSPwdFile:pwd1.bin'
-        Start-Process "C:\Program Files\HP\HPIA\HPImageAssistant.exe" -ArgumentList $Arguments -WorkingDirectory "C:\Setup" -Wait
-        Start-Sleep -Seconds 10
-        $JSON_File = Get-ChildItem -Path "C:\Setup\HPIA_Logs\*.json" -ErrorAction SilentlyContinue
-        $Status = Get-Content "$JSON_File" | ConvertFrom-Json
-            # Install Updates if any are available
-            $UpdateCount = $Status.HPIA.Recommendations.Count
-            if ($UpdateCount -gt 0) {
-                Write-Host "$UpdateCount updates found, installing now..."
-                If ($USB.Exists()) {
-                    $Arguments = '/Operation:Analyze /Action:Install /Category:BIOS,Drivers,Firmware /Selection:All /Silent /ReportFolder:"C:\Setup\HPIA_Logs"' + " /SoftpaqDownloadFolder:$FolderPath_USB_Driver_Collection /BIOSPwdFile:pwd1.bin"
-                } else {
-                    $Arguments = '/Operation:Analyze /Action:Install /Category:BIOS,Drivers,Firmware /Selection:All /Silent /ReportFolder:"C:\Setup\HPIA_Logs" /SoftpaqDownloadFolder:"C:\Setup\HPSoftpaqs" /BIOSPwdFile:pwd1.bin'
-                }
-                Start-Process "C:\Program Files\HP\HPIA\HPImageAssistant.exe" -ArgumentList $Arguments -WorkingDirectory "C:\Setup" -Wait
-                Write-Host "Installing updates complete"
-                # Chose NOT to restart computer since planning on this running in the background while the Automated Setup script is doing other things and don't want to interrupt.
-                #Restart-Computer -Force | Out-Null
-                #Write-Host "Should be restarting soon..." -ForegroundColor Red
-                #Pause
-                # Running again instead of rebooting
-                Install-Softpaqs
-            } else {
-                Write-Host "No updates found!"
-                Remove-Item $InProgressFile | Out-Null
-                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
-            }
-    }
-} Export-ModuleMember -Function Install-Softpaqs
-
-function Update-Drivers {
-    #Variables - edit as needed
-    $Step = "Update Drivers"
-    
-    # Static Variables - DO NOT EDIT
-    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
-    $CompletionFile = "$StepStatus-Completed.txt"
-    $SkippedFile = "$StepStatus-Skipped.txt"
-
-    If (Test-Path "$StepStatus*") {
-        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
-        If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
-    } else {
-        $choice = $null
-        DO {
-            Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
-            Write-Host "Would you like to $Step ?"
-            Write-Host "1. Yes"
-            Write-Host "2. No"
-            $choice = Read-Host -Prompt "Enter a number, 1 or 2"
-        } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
-        If ($choice -eq 1) {
-            DO {
-                Write-Host ""
-                Write-Host "Please take a minute to run the HP or Dell support assistant tool to update the computer's drivers" -ForeGroundColor Yellow
-                $choice = Read-Host -Prompt "Type in 'continue' move on to the next step"
-            } UNTIL ($choice -eq "continue")
-            if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        } else {
-            Write-Host "$Step has been skipped"
-            if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
-        }
-    }
-} Export-ModuleMember -Function Update-Drivers
 
 function CheckPoint-Disk_Cleanup {
     # Variables - edit as needed
@@ -2162,7 +2093,287 @@ function Activate-Windows {
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Activate-Windows
+
+function Cleanup-System_Drive {
+    function Clean-Folder {
+        [CmdletBinding()]
+        param(
+            [Parameter(
+                Mandatory = $true
+            )]
+            [string] $Folder
+        )
+        Write-Host "Cleaning $Folder..."
+        $Folder = "$Folder\*"
+        $SpaceBefore = "{0:N2}" -f ((Get-ChildItem $Folder -Force -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" } | Measure-Object -Property Length -Sum).Sum / 1Gb)
+        Write-Host "Space Before = $SpaceBefore GB"
+        If (Test-Path -Path $Folder) {
+            Remove-Item $Folder -Exclude "desktop.ini" -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        $SpaceAfter = "{0:N2}" -f ((Get-ChildItem $Folder -Force -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.LinkType -notmatch "HardLink" } | Measure-Object -Property Length -Sum).Sum / 1Gb)
+        Write-Host "Space After  = $SpaceAfter GB"
+        $SavedSpace = ($SpaceBefore - $SpaceAfter)
+        $Global:Space_Saved = $Global:Space_Saved+$SavedSpace
+        Write-Host "Saved Space  = $SavedSpace GB`n" -ForegroundColor Green
+    }
+    
+    $Global:Space_Saved = $null
+    Clean-Folder "C:\Temp"
+    Clean-Folder "C:\Windows\Temp"
+    Clean-Folder "C:\Windows\SoftwareDistribution\Download"
+    Clean-Folder "C:\Users\*\AppData\Local\Temp"
+    Clean-Folder "C:\Users\*\Downloads"
+    Write-Host "`nTotal saved space: $Global:Space_Saved GB" -ForegroundColor Cyan
+    
+    If (Test-Path -Path C:\Windows\System32\cleanmgr.exe) {
+    # Need to write in a check to make sure C:\Windows\System32\cleanmgr.exe exists. If it does not then we will need to manually accomplish these tasks
+    
+    # -=[ Run Disk Cleaner: All Volumes, All Options ]=-
+    Write-Host "`nRunning Disk Cleanup..." -ForegroundColor Yellow
+    $vol = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches 
+    $vol.GetSubKeyNames() | ForEach-Object { $vol.OpenSubKey($_, $true).SetValue('StateFlags0000', 2) }
+    cmd.exe /c "cleanmgr /SAGERUN:0"
+    Write-Host "Disk Cleanup has completed`n" -ForegroundColor Green
+    } else {
+        Write-Host "Does not appear that cleanmgr.exe is installed on this device" -ForegroundColor Red
+    }
+    
+    cmd.exe /c "Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase"
+} Export-ModuleMember -Function Cleanup-System_Drive
+
 #########################################################
 ############## END OF Configure PC SCRIPTS ##############
 #########################################################
 #endregion Configure PC Related Scripts
+
+#region Update PC Related Scripts
+###########################################################
+############## START Of Update PC Scripts ##############
+###########################################################
+function Update-System {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [switch] $RebootAllowed,
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    if (!($Manufacturer)) {$Manufacturer = Get-Manufacturer}
+
+    Install-Windows_Updates
+    Install-Driver_Updates
+} Export-ModuleMember -Function Update-System
+
+function Install-Windows_Updates {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [switch] $RebootAllowed,
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    # Variables - edit as needed
+    $Step = "Install Windows Updates"
+
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
+    $PreReqCompletionFile = "$StepStatus-PreReqsCompleted.txt"
+
+    If ((Test-Path $CompletionFile) -and !($Force) -and (($Automated_Setup) -or ($TuneUp_PC))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        If (!(Test-Path $PreReqCompletionFile)) {
+            New-Item $PreReqCompletionFile -ItemType File -Force | Out-Null
+            Write-Host "Installing Windows Update Provider"
+            Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+            Install-Module PSWindowsUpdate -Force
+        }
+
+        Write-Host "Checking for available Windows Updates..."
+        $Updates = Get-WindowsUpdate
+        If ($Updates.count -gt 0) {
+            Write-Host "Installing all available Windows Updates..."
+            if ($RebootAllowed) {
+                Get-WindowsUpdate -AcceptAll -Install -AutoReboot
+                Restart-Computer -Force | Out-Null
+                Write-Host "Should be restarting soon..." -ForegroundColor Red
+                Pause
+            } else {
+                Get-WindowsUpdate -AcceptAll -Install -IgnoreReboot
+                Write-Host "Completed" -ForegroundColor Green
+                Write-Host "(There may be additional updates after a reboot)"
+            }
+        } else {
+            if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        }
+    }
+} Export-ModuleMember -Function Install-Windows_Updates
+
+function Install-Driver_Updates {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [switch] $RebootAllowed,
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    #Variables - edit as needed
+    $Step = "Install Driver Updates"
+    
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
+    $PreReqCompletionFile = "$StepStatus-PreReqsCompleted.txt"
+
+    If ((Test-Path $CompletionFile) -and !($Force) -and (($Automated_Setup) -or ($TuneUp_PC))) {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        If (!(Test-Path $PreReqCompletionFile)) {
+            New-Item $PreReqCompletionFile -ItemType File -Force | Out-Null
+            Write-Host "Installing Driver Update Provider"
+            Install-DriverUpdateAssistant
+        }
+
+        Get-Manufacturer
+        If ($Manufacturer -eq "HP") {
+            Install-HP_Drivers
+        } elseif ($Manufacturer -eq "Dell") {
+            Install-Dell_Drivers
+        } else {
+            Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+            Write-Host "`n`$Manufacturer = $Manufacturer"
+            Write-Host "Manufacturer not detected to be either HP or Dell"
+            Write-Host "Please manually install driver updates before continuing with the setup"
+            DO {$choice = Read-Host -Prompt "`nType in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
+            if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        }
+    }
+} Export-ModuleMember -Function Install-Driver_Updates
+
+function Install-HP_Drivers {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [switch] $RebootAllowed,
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+    
+    # Variables - edit as needed
+    $Step = "Install HP Softpaq BIOS, Drivers, and Firmware Updates"
+
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
+
+    If ((Test-Path $CompletionFile) -and !($Force) -and (($Automated_Setup) -or ($TuneUp_PC))) {
+        # If task is completed or skipped...
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        # If task is not completed...
+
+        # Keep installing updates and rebooting when needed until fully up to date
+        Write-Host "Checking for and Installing HP Softpaq BIOS, Drivers, & Firmware Updates..."
+
+        # Get USB Paths
+        $USB = New-ImagingUSB
+        if ($USB.Exists()) {
+            $USB_Drive = $USB.Drive_Letter
+            $FolderPath_USB_Driver_Collection = "$USB_Drive\PC_Setup\_Driver_Collection"
+        }
+
+        # Check for updates
+        Write-Host "Checking for available updates..."
+        $Arguments = '/Operation:Analyze /Action:List /Category:BIOS,Drivers,Firmware /Selection:All /Silent /ReportFolder:"C:\Setup\HPIA_Logs" /BIOSPwdFile:pwd1.bin'
+        Start-Process "C:\Program Files\HP\HPIA\HPImageAssistant.exe" -ArgumentList $Arguments -WorkingDirectory "C:\Setup" -Wait
+        Start-Sleep -Seconds 10
+        $JSON_File = Get-ChildItem -Path "C:\Setup\HPIA_Logs\*.json" -ErrorAction SilentlyContinue
+        $Status = Get-Content "$JSON_File" | ConvertFrom-Json
+        # Install Updates if any are available
+        $UpdateCount = $Status.HPIA.Recommendations.Count
+        if ($UpdateCount -gt 0) {
+            Write-Host "$UpdateCount updates found, installing now..."
+            If ($USB.Exists()) {
+                $Arguments = '/Operation:Analyze /Action:Install /Category:BIOS,Drivers,Firmware /Selection:All /Silent /ReportFolder:"C:\Setup\HPIA_Logs"' + " /SoftpaqDownloadFolder:$FolderPath_USB_Driver_Collection /BIOSPwdFile:pwd1.bin"
+            } else {
+                $Arguments = '/Operation:Analyze /Action:Install /Category:BIOS,Drivers,Firmware /Selection:All /Silent /ReportFolder:"C:\Setup\HPIA_Logs" /SoftpaqDownloadFolder:"C:\Setup\HPSoftpaqs" /BIOSPwdFile:pwd1.bin'
+            }
+            Start-Process "C:\Program Files\HP\HPIA\HPImageAssistant.exe" -ArgumentList $Arguments -WorkingDirectory "C:\Setup" -Wait
+            Write-Host "Completed" -ForegroundColor Green
+            if ($RebootAllowed) {
+                Restart-Computer -Force | Out-Null
+                Write-Host "Should be restarting soon..." -ForegroundColor Red
+                Pause
+            } else {
+                Write-Host "(There may be additional updates after a reboot)"
+            }
+        } else {
+            Write-Host "No updates found!"
+            if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        }
+    }
+} Export-ModuleMember -Function Install-HP_Drivers
+
+function Install-Dell_Drivers {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [switch] $RebootAllowed,
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+    
+    # Variables - edit as needed
+    $Step = "Install Dell BIOS, Drivers, and Firmware Updates"
+
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
+
+    If (Test-Path $CompletionFile) {
+        # If task is completed or skipped...
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+    } else {
+        Write-Host "Please manually install driver updates before continuing with the setup"
+        DO {$choice = Read-Host -Prompt "`nType in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
+
+        if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }
+
+    <#
+    "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" /ApplyUpdates -reboot=enable
+
+    If you dont want to restart the computer: "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" /ApplyUpdates -reboot=disable
+    ###################################################
+
+    # Configure Dell Command Update
+    Write-Host
+    $Arguments = 'scheduleAuto',
+                    'lockSettings=enable',
+                    'userConsent=disable',
+                    'scheduleMonthly=28,00:45',
+                    'scheduledReboot=0',
+                    'autoSuspendBitLocker=enable'
+    foreach ($Arg in $Arguments){
+        $results = Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait | Out-Null
+        Start-Sleep -Seconds 5
+    }
+
+    
+    #>
+
+
+} Export-ModuleMember -Function Install-Dell_Drivers
+
+#########################################################
+############## END OF Update PC SCRIPTS ##############
+#########################################################
+#endregion Update PC Related Scripts
