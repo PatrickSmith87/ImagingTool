@@ -2090,10 +2090,6 @@ function Activate-Windows {
         }
         PAUSE
 
-        Write-Host "`$Force = $Force"
-        Write-Host "`$Automated_Setup = $Automated_Setup"
-        Write-Host "`$TuneUp_PC = $TuneUp_PC"
-        Write-Host "`$CompletionFile = $CompletionFile"
         If (!($Force) -and ($Automated_Setup -or $TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
@@ -2244,7 +2240,7 @@ function Install-Driver_Updates {
             Install-DriverUpdateAssistant
         }
 
-        Get-Manufacturer
+        #$Manufacturer = Get-Manufacturer
         If ($Manufacturer -eq "HP") {
             Install-HP_Drivers
         } elseif ($Manufacturer -eq "Dell") {
