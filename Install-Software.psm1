@@ -1118,7 +1118,7 @@ function Install-DriverUpdateAssistant {
     If (Test-Path $CompletionFile) {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        Get-Manufacturer
+        $Manufacturer = Get-Manufacturer
         If ($Manufacturer -eq "HP") {
             # Install HP Image Assistant if not already installed
             $HP_Image_Assistant_Program = "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
