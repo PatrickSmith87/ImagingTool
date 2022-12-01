@@ -2090,7 +2090,11 @@ function Activate-Windows {
         }
         PAUSE
 
-        If (!($Force) -and ($global:AutomatedSetup -or $global:TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "`$Force = $Force"
+        Write-Host "`$AutomatedSetup = $AutomatedSetup"
+        Write-Host "`$TuneUp_PC = $TuneUp_PC"
+        Write-Host "`$CompletionFile = $CompletionFile"
+        If (!($Force) -and ($AutomatedSetup -or $TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Activate-Windows
