@@ -1932,6 +1932,7 @@ function Transfer-Sophos_Agent {
 
 function Get-Manufacturer {
     $Script:Manufacturer = (Get-WmiObject -Class:Win32_ComputerSystem).Manufacturer
+    $Script:Manufacturer
 } Export-ModuleMember -Function Get-Manufacturer
 
 function CheckPoint-Disk_Cleanup {
