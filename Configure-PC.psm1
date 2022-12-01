@@ -9,7 +9,7 @@
 This module contains functions that configure PC settings that the Automated Setup script will use, but functions should be able to work independantly as well, 
 such as through the Imaging Tool Menu, or just from command line
    -Functions should be designed with the expectation that Automated Setup might call them and require $Completion Files, updating client config
-       -So basically, if ($AutomatedSetup = $true), then it might call commands from the Automated-Setup module
+       -So basically, if ($Automated_Setup = $true), then it might call commands from the Automated-Setup module
 #>
 
 #region Module Variables
@@ -2091,10 +2091,10 @@ function Activate-Windows {
         PAUSE
 
         Write-Host "`$Force = $Force"
-        Write-Host "`$AutomatedSetup = $AutomatedSetup"
+        Write-Host "`$Automated_Setup = $Automated_Setup"
         Write-Host "`$TuneUp_PC = $TuneUp_PC"
         Write-Host "`$CompletionFile = $CompletionFile"
-        If (!($Force) -and ($AutomatedSetup -or $TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        If (!($Force) -and ($Automated_Setup -or $TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Activate-Windows
