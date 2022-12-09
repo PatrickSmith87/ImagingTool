@@ -166,18 +166,18 @@ class Software {
                          -Arguments "/qn"
 
         Add-SoftwareHash -Name "EXTRACT Dell Command | Update"`
-                         -Installer_Name "Dell-Command-Update-Application_8D5MC_WIN_4.3.0_A00_02.EXE"`
+                         -Installer_Name "Dell-Command-Update-Windows-Universal-Application_CJ0G9_WIN_4.7.1_A00.EXE"`
                          -Installer_Source "Standard_Software"`
-                         -URL "https://dl.dell.com/FOLDER07582851M/3/Dell-Command-Update-Application_8D5MC_WIN_4.3.0_A00_02.EXE"`
+                         -URL "https://dl.dell.com/FOLDER09268356M/1/Dell-Command-Update-Windows-Universal-Application_CJ0G9_WIN_4.7.1_A00.EXE"`
                          -Arguments "/s /e=C:\Setup\_Software_Collection\Standard_Software"`
-                         -Verification_Path "C:\Setup\_Software_Collection\Standard_Software\DCU_Setup_4_3_0.exe"
+                         -Verification_Path "C:\Setup\_Software_Collection\Standard_Software\DellCommandUpdateApp_Setup.exe"
                          
         Add-SoftwareHash -Name "INSTALL Dell Command | Update"`
-                         -Installer_Name "DCU_Setup_4_3_0.exe"`
+                         -Installer_Name "DellCommandUpdateApp_Setup.exe"`
                          -Installer_Source "Standard_Software"`
-                         -Manual_URL "https://www.dell.com/support/home/en-us/drivers/driversdetails?driverid=8d5mc"`
+                         -Manual_URL "https://www.dell.com/support/home/en-us/drivers/DriversDetails?driverId=CJ0G9"`
                          -Arguments "/S /v/qn"`
-                         -Verification_Path "C:\Program Files (x86)\Dell\CommandUpdate\DellCommandUpdate.exe"
+                         -Verification_Path "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe"
 
         Add-SoftwareHash -Name "HP Image Assistant"`
                          -Installer_Name "hp-hpia-5.1.6.exe"`
@@ -367,6 +367,19 @@ class Software {
                     Write-Host "Error 505"
                     Pause
                 }
+
+                If (($SoftwareName -match "INSTALL Dell Command | Update") -and (Test-Path $Installer_Verification_Path)) {
+                    $Arguments = 'scheduleManual', #USE
+                        'lockSettings=enable', #Use i guess?
+                        'userConsent=disable', #USE
+                        'autoSuspendBitLocker=enable', #USE
+                        'updateType=bios,firmware,driver,utility,others' #NOT application
+                        #'updateSeverity=Security,critical,recommended,optional' #These are all of the options.. may not want optional?
+                    foreach ($Arg in $Arguments){
+                        Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait -NoNewWindow | Out-Null
+                        Start-Sleep -Seconds 1
+                    }
+                }
             }
         }
 
@@ -380,9 +393,7 @@ class Software {
             Write-Host "Please update the config file now before continuing, then reboot ideally"
             PAUSE
         }
-        If ($CompletionFile -ne "none") {
-            If (Test-Path $CompletionFile) {Remove-Item -Path $Installer_Path -Force -ErrorAction SilentlyContinue}
-        }
+        If (($CompletionFile -ne "none") -and (Test-Path $CompletionFile)) {Remove-Item -Path $Installer_Path -Force -ErrorAction SilentlyContinue}
     }
 
     [boolean]hidden Verify_Installation_Success([string]$SoftwareName,[string]$Installer_Verification_Path) {
@@ -1119,7 +1130,7 @@ function Install-DriverUpdateAssistant {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
         $Manufacturer = Get-Manufacturer
-        If ($Manufacturer -eq "HP") {
+        If ($Manufacturer -match "HP") {
             # Install HP Image Assistant if not already installed
             $HP_Image_Assistant_Program = "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
             If (!(Test-Path $HP_Image_Assistant_Program)) {
@@ -1135,7 +1146,10 @@ function Install-DriverUpdateAssistant {
                 $Shortcut.TargetPath = $HP_Image_Assistant_Program
                 $Shortcut.Save()
             }
-        } elseif ($Manufacturer -eq "Dell") {
+        } elseif ($Manufacturer -match "Dell") {
+            # Remove old versions, make sure latest is installed
+            
+
             # Install Dell Command | Update if not already installed
             $Software.Install("EXTRACT Dell Command | Update")
             $Software.Install("INSTALL Dell Command | Update",$CompletionFile)

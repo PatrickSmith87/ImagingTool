@@ -22,6 +22,7 @@ class TechTool {
     [string]$Module_InstallSoftware_Fi                          = $this.Modules_Fo +                        "\Install-Software\Install-Software.psm1"
     [string]$Module_TuneUpPC_Fi                                 = $this.Modules_Fo +                        "\TuneUp-PC\TuneUp-PC.psm1"
     [string]$Module_TechTool_Fi                                 = $this.Modules_Fo +                        "\TechTool\TechTool.psm1"
+    [string]$Module_UpdatePC_Fi                                 = $this.Modules_Fo +                        "\Update-PC\Update-PC.psm1"
 
     [string]$Setup_Fo                                           =          "C:\Setup"
     [string]$Setup_AS_Client_Config_Fo                          = $this.Setup_Fo + "\_Automated_Setup\_Client_Config"
@@ -118,6 +119,7 @@ class TechTool {
         $this.Restore("$Source\Install-Software.psm1",$this.Module_InstallSoftware_Fi,"Copy")
         $this.Restore("$Source\TuneUp-PC.psm1",$this.Module_TuneUpPC_Fi,"Copy")
         $this.Restore("$Source\TechTool.psm1",$this.Module_TechTool_Fi,"Copy")
+        $this.Restore("$Source\Update-PC.psm1",$this.Module_UpdatePC_Fi,"Copy")
 
         Write-Host "Update Local Scripts: " -NoNewline; Write-Host "Complete" -ForegroundColor Green
     }
@@ -166,6 +168,7 @@ class TechTool {
         Import-Module Install-Software -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module TuneUp-PC -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module TechTool -WarningAction SilentlyContinue -Force | Out-Null
+        Import-Module Update-PC -WarningAction SilentlyContinue -Force | Out-Null
 
         Write-Host "Import Modules: " -NoNewline; Write-Host "Complete" -ForegroundColor Green
     }
@@ -190,6 +193,7 @@ class TechTool {
             $this.Restore("$GitHubRepo\Configure-PC.psm1",$USB.Module_ConfigurePC_Fi,"Move")
             $this.Restore("$GitHubRepo\Install-Software.psm1",$USB.Module_InstallSoftware_Fi,"Move")
             $this.Restore("$GitHubRepo\TuneUp-PC.psm1",$USB.Module_TuneUpPC_Fi,"Move")
+            $this.Restore("$GitHubRepo\Update-PC.psm1",$USB.Module_UpdatePC_Fi,"Move")
             $this.Restore("$GitHubRepo\TechTool.psm1",$USB.Module_TechTool_Fi,"Move")
             $this.Restore("$GitHubRepo\TechTool.ps1",$USB.TechTool_ps1_Fi,"Move")
             $this.Restore("$GitHubRepo\TechTool-RAA.bat",$USB.TechTool_bat_Fi,"Move")
@@ -212,6 +216,7 @@ class TechTool {
             $this.Restore($USB.Module_TuneUpPC_Fi,$this.Module_TuneUpPC_Fi,"Copy")
             $this.Restore($USB.Module_TechTool_Fi,$this.Module_TechTool_Fi,"Copy")
             $this.Restore($USB.Module_USB_Fi,$this.Module_ImagingUSB_Fi,"Copy")
+            $this.Restore($USB.Module_UpdatePC_Fi,$this.Module_UpdatePC_Fi,"Copy")
             $this.Restore($USB.PCMaint_AS_AutomateSetup_ps1_Fi,$this.Setup_AS_AutomateSetup_ps1,"Copy")
             $this.Restore($USB.TechTool_ps1_Fi,$this.TechTool_ps1_Fi,"Copy")
             $this.Restore($USB.TechTool_bat_Fi,$this.TechTool_bat_Fi,"Copy")
@@ -240,6 +245,7 @@ class TechTool {
                 $this.Restore($USB.Module_InstallSoftware_Fi,"$GitHubRepo\Install-Software.psm1","Copy")
                 $this.Restore($USB.Module_TuneUpPC_Fi,"$GitHubRepo\TuneUp-PC.psm1","Copy")
                 $this.Restore($USB.Module_TechTool_Fi,"$GitHubRepo\TechTool.psm1","Copy")
+                $this.Restore($USB.Module_UpdatePC_Fi,"$GitHubRepo\Update-PC.psm1","Copy")
                 $this.Restore($USB.TechTool_ps1_Fi,"$GitHubRepo\TechTool.ps1","Copy")
                 $this.Restore($USB.TechTool_bat_Fi,"$GitHubRepo\TechTool-RAA.bat","Copy")
                 Write-Host "Files Updated to GitHub Repo Folder: $GitHubRepo" -ForegroundColor Green
@@ -355,12 +361,12 @@ function Enter-PC_Maintenance_Menu {
         Write-Host "1. Enter " -NoNewline; Write-Host "Automated Setup " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
         Write-Host "2. Enter " -NoNewline; Write-Host "TuneUp PC " -NoNewline -ForegroundColor DarkYellow; Write-Host "menu" -NoNewline; Write-Host " **WARNING - This is not fully functional yet" -ForegroundColor Red
         Write-Host "3. Enter " -NoNewline; Write-Host "Configure Automatic Sign-in " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
-        Write-Host "4. Enter " -NoNewline; Write-Host "Standardize PC " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "4. " -NoNewline; Write-Host "Standardize PC " -ForegroundColor DarkCyan
         Write-Host "5. Enter " -NoNewline; Write-Host "Install Software " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
-        Write-Host "6. Enter " -NoNewline; Write-Host "Update PC " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
-        Write-Host "7. Enter " -NoNewline; Write-Host "Cleanup System Drive " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
-        Write-Host "8. Enter " -NoNewline; Write-Host "Migrate User Profile " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
-        Write-Host "9. Enter " -NoNewline; Write-Host "Sync Folder " -NoNewline -ForegroundColor DarkCyan; Write-Host "menu"
+        Write-Host "6. " -NoNewline; Write-Host "Update PC" -ForegroundColor DarkCyan
+        Write-Host "7. " -NoNewline; Write-Host "Cleanup System Drive" -ForegroundColor DarkCyan
+        Write-Host "8. " -NoNewline; Write-Host "Migrate User Profile" -ForegroundColor DarkCyan
+        Write-Host "9. " -NoNewline; Write-Host "Sync Folder" -ForegroundColor DarkCyan
         Write-Host "10. Pull " -NoNewline; Write-Host "Intune " -NoNewline -ForegroundColor DarkYellow; Write-Host "Hardware ID " -ForegroundColor DarkCyan
         Write-Host "11. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
         $choice = Read-Host -Prompt "Enter a number, 0 thru 11"
@@ -371,11 +377,11 @@ function Enter-PC_Maintenance_Menu {
         1 {Clear-Host; Automated_Setup_submenu}
         2 {Clear-Host; TuneUp-PC_submenu}
         3 {Clear-Host; Configure_Automatic_Sign_In_submenu}
-        4 {Clear-Host; Standardize_PC_submenu}
+        4 {Clear-Host; Set-PCDefaultSettings}
         5 {Clear-Host; Install_Software_submenu}
-        6 {Clear-Host; Update_PC_submenu}
+        6 {Clear-Host; Update-PC}
         7 {Clear-Host; Cleanup-System_Drive}
-        8 {Clear-Host; Migrate_User_Profile_submenu}
+        8 {Clear-Host; Start-Process powershell -ArgumentList '-command Migrate_User_Profile' -WindowStyle Maximized}
         9 {Clear-Host; Sync_Folder}
         10 {Clear-Host; Pull_IntuneHWID}
         11 {EXIT}
@@ -470,25 +476,6 @@ function Configure_Automatic_Sign_In_submenu {
     Configure_Automatic_Sign_In_submenu
 } Export-ModuleMember -Function Configure_Automatic_Sign_In_submenu # End of Configure_Automatic_Sign_In_submenu
 
-function Standardize_PC_submenu {
-    DO {
-        Write-Host "`n-=[ Standardize PC submenu ]=-" -ForegroundColor DarkGray
-        Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
-        Write-Host "0. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "1. " -NoNewline; Write-Host "STANDARDIZE " -NoNewline -ForegroundColor Cyan; Write-Host "PC Settings"
-        Write-Host "2. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "Enter a number, 0 thru 2"
-        $choice = $choice -as [int]
-    } UNTIL (($choice -ge 0) -and ($choice -le 2))
-    Switch ($choice) {
-        0 {Clear-Host; Enter-PC_Maintenance_Menu}
-        1 {Clear-Host; Set-PCDefaultSettings}
-        2 {EXIT}
-    }
-    #Recursivly call the submenu
-    Standardize_PC_submenu
-} Export-ModuleMember -Function Standardize_PC_submenu # End of Standardize_PC_submenu
-
 function Install_Software_submenu {
     DO {
         Write-Host "`n-=[ Install Software submenu ]=-" -ForegroundColor DarkGray
@@ -531,25 +518,6 @@ function Install_Software_submenu {
     #Recursivly call the submenu
     Install_Software_submenu
 } Export-ModuleMember -Function Install_Software_submenu # End of Install_Software_submenu
-
-function Update_PC_submenu {
-    DO {
-        Write-Host "`n-=[ Update PC submenu ]=-" -ForegroundColor DarkGray
-        Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
-        Write-Host "0. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "1. " -NoNewline; Write-Host "INSTALL " -NoNewline -ForegroundColor Cyan; Write-Host "Windows Updates"
-        Write-Host "2. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        $choice = Read-Host -Prompt "Enter a number, 0 thru 2"
-        $choice = $choice -as [int]
-    } UNTIL (($choice -ge 0) -and ($choice -le 2))
-    Switch ($choice) {
-        0 {Clear-Host; Enter-PC_Maintenance_Menu}
-        1 {Clear-Host; Install-Windows_Updates -RebootAllowed}
-        2 {EXIT}
-    }
-    #Recursivly call the submenu
-    Update_PC_submenu
-} Export-ModuleMember -Function Update_PC_submenu # End of Update_PC_submenu
 
 function Migrate_User_Profile_submenu {
     DO {

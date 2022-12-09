@@ -21,6 +21,7 @@ class ImagingUSB {
     [string]$Module_TuneUpPC_Fi
     [string]$Module_TechTool_Fi
     [string]$Module_USB_Fi
+    [string]$Module_UpdatePC_Fi
     [string]$PCSetup_Client_Folders_Fo
     [string]$PCSetup_Client_Configs_Fo
     [string]$PCSetup_DriverCollection_Fo
@@ -77,7 +78,6 @@ class ImagingUSB {
     [void]hidden SetPaths() {
         $WinPEDrive = $this.WinPE_Drive_Letter
         $this.WinPE_Menu_ps1_Fi                                     = "$WinPEDrive\sources\WinPE-Menu.ps1"
-
         $ImagingDrive = $this.Drive_Letter
         if (Test-Path "$ImagingDrive\sources\DevTool") {
             $this.DevTool = $true
@@ -90,6 +90,7 @@ class ImagingUSB {
         $this.Module_TuneUpPC_Fi                                    = "$ImagingDrive\sources\PC-Maintenance\_modules\TuneUp-PC\TuneUp-PC.psm1"
         $this.Module_TechTool_Fi                                    = "$ImagingDrive\sources\TechTool-Maintenance\_modules\TechTool\TechTool.psm1"
         $this.Module_USB_Fi                                         = "$ImagingDrive\sources\USB-Maintenance\_modules\ImagingUSB\ImagingUSB.psm1"
+        $this.Module_UpdatePC_Fi                                    = "$ImagingDrive\sources\PC-Maintenance\_modules\Update-PC\Update-PC.psm1"
         $this.PCSetup_Client_Folders_Fo                             = "$ImagingDrive\PC_Setup\Client_Folders"
         $this.PCSetup_Client_Configs_Fo                             = "$ImagingDrive\PC_Setup\Client_Folders\_Client_Configs"
         $this.PCSetup_DriverCollection_Fo                           = "$ImagingDrive\PC_Setup\_Driver_Collection"
@@ -116,6 +117,7 @@ class ImagingUSB {
         $this.Module_TuneUpPC_Fi                                    = $null
         $this.Module_TechTool_Fi                                    = $null
         $this.Module_USB_Fi                                         = $null
+        $this.Module_UpdatePC_Fi                                    = $null
         $this.WinPE_Menu_ps1_Fi                                     = $null
         $this.PCSetup_Client_Folders_Fo                             = $null
         $this.PCSetup_Client_Configs_Fo                             = $null
