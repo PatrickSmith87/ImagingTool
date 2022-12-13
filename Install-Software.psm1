@@ -310,7 +310,8 @@ class Software {
         } elseif ($null -ne $Installer_URL) {
             #Write-Host "`$Installer_URL = $Installer_URL"
             #Write-Host "`$Local_Installer_Path = $Local_Installer_Path"
-            if (!($Local_Installer_Path)) {New-Item -Path "$Local_Installer_Path" -ItemType Directory -Force}
+            if (!(Test-Path $Local_Installer_Path)) {New-Item -Path "$Local_Installer_Path" -ItemType File -Force} #Made C:\Setup\_Software_Collection\Standard_Software\Dell-Command-Update-Windows-Universal-Application_CJ0G9_WIN_4.7.1_A00.EXE
+                                                                                                                        #Needs to be updated to get parent folder and make that
             # Download Installer
             (New-Object System.Net.WebClient).DownloadFile($Installer_URL, $Local_Installer_Path)
             # Define $Working_Dir
