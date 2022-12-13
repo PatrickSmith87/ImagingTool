@@ -67,7 +67,7 @@ function Install-Driver_Updates {
             Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
         }
     }
-} #end of Install-Driver_Updates function
+}  Export-ModuleMember -Function Install-Driver_Updates #end of Install-Driver_Updates function
 
 function Install-HP_Drivers {
     [CmdletBinding()]
