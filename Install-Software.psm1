@@ -1118,6 +1118,7 @@ function Install-DriverUpdateAssistant {
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     } else {
         $Manufacturer = Get-Manufacturer
+        $Software = New-Software
         If ($Manufacturer -match "HP") {
             # Install HP Image Assistant if not already installed
             $HP_Image_Assistant_Program = "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
