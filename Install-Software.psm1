@@ -1144,15 +1144,23 @@ function Install-DriverUpdateAssistant {
             $TargetVersion = "4.7.1"
 
             # Find versions of Dell Command installed and store results in the $64bit variable
-            $software = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' | where DisplayName -match 'Dell Command')
+            $software = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' | where DisplayName -match ('Dell'))
             if ($software) { #If there are Dell Command softwares installed
                 foreach ($title in $software) { #Uninstall each older version
-                    [version]$InstanceVersion = [version]$title.DisplayVersion
-                    if ($InstanceVersion -lt $TargetVersion) {
-                        Write-Output "Uninstalling old version of Dell Command ($InstanceVersion)"
+                    $DisplayName = $title.DisplayName
+                    if ($DisplayName -match 'Dell Command') {
+                        [version]$InstanceVersion = [version]$title.DisplayVersion
+                        if ($InstanceVersion -lt $TargetVersion) {
+                            Write-Output "Uninstalling old version of Dell Command ($InstanceVersion)"
+                            $UninstallString = $title.UninstallString | Select-String -Pattern '{[-0-9A-F]+?}' -AllMatches | Select-Object -ExpandProperty Matches | Select-Object -ExpandProperty Value
+                            Start-Process MsiExec -ArgumentList "/X $UninstallString /qn" -Wait
+                            Write-Output "Uninstall of Dell Command $InstanceVersion`: " -NoNewline; Write-Output "Complete" -ForegroundColor Green
+                        }
+                    } elseif ($DisplayName -match 'Dell SupportAssist OS Recovery Plugin for Dell Update') {
+                        Write-Output "Dell SupportAssist OS Recovery Plugin for Dell Update"
                         $UninstallString = $title.UninstallString | Select-String -Pattern '{[-0-9A-F]+?}' -AllMatches | Select-Object -ExpandProperty Matches | Select-Object -ExpandProperty Value
                         Start-Process MsiExec -ArgumentList "/X $UninstallString /qn" -Wait
-                        Write-Output "Uninstall of Dell Command $InstanceVersion`: " -NoNewline; Write-Output "Complete" -ForegroundColor Green
+                        Write-Output "Uninstall of Dell SupportAssist OS Recovery Plugin for Dell Update: " -NoNewline; Write-Output "Complete" -ForegroundColor Green
                     }
                 }
             }
@@ -1172,7 +1180,7 @@ function Install-DriverUpdateAssistant {
                 #Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait -NoNewWindow | Out-Null
                 $results = Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait -NoNewWindow | Out-Null
                 Write-Host "`n$results"
-                Start-Sleep -Seconds 1
+                Start-Sleep -Milliseconds 250
             }
         } else {
             Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow

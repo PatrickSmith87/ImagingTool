@@ -159,8 +159,14 @@ function Install-Dell_Drivers {
             Write-Output "Starting Dell Command Update Process. "
             if ($RebootAllowed) {
                 Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/ApplyUpdates","-reboot=enable" -Wait
+                Write-Host "Completed" -ForegroundColor Green
+                Restart-Computer -Force | Out-Null
+                Write-Host "Should be restarting soon..." -ForegroundColor Red
+                Pause
             } else {
                 Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/ApplyUpdates","-reboot=disable" -Wait
+                Write-Host "Completed" -ForegroundColor Green
+                Write-Host "(There may be additional updates after a reboot)"
             }
         } else {
             if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
@@ -170,28 +176,13 @@ function Install-Dell_Drivers {
 } #end of Install-Dell_Drivers function
 
 function Get-DellDriverUpdates {
-    <#
-    Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/scan","-outputLog=C:\Setup\DellCommand.log" -Wait
+    
+    Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/scan","-outputLog=C:\Setup\DellCommand.log" -Wait -WindowStyle Hidden
 
-    # Get Activity Log and parse intalled updates in last 24 hours
-    [xml]$a = Get-Content "C:\ProgramData\dell\UpdateService\Log\Activity.log"
-    $range = (Get-Date).AddHours(-24)
-    # Write output on Checking Updates
-    $events = $a.LogEntries.LogEntry | Select timestamp,message | where {[datetime]$_.timestamp -gt $range -and ($_.message -match 'found' -or $_.message -match 'Checking for updates' -or $_.message -match 'verified')} | % {
-        $timestamp = (Get-Date $_.timestamp -Format 'yyyy-MM-dd hh:mm tt')
-        $message = $_.message.replace(' verified.','')
-        [pscustomobject] @{
-            timestamp = $timestamp
-            message = $message
-        }
-    }
-    foreach ($event in $events)
-    {
-        Write-Output "$($event.timestamp) $($event.message). "
-    }
+    # Get Activity
+    [int]$Updates = (((Select-String -Path "C:\Setup\DellCommand.log" -Pattern 'Number of applicable updates for the current system configuration:').ToString()).Split(":"))[-1]
 
     return $Updates
-    #>
 } #end of Get-DellDriverUpdates
 #endregion driver update functions
 
