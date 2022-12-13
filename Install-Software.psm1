@@ -367,19 +367,6 @@ class Software {
                     Write-Host "Error 505"
                     Pause
                 }
-
-                If (($SoftwareName -match "INSTALL Dell Command | Update") -and (Test-Path $Installer_Verification_Path)) {
-                    $Arguments = 'scheduleManual', #USE
-                        'lockSettings=enable', #Use i guess?
-                        'userConsent=disable', #USE
-                        'autoSuspendBitLocker=enable', #USE
-                        'updateType=bios,firmware,driver,utility,others' #NOT application
-                        #'updateSeverity=Security,critical,recommended,optional' #These are all of the options.. may not want optional?
-                    foreach ($Arg in $Arguments){
-                        Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait -NoNewWindow | Out-Null
-                        Start-Sleep -Seconds 1
-                    }
-                }
             }
         }
 
@@ -1127,7 +1114,7 @@ function Install-DriverUpdateAssistant {
     $CompletionFile = "$StepStatus-Completed.txt"
     
     If (Test-Path $CompletionFile) {
-        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     } else {
         $Manufacturer = Get-Manufacturer
         If ($Manufacturer -match "HP") {
@@ -1138,21 +1125,54 @@ function Install-DriverUpdateAssistant {
 
                 $WScriptShell = New-Object -ComObject WScript.Shell
 
-                $Shortcut = $WScriptShell.CreateShortcut("$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\HP Image Assistant.lnk")
+                #$Shortcut = $WScriptShell.CreateShortcut("$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\HP Image Assistant.lnk")
+                $Shortcut = $WScriptShell.CreateShortcut("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\HP Image Assistant.lnk")
                 $Shortcut.TargetPath = $HP_Image_Assistant_Program
                 $Shortcut.Save()
 
-                $Shortcut = $WScriptShell.CreateShortcut("C:\Users\Public\Desktop\HP Image Assistant.lnk")
+                #$Shortcut = $WScriptShell.CreateShortcut("$env:PUBLIC\Desktop\HP Image Assistant.lnk")
+                $Shortcut = $WScriptShell.CreateShortcut("$env:USERPROFILE\Desktop\HP Image Assistant.lnk")
                 $Shortcut.TargetPath = $HP_Image_Assistant_Program
                 $Shortcut.Save()
+            } else {
+                if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                Write-Host "$Step has been completed" -ForegroundColor Green
             }
         } elseif ($Manufacturer -match "Dell") {
             # Remove old versions, make sure latest is installed
-            
+            $TargetVersion = "4.7.1"
+
+            # Find versions of Dell Command installed and store results in the $64bit variable
+            $software = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' | where DisplayName -match 'Dell Command')
+            if ($software) { #If there are Dell Command softwares installed
+                foreach ($title in $software) { #Uninstall each older version
+                    [version]$InstanceVersion = [version]$title.DisplayVersion
+                    if ($InstanceVersion -lt $TargetVersion) {
+                        Write-Output "Uninstalling old version of Dell Command ($InstanceVersion)"
+                        $UninstallString = $title.UninstallString | Select-String -Pattern '{[-0-9A-F]+?}' -AllMatches | Select-Object -ExpandProperty Matches | Select-Object -ExpandProperty Value
+                        Start-Process MsiExec -ArgumentList "/X $UninstallString /qn" -Wait
+                        Write-Output "Uninstall of Dell Command $InstanceVersion`: " -NoNewline; Write-Output "Complete" -ForegroundColor Green
+                    }
+                }
+            }
 
             # Install Dell Command | Update if not already installed
             $Software.Install("EXTRACT Dell Command | Update")
             $Software.Install("INSTALL Dell Command | Update",$CompletionFile)
+
+            #Configure Dell Command | Update
+            $Arguments = 'scheduleManual', #USE
+                            'lockSettings=enable', #Use i guess?
+                            'userConsent=disable', #USE
+                            'autoSuspendBitLocker=enable', #USE
+                            'updateType=bios,firmware,driver,utility,others', #NOT application
+                            'updateSeverity=Security,critical,recommended,optional' #These are all of the options.. may not want optional?
+            foreach ($Arg in $Arguments){
+                #Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait -NoNewWindow | Out-Null
+                $results = Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait -NoNewWindow | Out-Null
+                Write-Host "`n$results"
+                Start-Sleep -Seconds 1
+            }
         } else {
             Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
             Write-Host "`n`$Manufacturer = $Manufacturer"

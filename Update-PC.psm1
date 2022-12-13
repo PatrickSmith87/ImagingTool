@@ -143,18 +143,6 @@ function Install-Dell_Drivers {
         [switch] $Force
     )
     
-    <#
-    else {
-        $AvailableUpdates = Get-DriverUpdates -Manufacturer $Manufacturer
-        if ($AvailableUpdates -gt 0) {
-            NewApply-DriverUpdates -Manufacturer $Manufacturer
-        } else {
-            if ($Automated_Setup) {NewCreate-CompletionFile -Step $Step}
-        }
-    }#>
-
-    # Remove old versions, make sure latest is installed
-    
     # Variables - edit as needed
     $Step = "Install Dell BIOS, Drivers, and Firmware Updates"
 
@@ -166,37 +154,45 @@ function Install-Dell_Drivers {
         # If task is completed or skipped...
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        Write-Host "Please manually install driver updates before continuing with the setup"
-        DO {$choice = Read-Host -Prompt "`nType in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
-
-        if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        $AvailableUpdates = Get-DellDriverUpdates
+        if ($AvailableUpdates -gt 0) {
+            Write-Output "Starting Dell Command Update Process. "
+            if ($RebootAllowed) {
+                Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/ApplyUpdates","-reboot=enable" -Wait
+            } else {
+                Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/ApplyUpdates","-reboot=disable" -Wait
+            }
+        } else {
+            if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        }
     }
-
-    <#
-    "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" /ApplyUpdates -reboot=enable
-
-    If you dont want to restart the computer: "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" /ApplyUpdates -reboot=disable
-    ###################################################
-
-    # Configure Dell Command Update
-    Write-Host
-    $Arguments = 'scheduleAuto',
-                    'lockSettings=enable',
-                    'userConsent=disable',
-                    'scheduleMonthly=28,00:45',
-                    'scheduledReboot=0',
-                    'autoSuspendBitLocker=enable'
-    foreach ($Arg in $Arguments){
-        $results = Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait | Out-Null
-        Start-Sleep -Seconds 5
-    }
-
-    
-    #>
-
-
 } #end of Install-Dell_Drivers function
+
+function Get-DellDriverUpdates {
+    <#
+    Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/scan","-outputLog=C:\Setup\DellCommand.log" -Wait
+
+    # Get Activity Log and parse intalled updates in last 24 hours
+    [xml]$a = Get-Content "C:\ProgramData\dell\UpdateService\Log\Activity.log"
+    $range = (Get-Date).AddHours(-24)
+    # Write output on Checking Updates
+    $events = $a.LogEntries.LogEntry | Select timestamp,message | where {[datetime]$_.timestamp -gt $range -and ($_.message -match 'found' -or $_.message -match 'Checking for updates' -or $_.message -match 'verified')} | % {
+        $timestamp = (Get-Date $_.timestamp -Format 'yyyy-MM-dd hh:mm tt')
+        $message = $_.message.replace(' verified.','')
+        [pscustomobject] @{
+            timestamp = $timestamp
+            message = $message
+        }
+    }
+    foreach ($event in $events)
+    {
+        Write-Output "$($event.timestamp) $($event.message). "
+    }
+
+    return $Updates
+    #>
+} #end of Get-DellDriverUpdates
 #endregion driver update functions
 
 #region windows update functions

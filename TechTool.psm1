@@ -62,7 +62,7 @@ class TechTool {
         }
     }
 
-    [void]hidden Download_GitHub_Repo() {
+    [void] Download_GitHub_Repo() {
         # NEEDS TO WORK INDEPENDANTLY OF ANY (OTHER) MODULES OR OTHER PARENT\CHILD SCRIPTS
 
         [string]$Name = "ImagingTool"
@@ -97,7 +97,7 @@ class TechTool {
         Write-Host "Download GitHub Repo (to $Location): " -NoNewline; Write-Host "Complete" -ForegroundColor Green
     }
 
-    [void]hidden Update_Local_Scripts() {
+    [void] Update_Local_Scripts() {
         # NEEDS TO WORK INDEPENDANTLY OF ANY (OTHER) MODULES OR OTHER PARENT\CHILD SCRIPTS 
 
         [string]$Location = "C:\temp"
@@ -161,7 +161,7 @@ class TechTool {
         }
     }
 
-    [void]hidden Import_Modules() {
+    [void] Import_Modules() {
         Import-Module ImagingUSB -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module Automate-Setup -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module Configure-PC -WarningAction SilentlyContinue -Force | Out-Null
@@ -173,7 +173,7 @@ class TechTool {
         Write-Host "Import Modules: " -NoNewline; Write-Host "Complete" -ForegroundColor Green
     }
 
-    [void]hidden Update_USB_Scripts() {
+    [void] Update_USB_Scripts() {
         [string]$Location = "C:\temp"
         [string]$Name = "ImagingTool"
         $this.Update_USB_Scripts($Location,$Name)
@@ -230,7 +230,7 @@ class TechTool {
         $this.Update_Local_GitHubRepo("C:\Git-Repositories\ImagingTool")
     }
     
-    [void] Update_Local_GitHubRepo([string]$RepoPath) {
+    [void]hidden Update_Local_GitHubRepo([string]$RepoPath) {
         $GitHubRepo = $RepoPath
         $USB = New-ImagingUSB
         Write-Host "$USB"
@@ -259,7 +259,7 @@ class TechTool {
 
     [void] DisplayMenu() {
         $this.Update()
-        Main_Menu
+        Enter-Main_Menu
     }
 }
 
@@ -310,7 +310,7 @@ $USBMaintenance_CREATE_AutoDeploy_Package_Fi          = $USB.USBMaint_CREATEAuto
 ############################################################### MAIN MENU ###############################################################
 #########################################################################################################################################
 
-function Main_Menu {
+function Enter-Main_Menu {
     #Clear-Host
     DO {
         [int]$StepNum = 1
@@ -341,19 +341,19 @@ function Main_Menu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 1) -and ($choice -le $StepNum))
     Switch ($choice) {
-        1 {Clear-Host; Enter-PC_Maintenance_Menu}
-        2 {Clear-Host; Enter-Image_Maintenance_Menu}
-        3 {Clear-Host; Enter-ImagingUSB_Maintenance_Menu}
+        1 {Clear-Host; Enter-PCMaintenance_Menu}
+        2 {Clear-Host; Enter-ImageMaintenance_Menu}
+        3 {Clear-Host; Enter-ImagingUSBMaintenance_Menu}
         4 {EXIT}
     }
-} Export-ModuleMember -Function Main_Menu
+} Export-ModuleMember -Function Enter-Main_Menu
 #endregion Main Menu
 
 #region PC Maintenance
 #########################################################################################################################################
 ############################################################ PC Maintenance #############################################################
 #########################################################################################################################################
-function Enter-PC_Maintenance_Menu {
+function Enter-PCMaintenance_Menu {
     DO {
         Write-Host "`n-=[ PC Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -373,24 +373,24 @@ function Enter-PC_Maintenance_Menu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 11))
     Switch ($choice) {
-        0 {Clear-Host; Main_Menu}
-        1 {Clear-Host; Automated_Setup_submenu}
-        2 {Clear-Host; TuneUp-PC_submenu}
-        3 {Clear-Host; Configure_Automatic_Sign_In_submenu}
+        0 {Clear-Host; Enter-Main_Menu}
+        1 {Clear-Host; Enter-AutomatedSetup_submenu}
+        2 {Clear-Host; Enter-TuneUpPC_submenu}
+        3 {Clear-Host; Enter-ConfigureAutomaticSignIn_submenu}
         4 {Clear-Host; Set-PCDefaultSettings}
-        5 {Clear-Host; Install_Software_submenu}
+        5 {Clear-Host; Enter-InstallSoftware_submenu}
         6 {Clear-Host; Update-PC}
-        7 {Clear-Host; Cleanup-System_Drive}
-        8 {Clear-Host; Start-Process powershell -ArgumentList '-command Migrate_User_Profile' -WindowStyle Maximized}
-        9 {Clear-Host; Sync_Folder}
-        10 {Clear-Host; Pull_IntuneHWID}
+        7 {Clear-Host; Cleanup-SystemDrive}
+        8 {Clear-Host; Start-Process powershell -ArgumentList '-command Sync-UserProfile' -WindowStyle Maximized}
+        9 {Clear-Host; Sync-Folder}
+        10 {Clear-Host; Get-IntuneHWID}
         11 {EXIT}
     }
     # Recursivly call the PC Maintenance Menu
-    Enter-PC_Maintenance_Menu
-} Export-ModuleMember -Function Enter-PC_Maintenance_Menu
+    Enter-PCMaintenance_Menu
+} Export-ModuleMember -Function Enter-PCMaintenance_Menu
 
-function Automated_Setup_submenu {    
+function Enter-AutomatedSetup_submenu {    
     DO {
         Write-Host "`n-=[ Automated Setup submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -406,14 +406,14 @@ function Automated_Setup_submenu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 7))
     Switch ($choice) {
-        0 {Clear-Host; Enter-PC_Maintenance_Menu}
+        0 {Clear-Host; Enter-PCMaintenance_Menu}
         1 {
             Clear-Host
             Write-Host "`nInjecting the Automated Setup program in the background..." -ForegroundColor Green
             Write-Host "Note: If the Automated Setup program is already on the current OS, it will be" -ForegroundColor Yellow
             Write-Host "      updated to the version on the Imaging Tool if it is newer" -ForegroundColor Yellow
             Write-Host "-To kick off the Automated Setup program, run the file on the desktop called"
-            Write-Host "    Start-NewImage-RAA.bat (RAA - Run As Admin)"
+            Write-Host "    Start-AutomatedSetup-RAA (RAA - Run As Admin)"
             Write-Host '-Or select "START Automated Setup program on current OS" in the Automated Setup'
             Write-Host '    submenu'
             #Start-Process $FilePath_USB_Automated_Setup_INJECT_Scripts_Script
@@ -428,10 +428,10 @@ function Automated_Setup_submenu {
     }
     
     #Recursivly call the submenu
-    Automated_Setup_submenu
-} Export-ModuleMember -Function Automated_Setup_submenu # End of Automated_Setup_submenu
+    Enter-AutomatedSetup_submenu
+} Export-ModuleMember -Function Enter-AutomatedSetup_submenu # End of Enter-AutomatedSetup_submenu
 
-function TuneUp-PC_submenu {
+function Enter-TuneUpPC_submenu {
     DO {
         Write-Host "`n-=[ TuneUp PC submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -444,7 +444,7 @@ function TuneUp-PC_submenu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 4))
     Switch ($choice) {
-        0 {Clear-Host; Enter-PC_Maintenance_Menu}
+        0 {Clear-Host; Enter-PCMaintenance_Menu}
         1 {Clear-Host; Inject-TuneUp_PC}
         2 {Clear-Host; Start-TuneUp_PC}
         3 {Clear-Host; Stop-TuneUp_AtLogon}
@@ -452,10 +452,10 @@ function TuneUp-PC_submenu {
     }
 
     #Recursivly call the submenu
-    TuneUp-PC_submenu
-} Export-ModuleMember -Function TuneUp-PC_submenu # End of TuneUp-PC_submenu
+    Enter-TuneUpPC_submenu
+} Export-ModuleMember -Function Enter-TuneUpPC_submenu # End of Enter-TuneUpPC_submenu
 
-function Configure_Automatic_Sign_In_submenu {
+function Enter-ConfigureAutomaticSignIn_submenu {
     DO {
         Write-Host "`n-=[ Configure Automatic Sign-In submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -467,16 +467,16 @@ function Configure_Automatic_Sign_In_submenu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 3))
     Switch ($choice) {
-        0 {Clear-Host; Enter-PC_Maintenance_Menu}
+        0 {Clear-Host; Enter-PCMaintenance_Menu}
         1 {Clear-Host; Enable-AutoLogon}
         2 {Clear-Host; Remove-AutoLogon}
         3 {EXIT}
     }
     #Recursivly call the submenu
-    Configure_Automatic_Sign_In_submenu
-} Export-ModuleMember -Function Configure_Automatic_Sign_In_submenu # End of Configure_Automatic_Sign_In_submenu
+    Enter-ConfigureAutomaticSignIn_submenu
+} Export-ModuleMember -Function Enter-ConfigureAutomaticSignIn_submenu # End of Enter-ConfigureAutomaticSignIn_submenu
 
-function Install_Software_submenu {
+function Enter-InstallSoftware_submenu {
     DO {
         Write-Host "`n-=[ Install Software submenu ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -500,7 +500,7 @@ function Install_Software_submenu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 13))
     Switch ($choice) {
-        0 {Clear-Host; Enter-PC_Maintenance_Menu}
+        0 {Clear-Host; Enter-PCMaintenance_Menu}
         1 {Clear-Host; Install-Image_Softwares}
         2 {Clear-Host; Choose-Browser}
         3 {Clear-Host; Choose-PDF_Viewer}
@@ -516,42 +516,15 @@ function Install_Software_submenu {
         13 {EXIT}
     }
     #Recursivly call the submenu
-    Install_Software_submenu
-} Export-ModuleMember -Function Install_Software_submenu # End of Install_Software_submenu
-
-function Migrate_User_Profile_submenu {
-    DO {
-        Write-Host "`n-=[ Migrate User Profile submenu ]=-" -ForegroundColor DarkGray
-        Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
-        Write-Host "0. " -NoNewline; Write-Host "BACK TO PREVIOUS MENU" -ForegroundColor DarkGray
-        Write-Host "1. " -NoNewline; Write-Host "BACKUP " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Transwiz" -ForegroundColor DarkCyan -NoNewline; Write-Host "  -Not developed yet" -ForegroundColor DarkRed
-        Write-Host "2. " -NoNewline; Write-Host "RESTORE " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Transwiz" -ForegroundColor DarkCyan -NoNewline; Write-Host "  -Not developed yet" -ForegroundColor DarkRed
-        Write-Host "3. " -NoNewline; Write-Host "SYNC " -NoNewline -ForegroundColor Cyan; Write-Host "User Profile, using " -NoNewline; Write-Host "Sync-UserProfileData script" -ForegroundColor Green
-        Write-Host "4. " -NoNewline; Write-Host "EXIT SCRIPT" -ForegroundColor DarkRed
-        [int]$choice = Read-Host -Prompt "Enter a number, 0 thru 4"
-    } UNTIL (($choice -ge 0) -and ($choice -le 4))
-    Switch ($choice) {
-        0 {Clear-Host; Enter-PC_Maintenance_Menu}
-        1 {Clear-Host; Write-Host "`nDoes not function yet..." -ForegroundColor Red}
-        2 {Clear-Host; Write-Host "`nDoes not function yet..." -ForegroundColor Red}
-        3 {
-            Clear-Host
-            Write-Host "`nRunning the Migrate User Profile script in the background..." -ForegroundColor Green
-            #Start-Process $FilePath_USB_Automated_Setup_INJECT_Scripts_Script
-            Start-Process powershell -ArgumentList '-command Migrate_User_Profile' -WindowStyle Maximized
-        }
-        4 {EXIT}
-    }
-    #Recursivly call the submenu
-    Migrate_User_Profile_submenu
-} Export-ModuleMember -Function Migrate_User_Profile_submenu # End of Migrate_User_Profile_submenu
+    Enter-InstallSoftware_submenu
+} Export-ModuleMember -Function Enter-InstallSoftware_submenu # End of Enter-InstallSoftware_submenu
 #endregion PC Maintenance
 
 #region Image Maintenance
 #########################################################################################################################################
 ########################################################### Image Maintenance ###########################################################
 #########################################################################################################################################
-function Enter-Image_Maintenance_Menu {
+function Enter-ImageMaintenance_Menu {
     DO {
         Write-Host "`n-=[ Image Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -564,22 +537,22 @@ function Enter-Image_Maintenance_Menu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 4))
     Switch ($choice) {
-        0 {Clear-Host; Main_Menu}
+        0 {Clear-Host; Enter-Main_Menu}
         1 {Clear-Host; & $ImageMaintenance_DOWNLOAD_Latest_ESD_File_Fi}
         2 {Clear-Host; & $ImageMaintenance_EXTRACT_WIM_from_ESD_Fi}
         3 {Clear-Host; & $ImageMaintenance_CREATE_Modded_WIM_Fi}
         4 {EXIT}
     }
     # Recursivly call the Image Maintenance Menu
-    Enter-Image_Maintenance_Menu
-} Export-ModuleMember -Function Enter-Image_Maintenance_Menu
+    Enter-ImageMaintenance_Menu
+} Export-ModuleMember -Function Enter-ImageMaintenance_Menu
 #endregion Image Maintenance
 
 #region Imaging USB Maintenance
 ########################################################################################################################################
 ########################################################## USB Maintenance #############################################################
 ########################################################################################################################################
-function Enter-ImagingUSB_Maintenance_Menu {
+function Enter-ImagingUSBMaintenance_Menu {
     DO {
         Write-Host "`n-=[ Tool Maintenance ]=-" -ForegroundColor DarkGray
         Write-Host "Input a number to take the corresponding action" -ForegroundColor Yellow
@@ -598,7 +571,7 @@ function Enter-ImagingUSB_Maintenance_Menu {
         $choice = $choice -as [int]
     } UNTIL (($choice -ge 0) -and ($choice -le 10))
     Switch ($choice) {
-        0 {Clear-Host; Main_Menu}
+        0 {Clear-Host; Enter-Main_Menu}
         1 {
             Clear-Host
             Write-Host "`nRunning the script in the background..." -ForegroundColor Green
@@ -630,8 +603,8 @@ function Enter-ImagingUSB_Maintenance_Menu {
         9 {Clear-Host; $TechTool.Update_Local_GitHubRepo()}
         10 {EXIT}
     }
-    Enter-ImagingUSB_Maintenance_Menu
-} Export-ModuleMember -Function Enter-ImagingUSB_Maintenance_Menu
+    Enter-ImagingUSBMaintenance_Menu
+} Export-ModuleMember -Function Enter-ImagingUSBMaintenance_Menu
 #endregion Imaging USB Maintenance
 
 #endregion Menu Functions

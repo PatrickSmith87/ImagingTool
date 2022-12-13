@@ -110,4 +110,4 @@ if (!(Test-Path $Module_TechTool_Fi)) {
 #$TechTool.DisplayMenu()
 
 Update-TechTool
-Main_Menu
+Enter-Main_Menu

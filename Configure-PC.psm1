@@ -1221,7 +1221,7 @@ function Restart-Explorer {
     }
 } Export-ModuleMember -Function Restart-Explorer
 
-function Migrate_User_Profile {
+function Sync-UserProfile {
     $Host.UI.RawUI.BackgroundColor = 'Black'
     $Computername = Hostname
 
@@ -1385,12 +1385,12 @@ function Migrate_User_Profile {
         [int]$choice = Read-Host -Prompt "Enter your choice (1, 2, or 3)"
         Switch ($choice) {
             1 {Clear-Host; Start_Profile_Data_Migration -SourceProfile $SourceProfile -DestProfile $DestProfile}
-            2 {Clear-Host; Migrate_User_Profile}
+            2 {Clear-Host; Sync-UserProfile}
             3 {Clear-Host}
         }
     }
     Start_Profile_Data_Migration -SourceProfile $SourceProfile -DestProfile $DestProfile
-} Export-ModuleMember -Function Migrate_User_Profile
+} Export-ModuleMember -Function Sync-UserProfile
 ######################################################
 ############## END Of Profile Functions ##############
 ######################################################
@@ -1400,7 +1400,7 @@ function Migrate_User_Profile {
 ###########################################################
 ############## START Of Configure PC Scripts ##############
 ###########################################################
-function Pull_IntuneHWID {
+function Get-IntuneHWID {
     # Get The USB Drive Letter
     foreach ($letter in (Get-PSDrive -PSProvider FileSystem).Name) {
         $TestPath = "$letter" + ":\PC_Setup"
@@ -1420,9 +1420,9 @@ function Pull_IntuneHWID {
         Write-Host "`nSaved\Added to " -NoNewline; Write-Host "$USB\IntuneAutopilot_HWID.csv" -ForegroundColor Cyan
         $env:Path = $OriginalPath
     }
-} Export-ModuleMember -Function Pull_IntuneHWID
+} Export-ModuleMember -Function Get-IntuneHWID
 
-function Sync_Folder {
+function Sync-Folder {
     $Host.UI.RawUI.BackgroundColor = 'Black'
     $Computername = Hostname
 
@@ -1497,7 +1497,7 @@ function Sync_Folder {
         Robocopy @cmdArgs
     }
     Start_Data_Sync -SourceFolder $SourceFolder -DestFolder $DestFolder
-} Export-ModuleMember -Function Sync_Folder
+} Export-ModuleMember -Function Sync-Folder
 
 function Rename-PC {
     [CmdletBinding(DefaultParameterSetName="A")]
@@ -1616,7 +1616,7 @@ function Sign-Into_VPN {
             }
             $choice = Read-Host -Prompt "Type in 'continue' move on to the next step"
         } UNTIL ($choice -eq "continue")
-        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "$Step has been completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Sign-Into_VPN
@@ -1637,7 +1637,7 @@ function Set-DefaultApps {
         Pause
         cmd.exe /c "dism /online /export-defaultappassociations:C:\Setup\appassoc.xml" | Out-Null
         cmd.exe /c "dism /online /import-defaultappassociations:C:\Setup\appassoc.xml" | Out-Null
-        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         Write-Host "Default apps have been set" -ForeGroundColor Green
     }
 } Export-ModuleMember -Function Set-DefaultApps
@@ -2095,7 +2095,7 @@ function Activate-Windows {
     }
 } Export-ModuleMember -Function Activate-Windows
 
-function Cleanup-System_Drive {
+function Cleanup-SystemDrive {
     function Clean-Folder {
         [CmdletBinding()]
         param(
@@ -2140,7 +2140,7 @@ function Cleanup-System_Drive {
     }
     
     cmd.exe /c "Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase"
-} Export-ModuleMember -Function Cleanup-System_Drive
+} Export-ModuleMember -Function Cleanup-SystemDrive
 
 #########################################################
 ############## END OF Configure PC SCRIPTS ##############
