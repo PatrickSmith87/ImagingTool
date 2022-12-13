@@ -181,7 +181,7 @@ function Install-Driver_Updates {
             if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
         }
     }
-} Export-ModuleMember -Function Install-Driver_Updates
+}
 
 function Defrag-HDD {
 
