@@ -35,7 +35,7 @@ function Start-Build_Image {
 #############################
 ##     -=[ UPDATES ]=-     ##
 #############################
-    Update-System -RebootAllowed
+    Update-PC -RebootAllowed
 
 ###################################
 ##     -=[ Capture Image ]=-     ##
@@ -50,10 +50,10 @@ function Start-Build_Image {
     Reset-Clock
     Rename-PC -PostImage
     Install-RMM_Agent
-    Reinstall-SupportAssistant
     Install-AV_Agent
     CheckPoint-Bitlocker_Device
     Activate-Windows
+    ReUpdate-PC -RebootAllowed
     Join-Domain
 }
 
@@ -77,7 +77,7 @@ function Start-Single_Setup {
 #############################
 ##     -=[ UPDATES ]=-     ##
 #############################
-    Update-System -RebootAllowed
+    Update-PC -RebootAllowed
 }
 #endregion Functions
 

@@ -1604,8 +1604,7 @@ function Sign-Into_VPN {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
         DO {
-            Write-Host ""
-            Write-Host "-=[ $Step ]=-" -ForegroundColor Yellow
+            Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
             # -=[ If SingleSetup ]=-
             If ($global:ClientSettings.SetupType -eq "SingleSetup") {
                 Write-Host "We are about to join the PC to the domain. If required, please take a minute to connect to the VPN client." -ForeGroundColor Red
@@ -1935,6 +1934,11 @@ function Get-Manufacturer {
     $Global:Manufacturer
 } Export-ModuleMember -Function Get-Manufacturer
 
+function Get-Domain {
+    $Global:Domain = (Get-WmiObject -Class:Win32_ComputerSystem).Domain
+    $Global:Domain
+} Export-ModuleMember -Function Get-Domain
+
 function CheckPoint-Disk_Cleanup {
     # Variables - edit as needed
     $Step = "Run Disk Cleanup"
@@ -1989,42 +1993,44 @@ function Join-Domain {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
         If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
     } else {
-        Write-Host ""
-        Write-Host "-=[ $Step ]=-" -ForegroundColor Yellow
-        If ($Global:ClientSettings.DomainJoin -eq "2") {
-            if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
-            Write-Host "$Step has been skipped"
-        } ElseIf ($Global:ClientSettings.DomainJoin -eq "1") {
-            Write-Host "Make sure the VPN is connected if remote..." -ForegroundColor Red
-            Write-Host "Hit any key and the computer will be joined to the domain, then rebooted."
-            Pause
-            
-            Try {
-                Add-Computer -DomainName $Global:ClientSettings.DNS_Domain_Name -Credential (($Global:ClientSettings.NETBIOS)+"\"+($Global:ClientSettings.Domain_Admin_Username)) -Force -Verbose
-                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                Write-Host ""
-                Write-Host "$Step has been completed" -ForegroundColor Green
-                Restart-Computer
+        if ((Get-Domain) -ne "WORKGROUP") {
+            if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            Write-Host "`n$Step has been completed" -ForegroundColor Green
+        } else {
+            If (($Global:ClientSettings.DomainJoin -eq "No") -or ($Global:ClientSettings.DomainJoin -eq "2")) {
+                if ($Global:ClientSettings.DomainJoin -eq "2") {$Global:ClientSettings.DomainJoin = "No"}
+                if ($Automated_Setup -or $TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                Write-Host "$Step has been skipped"
+            } ElseIf (($Global:ClientSettings.DomainJoin -eq "Yes") -or ($Global:ClientSettings.DomainJoin -eq "1")) {
+                if ($Global:ClientSettings.DomainJoin -eq "1") {$Global:ClientSettings.DomainJoin = "Yes"}
+                Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+                Write-Host "Make sure the VPN is connected if remote..." -ForegroundColor Red
+                Write-Host "Hit any key and the computer will be joined to the domain, then rebooted."
                 Pause
-            }
-            Catch {
-                Write-Host "$Step did not complete successfully" -ForegroundColor Red
-                DO {
-                    Write-Host ""
-                    Write-Host "-=[ Error Handling ]=-" -ForegroundColor Yellow
-                    Write-Host "Would you like to try again or skip this step?"
-                    Write-Host "1. Try to $Step again"
-                    Write-Host "2. Skip this step"
-                    $choice = Read-Host -Prompt "Enter a number, 1 or 2"
-                } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
-                If ($choice -eq 1) {
-                    Join-Domain
-                } else {
-                    if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
-                    Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green
+                
+                Try {
+                    Add-Computer -DomainName $Global:ClientSettings.DNS_Domain_Name -Credential (($Global:ClientSettings.NETBIOS)+"\"+($Global:ClientSettings.Domain_Admin_Username)) -Force -Verbose                    
+                    Restart-Computer
+                    Pause
+                }
+                Catch {
+                    Write-Host "$Step did not complete successfully" -ForegroundColor Red
+                    DO {
+                        Write-Host "`n-=[ Error Handling ]=-" -ForegroundColor Yellow
+                        Write-Host "Would you like to try again or skip this step?"
+                        Write-Host "1. Try to $Step again"
+                        Write-Host "2. Skip this step"
+                        $choice = Read-Host -Prompt "Enter a number, 1 or 2"
+                    } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
+                    If ($choice -eq 1) {
+                        Join-Domain
+                    } else {
+                        if ($Automated_Setup -or $TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                        Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green
+                    }
                 }
             }
-        }
+        }        
     }
 } Export-ModuleMember -Function Join-Domain
 
@@ -2090,8 +2096,8 @@ function Activate-Windows {
         }
         PAUSE
 
-        If (!($Force) -and ($Automated_Setup -or $TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step has been completed" -ForegroundColor Green
+        if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Activate-Windows
 

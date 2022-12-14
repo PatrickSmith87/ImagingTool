@@ -16,6 +16,37 @@ $TechTool = New-TechTool
 $Setup_AS_Status_Fo                             = $TechTool.Setup_AS_Status_Fo
 #endregion Module Variables
 
+function ReUpdate-PC {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [switch] $RebootAllowed,
+        [Parameter(Mandatory = $false)]
+        [switch] $Force
+    )
+
+    #Variables - edit as needed
+    $Step = "Install Updates Again, Post-Image"
+    
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
+
+    If ((Test-Path $CompletionFile) -and !($Force) -and (($Automated_Setup) -or ($TuneUp_PC))) {
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    } else {
+        Remove-Item -Path "$Setup_AS_Status_Fo\Install_a_Driver_Update_Assistant-Completed.txt" -Force
+        Remove-Item -Path "$Setup_AS_Status_Fo\Install_Driver_Updates-Completed.txt" -Force
+        Remove-Item -Path "$Setup_AS_Status_Fo\Install_HP_Softpaq_BIOS,_Drivers,_and_Firmware_Updates-Completed.txt" -Force
+        Remove-Item -Path "$Setup_AS_Status_Fo\Install_Dell_BIOS,_Drivers,_and_Firmware_Updates-Completed.txt" -Force
+        Remove-Item -Path "$Setup_AS_Status_Fo\Install_Windows_Updates-Completed.txt" -Force
+        if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    }
+
+    Update-PC
+}
+
 function Update-PC {
     [CmdletBinding()]
     param(
@@ -41,33 +72,22 @@ function Install-Driver_Updates {
         [switch] $Force
     )
 
-    #Variables - edit as needed
-    $Step = "Install Driver Updates"
-    
-    # Static Variables - DO NOT EDIT
-    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
-    $CompletionFile = "$StepStatus-Completed.txt"
+    Install-DriverUpdateAssistant
 
-    If ((Test-Path $CompletionFile) -and !($Force) -and (($Automated_Setup) -or ($TuneUp_PC))) {
-        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+    If ($Manufacturer -match "HP") {
+        Install-HP_Drivers
+    } elseif ($Manufacturer -match "Dell") {
+        Install-Dell_Drivers
     } else {
-        Install-DriverUpdateAssistant
-
-        If ($Manufacturer -match "HP") {
-            Install-HP_Drivers
-        } elseif ($Manufacturer -match "Dell") {
-            Install-Dell_Drivers
-        } else {
-            Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
-            Write-Host "`n`$Manufacturer = $Manufacturer"
-            Write-Host "Manufacturer not detected to be either HP or Dell"
-            Write-Host "Please manually install driver updates before continuing with the setup"
-            DO {$choice = Read-Host -Prompt "`nType in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
-            if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-            Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
-        }
+        Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+        Write-Host "`n`$Manufacturer = $Manufacturer"
+        Write-Host "Manufacturer not detected to be either HP or Dell"
+        Write-Host "Please manually install driver updates before continuing with the setup"
+        DO {$choice = Read-Host -Prompt "`nType in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
+        if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     }
-}  Export-ModuleMember -Function Install-Driver_Updates #end of Install-Driver_Updates function
+} #end of Install-Driver_Updates function
 
 function Install-HP_Drivers {
     [CmdletBinding()]
@@ -176,13 +196,11 @@ function Install-Dell_Drivers {
 } #end of Install-Dell_Drivers function
 
 function Get-DellDriverUpdates {
-    
-    Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/scan","-outputLog=C:\Setup\DellCommand.log" -Wait -WindowStyle Hidden
-
     # Get Activity
-    [int]$Updates = (((Select-String -Path "C:\Setup\DellCommand.log" -Pattern 'Number of applicable updates for the current system configuration:').ToString()).Split(":"))[-1]
+    Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/scan","-outputLog=C:\Setup\DellCommand.log" -Wait -WindowStyle Hidden
+    [int]$UpdateCount = (((Select-String -Path "C:\Setup\DellCommand.log" -Pattern 'Number of applicable updates for the current system configuration:').ToString()).Split(":"))[-1]
 
-    return $Updates
+    return $UpdateCount
 } #end of Get-DellDriverUpdates
 #endregion driver update functions
 

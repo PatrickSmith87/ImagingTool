@@ -385,7 +385,7 @@ function Get-DomainJoinInfo {
             1 {
                 # Save the fact that we DO want to join the domain (either now or later)
                 If (!($global:ClientSettings.DomainJoin -and $Automated_Setup)) {
-                    Add-ClientSetting -Name "DomainJoin" -Value $choice
+                    Add-ClientSetting -Name "DomainJoin" -Value "Yes"
                 }
                 
                 # Get NETBIOS
@@ -407,8 +407,7 @@ function Get-DomainJoinInfo {
                     Write-Host "DNS Domain Name obtained from client config: "$global:ClientSettings.DNS_Domain_Name -ForegroundColor Green
                 } else {
                     DO {
-                        Write-Host ""
-                        Write-Host "What is the DNS Domain name?" -ForegroundColor Yellow
+                        Write-Host "`nWhat is the DNS Domain name?" -ForegroundColor Yellow
                         Write-Host "Example: ati.local"
                         $choice = Read-Host -Prompt "Enter the DNS Domain name"
                     } UNTIL ($null -ne $choice)
@@ -421,8 +420,7 @@ function Get-DomainJoinInfo {
                     Write-Host "Domain Admin username obtained from client config: "$global:ClientSettings.Domain_Admin_Username -ForegroundColor Green
                 } else {
                     DO {
-                        Write-Host ""
-                        Write-Host "What is the domain admin username?" -ForegroundColor Yellow
+                        Write-Host "`nWhat is the domain admin username?" -ForegroundColor Yellow
                         Write-Host "Example: Axxys"
                         $choice = Read-Host -Prompt "Enter the domain admin username"
                     } UNTIL ($null -ne $choice)
@@ -437,8 +435,7 @@ function Get-DomainJoinInfo {
                         Write-Host "Naming Convention obtained from client config: "$global:ClientSettings.Naming_Convention -ForegroundColor Green
                     } else {
                         DO {
-                            Write-Host ""
-                            Write-Host "What is the PC naming convention?" -ForegroundColor Yellow
+                            Write-Host "`nWhat is the PC naming convention?" -ForegroundColor Yellow
                             Write-Host "Example: ATI-[DT/LT]-XX"
                             $choice = Read-Host -Prompt "Enter the PC naming convention"
                         } UNTIL ($null -ne $choice)
@@ -451,8 +448,7 @@ function Get-DomainJoinInfo {
                         Write-Host "PC Name Example obtained from client config: "$global:ClientSettings.PC_Name_Example -ForegroundColor Green
                     } else {
                         DO {
-                            Write-Host ""
-                            Write-Host "What is an example for a PC name?" -ForegroundColor Yellow
+                            Write-Host "`nWhat is an example for a PC name?" -ForegroundColor Yellow
                             Write-Host "Example: ATI-DT-01"
                             $choice = Read-Host -Prompt "Enter the example PC name"
                         } UNTIL ($null -ne $choice)
@@ -466,7 +462,7 @@ function Get-DomainJoinInfo {
             2 {
                 # Save the fact that we do NOT want to join the domain
                 If (!($global:ClientSettings.DomainJoin) -and $Automated_Setup) {
-                    Add-ClientSetting -Name "DomainJoin" -Value $choice
+                    Add-ClientSetting -Name "DomainJoin" -Value "No"
                 }
                 Write-Host "$Step has been skipped" -ForegroundColor Green
                 
@@ -479,8 +475,7 @@ function Get-DomainJoinInfo {
                         Write-Host "Naming Convention obtained from client config: " + $global:ClientSettings.Naming_Convention -ForegroundColor Green
                     } else {
                         DO {
-                            Write-Host ""
-                            Write-Host "What is the PC naming convention?" -ForegroundColor Yellow
+                            Write-Host "`nWhat is the PC naming convention?" -ForegroundColor Yellow
                             Write-Host "Example: ATI-[DT/LT]-XX"
                             $choice = Read-Host -Prompt "Enter the PC naming convention"
                         } UNTIL ($null -ne $choice)
@@ -493,8 +488,7 @@ function Get-DomainJoinInfo {
                         Write-Host "PC Name Example obtained from client config: " + $global:ClientSettings.PC_Name_Example -ForegroundColor Green
                     } else {
                         DO {
-                            Write-Host ""
-                            Write-Host "What is an example for a PC name?" -ForegroundColor Yellow
+                            Write-Host "`nWhat is an example for a PC name?" -ForegroundColor Yellow
                             Write-Host "Example: ATI-DT-01"
                             $choice = Read-Host -Prompt "Enter the example PC name"
                         } UNTIL ($null -ne $choice)

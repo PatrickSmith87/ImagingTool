@@ -187,6 +187,19 @@ class Software {
                          -Verification_Path "C:\Program Files\HP\HPIA\HPImageAssistant.exe"
         #-Manual_URL "https://ftp.ext.hp.com/pub/caps-softpaq/cmit/HPIA.html"`
 
+        Add-SoftwareHash -Name "Sophos Connect"`
+                         -Installer_Name "SophosConnect_2.2.75_(IPsec_and_SSLVPN).msi"`
+                         -Installer_Source "Standard_Software"`
+                         -Manual_URL ""`
+                         -Arguments "/qn"`
+                         -Verification_Path "C:\Program Files (x86)\Sophos\Connect\GUI\scgui.exe"
+
+        Add-SoftwareHash -Name "NetExtender"`
+                         -Installer_Name "NetExtender.8.6.265.MSI"`
+                         -Installer_Source "Standard_Software"`
+                         -Manual_URL ""`
+                         -Arguments "/qn"`
+                         -Verification_Path "C:\Program Files (x86)\SonicWall\SSL-VPN\NetExtender\NEGui.exe"
         <#
         Add-SoftwareHash -Name `
                          -Installer_Name `
@@ -439,16 +452,17 @@ function Test-Function {
 } Export-ModuleMember -Function Test-Function
 #endregion Just a test function
 
+
 #region INSTALLATION FUNCTIONS
 #############################################################
 ############### START OF INSTALLATION FUNCTIONS #############
 #############################################################
 
+
 #region Image-Capable Software Install Functions
 ###############################################################################
 ############## START OF IMAGE-CAPABLE Software Install Functions ##############
 ###############################################################################
-
 function Install-Image_Softwares {
     <#
         -The point of this is to run through all potential image-capable software installs
@@ -757,12 +771,15 @@ function Choose-VPN {
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $SkippedFile = "$StepStatus-Skipped.txt"
 
     # Status check
     # If already installed for skipped, just report so and skip the rest
     If ((Test-Path "$StepStatus*.txt") -and ($Automated_Setup)) {
-        If (Test-Path "$StepStatus-1.txt") {Write-Host "WatchGuard VPN has been " -NoNewline; Write-Host "installed" -ForegroundColor Green}
-        If (Test-Path "$StepStatus-2.txt") {Write-Host "VPN Installations have been " -NoNewline; Write-Host "skipped" -ForegroundColor Green}
+        If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
+        If (Test-Path "$StepStatus-WG.txt") {Write-Host "$Step`: " -NoNewline; Write-Host "WatchGuard VPN Installed" -ForegroundColor Green}
+        If (Test-Path "$StepStatus-SC.txt") {Write-Host "$Step`: " -NoNewline; Write-Host "Sophos Connect VPN Installed" -ForegroundColor Green}
+        If (Test-Path "$StepStatus-NE.txt") {Write-Host "$Step`: " -NoNewline; Write-Host "NetExtender VPN Installed" -ForegroundColor Green}
     # Assuming no progress on this step yet
     } else {
         # First see if the choice has already been made
@@ -772,23 +789,35 @@ function Choose-VPN {
         } else {
         # Otherwise ask tech to choose action to take
             DO {
-                Write-Host ""
-                Write-Host "-=[ VPN Choice ]=-" -ForegroundColor Yellow
+                Write-Host "`n-=[ VPN Choice ]=-" -ForegroundColor Yellow
                 Write-Host "Would you like to install a VPN client?"
+                Write-Host "0. None"
                 Write-Host "1. WatchGuard Mobile VPN with SSL client"
-                Write-Host "2. None"
-                [int]$choice = Read-Host -Prompt "Enter a number, 1 through 2"
-            } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
-            if ($Automated_Setup) {
-                # Update Client Config File with choice
-                Add-ClientSetting -Name VPN -Value $choice
-            }
+                Write-Host "2. None" -NoNewline; Write-Host " <--- Don't choose"
+                Write-Host "3. Sophos Connect"
+                Write-Host "4. NetExtender"
+                [int]$choice = Read-Host -Prompt "Enter a number, 0 through 4"
+            } UNTIL (($choice -ge 0) -and ($choice -le 4))
         }
+        if ($choice -eq 0) {$choice = "None"}
+        if ($choice -eq 1) {$choice = "WatchGuard Mobile VPN with SSL client"}
+        if ($choice -eq 2) {$choice = "None"}
+        if ($choice -eq 3) {$choice = "Sophos Connect"}
+        if ($choice -eq 4) {$choice = "NetExtender"}
+        if ($Automated_Setup) {
+            # Update Client Config File with choice
+            Add-ClientSetting -Name VPN -Value $choice
+        }
+        
         # Act on choice
         switch ($choice) {
-            1 {
+            "None" {
+                Write-Host "VPN client installation has been skipped"
+                if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+            }
+            "WatchGuard Mobile VPN with SSL client" {
                 $SoftwareName = "WatchGuard Mobile VPN with SSL client"
-                $CompletionFile = "$StepStatus-1.txt"
+                $CompletionFile = "$StepStatus-WG.txt"
 
                 Write-Host "`nInstalling $SoftwareName"
                 $ZipPath = "$Setup_SoftwareCollection_StandardSoftware_Fo\WG-MVPN-SSL_12_7.zip"
@@ -807,14 +836,12 @@ function Choose-VPN {
                 }
 
                 $WScriptShell = New-Object -ComObject WScript.Shell
-                $Shortcut = $WScriptShell.CreateShortcut("C:\Users\Public\Desktop\HP Image Assistant.lnk")
+                $Shortcut = $WScriptShell.CreateShortcut("C:\Users\Public\Desktop\WatchGuard VPN.lnk")
                 $Shortcut.TargetPath = "C:\Program Files (x86)\WatchGuard\WatchGuard Mobile VPN with SSL\wgsslvpnc.exe"
                 $Shortcut.Save()
             }
-            2 {
-                Write-Host "VPN client installation has been skipped"
-                if ($Automated_Setup) {New-Item "$StepStatus-2.txt" -ItemType File -Force | Out-Null}
-            }
+            "Sophos Connect"  {$Software.Install("Sophos Connect","$StepStatus-SC.txt")}
+            "NetExtender" {$Software.Install("NetExtender","$StepStatus-NE.txt")}
         }
     }
 } Export-ModuleMember -Function Choose-VPN
@@ -842,8 +869,7 @@ function Choose-Collaboration_Software {
         } else {
         # Otherwise ask tech to choose action to take
             DO {
-                Write-Host ""
-                Write-Host "-=[ Collaboration Software Choice ]=-" -ForegroundColor Yellow
+                Write-Host "`n-=[ Collaboration Software Choice ]=-" -ForegroundColor Yellow
                 Write-Host "Which Collaboration Software do you want to install?"
                 Write-Host "1. Cisco Jabber"
                 Write-Host "2. ZAC"
@@ -923,17 +949,16 @@ function Choose-FileShareApp {
         }
     }
 } Export-ModuleMember -Function Choose-FileShareApp
-
 ###############################################################################
 ############### END OF IMAGE-CAPABLE Software Install Functions ###############
 ###############################################################################
 #endregion Image-Capable Software Install Functions
 
+
 #region POST-IMAGE Software Install Functions
 ############################################################################
 ############## START OF POST-IMAGE Software Install Functions ##############
 ############################################################################
-
 function CheckPoint-Client_Software {
     # Variables - edit as needed
     $Step = "Install Client Software"
@@ -1029,83 +1054,6 @@ function Install-AV_Agent {
     }
 } Export-ModuleMember -Function Install-AV_Agent
 
-function Reinstall-SupportAssistant {
-    #Variables - edit as needed
-    $Step = "Reinstall Support Assistant"
-
-    # Static Variables - DO NOT EDIT
-    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
-    $CompletionFile = "$StepStatus-Completed.txt"
-    $SkippedFile = "$StepStatus-Skipped.txt"
-    
-    If (Test-Path "$StepStatus*") {
-        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
-        If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
-    } else {
-        DO {
-            Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
-            Write-Host "Would you like to install a support assistant so that you can update drivers?"
-            Write-Host "1. Yes"
-            Write-Host "2. No"
-            [int]$choice = Read-Host -Prompt "Enter a number, 1 through 2"
-        } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
-
-        switch ($choice) {
-            1 {
-                $DellInstallerPath = "$Setup_Fo\Dell_Support_Assist_Installer.exe"
-                $HPInstallerPath = "$Setup_Fo\HP_Support_Assistant.exe"
-                #check to see if an installer is in the setup folder
-                Write-Host ""
-                Write-Host "Checking Support Assistant Status" -ForegroundColor Yellow
-                If (Test-Path $DellInstallerPath) {
-                    #check to see if it's installed
-                    $SoftwareName = "Dell Support Assist"
-                    $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-                    If (!(($Global:Installed_Software).DisplayName -match $SoftwareName)) {
-                        Write-Host "Re-Installing Dell Support Assist"
-                        Start-Process "$DellInstallerPath" -Wait
-                        Write-Host "Verifying if the software is now installed..."
-                        $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-                        If (($Global:Installed_Software).DisplayName -match $SoftwareName) {
-                            if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                            Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                        } else {
-                            Write-Host "$SoftwareName is not installed" -ForegroundColor Red
-                            Write-Host "Try Running the installer under $Setup_Fo manually" -ForegroundColor Yellow
-                        }
-                    }
-                } ElseIf (Test-Path $HPInstallerPath) {
-                    #check to see if it's installed
-                    $SoftwareName = "HP Support Assistant"
-                    If (!(Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -And !(Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
-                        Write-Host "Re-Installing HP Support Assistant"
-                        Start-Process "$HPInstallerPath" -Wait
-                        Write-Host "Verifying if the software is now installed..."
-                        If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
-                            if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                            Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                        } else {
-                            Write-Host "$SoftwareName is not installed" -ForegroundColor Red
-                            Write-Host "Try Running the installer under C:\Setup manually" -ForegroundColor Yellow
-                        }
-                    } else {
-                        Write-Host "It appears that $SoftwareName is already installed"
-                        If (Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") {Write-Host "Found: C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico"}
-                        If (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe") {Write-Host "Found: C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe"}
-                    }
-                } Else {
-                    Write-Host "No Support Assistant Installers found" -ForegroundColor Red
-                    Write-Host "You may want to manually download HP or Dell's Support Assistant software to run driver updates. Especially if this image is fairly old." -ForegroundColor Yellow
-                }
-            }
-            2 {
-                if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
-                Write-Host "Skipping - $Step" -ForegroundColor Green
-            }
-        }
-    }
-} Export-ModuleMember -Function Reinstall-SupportAssistant
-
 function Install-DriverUpdateAssistant {
     #Variables - edit as needed
     $Step = "Install a Driver Update Assistant"
@@ -1138,50 +1086,57 @@ function Install-DriverUpdateAssistant {
                 $Shortcut.Save()
             } else {
                 if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-                Write-Host "$Step has been completed" -ForegroundColor Green
+                Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
             }
         } elseif ($Manufacturer -match "Dell") {
-            # Remove old versions, make sure latest is installed
-            $TargetVersion = "4.7.1"
+            # Install Dell Command if not already installed
+            $Dell_Command_Update_Program = "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe"
+            If (!(Test-Path $Dell_Command_Update_Program)) {
+                # Remove old versions, make sure latest is installed
+                $TargetVersion = "4.7.1"
 
-            # Find versions of Dell Command installed and store results in the $64bit variable
-            $software = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' | where DisplayName -match ('Dell'))
-            if ($software) { #If there are Dell Command softwares installed
-                foreach ($title in $software) { #Uninstall each older version
-                    $DisplayName = $title.DisplayName
-                    if ($DisplayName -match 'Dell Command') {
-                        [version]$InstanceVersion = [version]$title.DisplayVersion
-                        if ($InstanceVersion -lt $TargetVersion) {
-                            Write-Output "Uninstalling old version of Dell Command ($InstanceVersion)"
+                # Find versions of Dell Command installed and store results in the $64bit variable
+                $software = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' | where DisplayName -match ('Dell'))
+                if ($software) { #If there are Dell Command softwares installed, uninstall each older version
+                    foreach ($title in $software) {
+                        $DisplayName = $title.DisplayName
+                        if ($DisplayName -match 'Dell Command') {
+                            [version]$InstanceVersion = [version]$title.DisplayVersion
+                            if ($InstanceVersion -lt $TargetVersion) {
+                                Write-Output "Uninstalling old version of Dell Command ($InstanceVersion)"
+                                $UninstallString = $title.UninstallString | Select-String -Pattern '{[-0-9A-F]+?}' -AllMatches | Select-Object -ExpandProperty Matches | Select-Object -ExpandProperty Value
+                                Start-Process MsiExec -ArgumentList "/X $UninstallString /qn" -Wait
+                                Write-Output "Uninstall of Dell Command $InstanceVersion`: " -NoNewline; Write-Output "Complete" -ForegroundColor Green
+                            }
+                        } elseif ($DisplayName -match 'Dell SupportAssist OS Recovery Plugin for Dell Update') {
+                            Write-Output "Dell SupportAssist OS Recovery Plugin for Dell Update"
                             $UninstallString = $title.UninstallString | Select-String -Pattern '{[-0-9A-F]+?}' -AllMatches | Select-Object -ExpandProperty Matches | Select-Object -ExpandProperty Value
                             Start-Process MsiExec -ArgumentList "/X $UninstallString /qn" -Wait
-                            Write-Output "Uninstall of Dell Command $InstanceVersion`: " -NoNewline; Write-Output "Complete" -ForegroundColor Green
+                            Write-Output "Uninstall of Dell SupportAssist OS Recovery Plugin for Dell Update: " -NoNewline; Write-Output "Complete" -ForegroundColor Green
                         }
-                    } elseif ($DisplayName -match 'Dell SupportAssist OS Recovery Plugin for Dell Update') {
-                        Write-Output "Dell SupportAssist OS Recovery Plugin for Dell Update"
-                        $UninstallString = $title.UninstallString | Select-String -Pattern '{[-0-9A-F]+?}' -AllMatches | Select-Object -ExpandProperty Matches | Select-Object -ExpandProperty Value
-                        Start-Process MsiExec -ArgumentList "/X $UninstallString /qn" -Wait
-                        Write-Output "Uninstall of Dell SupportAssist OS Recovery Plugin for Dell Update: " -NoNewline; Write-Output "Complete" -ForegroundColor Green
                     }
                 }
-            }
 
-            # Install Dell Command | Update if not already installed
-            $Software.Install("EXTRACT Dell Command | Update")
-            $Software.Install("INSTALL Dell Command | Update",$CompletionFile)
+                # Install Dell Command | Update if not already installed
+                $Software.Install("EXTRACT Dell Command | Update")
+                $Software.Install("INSTALL Dell Command | Update",$CompletionFile)
 
-            #Configure Dell Command | Update
-            $Arguments = 'scheduleManual', #USE
-                            'lockSettings=enable', #Use i guess?
-                            'userConsent=disable', #USE
-                            'autoSuspendBitLocker=enable', #USE
-                            'updateType=bios,firmware,driver,utility,others', #NOT application
-                            'updateSeverity=Security,critical,recommended,optional' #These are all of the options.. may not want optional?
-            foreach ($Arg in $Arguments){
-                #Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait -NoNewWindow | Out-Null
-                $results = Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait -NoNewWindow | Out-Null
-                Write-Host "`n$results"
-                Start-Sleep -Milliseconds 250
+                #Configure Dell Command | Update
+                $Arguments = 'scheduleManual', #USE
+                                'lockSettings=enable', #Use i guess?
+                                'userConsent=disable', #USE
+                                'autoSuspendBitLocker=enable', #USE
+                                'updateType=bios,firmware,driver,utility,others', #NOT application
+                                'updateSeverity=Security,critical,recommended,optional' #These are all of the options.. may not want optional?
+                foreach ($Arg in $Arguments){
+                    #Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait -NoNewWindow | Out-Null
+                    $results = Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/configure -$Arg" -Wait -NoNewWindow | Out-Null
+                    Write-Host "`n$results"
+                    Start-Sleep -Milliseconds 250
+                }
+            } else {
+                if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
             }
         } else {
             Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
@@ -1194,98 +1149,11 @@ function Install-DriverUpdateAssistant {
         }
     }
 } Export-ModuleMember -Function Install-DriverUpdateAssistant
-
-function Install-SupportAssistant2 {
-# THIS IS FOR TESTING THE NEW HP INSTALLER COMMANDS
-
-
-    #Variables - edit as needed
-    $Step = "Install Support Assistant"
-
-    # Static Variables - DO NOT EDIT
-    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
-    $SkippedFile = "$StepStatus-Skipped.txt"
-    
-    If (Test-Path "$StepStatus*") {
-        If (Test-Path "$StepStatus-Dell.txt") {Write-Host "Dell Support Assistant" -NoNewline; Write-Host " has been installed" -ForegroundColor Green}
-        If (Test-Path "$StepStatus-HP.txt") {Write-Host "HP Support Assistant" -NoNewline; Write-Host " has been installed" -ForegroundColor Green}
-        If (Test-Path $SkippedFile) {Write-Host "Both Dell and HP Support Assistant Installations" -NoNewline; Write-Host " have been skipped"}
-    } else {
-        $choice = $null
-        If ($Global:ClientSettings.SupportAssistant) {
-            $choice = $Global:ClientSettings.SupportAssistant
-        } else {
-            DO {
-                Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
-                Write-Host "Which version of Support Assistant would you like to install?"
-                Write-Host "1. Dell"
-                Write-Host "2. HP"
-                Write-Host "3. NEITHER"
-                [int]$choice = Read-Host -Prompt "Enter a number, 1 through 3"
-            } UNTIL (($choice -ge 1) -and ($choice -le 3))
-            # If ClientSetting doesn't exist, update Client Config File
-            If (!($Global:ClientSettings.SupportAssistant)) {
-                Add-ClientSetting -Name SupportAssistant -Value $choice
-            }
-        }
-        switch ($choice) {
-            1 {
-                $SoftwareName = "Dell Support Assist"
-                Write-Host "`nInstalling $SoftwareName"
-                $InstallerPath = "$Setup_SoftwareCollection_StandardSoftware_Fo\Dell_Support_Assist_Installer.exe"
-                Copy-Item -Path $InstallerPath -Destination $Setup_Fo -Force
-                Start-Process "$InstallerPath" -Wait
-                Write-Host "Verifying if the software is now installed..."
-                $Global:Installed_Software = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-                If (($Global:Installed_Software).DisplayName -match $SoftwareName) {
-                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    if ($Automated_Setup) {New-Item "$StepStatus-Dell.txt" -ItemType File -Force | Out-Null}
-                } else {
-                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
-                    Write-Host "Reboot or just relog to re-attempt install"
-                }
-            }
-            2 {
-                $SoftwareName = "HP Support Assistant"
-                Write-Host ""
-                Write-Host "Downloading $SoftwareName"
-                # Download Installer
-                $Local_Working_Dir    = $Setup_SoftwareCollection_StandardSoftware_Fo
-                $Installer_Local_Path = "$Local_Working_Dir\HP_Support_Assistant.exe"
-                $Installer_URL = "https://ftp.ext.hp.com/pub/softpaq/sp138501-139000/sp138693.exe"
-                (New-Object System.Net.WebClient).DownloadFile($Installer_URL, $Installer_Local_Path)
-                # Extract
-                Write-Host "Extracting $SoftwareName"
-                Start-Process $Installer_Local_Path -ArgumentList '/s /e /f "C:\Setup\HP Support Assistant"' -WorkingDirectory "C:\Setup" -Wait
-                # Install
-                Write-Host "Installing $SoftwareName"
-                Start-Process $Installer_Local_Path -ArgumentList '/S /v/qn' -WorkingDirectory "C:\Setup\HP Support Assistant" -Wait
-                #Start-Process $Installer_Local_Path -ArgumentList '/S' -WorkingDirectory "C:\Setup\HP Support Assistant" -Wait
-                # Not sure if the /v/qn works in the argumentlist...
-                # Using '/S /v/qn' doesn't seem to work on my non-HP but that may be because it's confirming if the machine is an HP machine first. If you just run the installer manually then it does this...
-                # Using '/S' only will install the software with a little gui popup but no interaction is needed and it installs even if the system isn't an HP
-
-                Write-Host "Verifying if the software is now installed..."
-                If ((Test-Path "C:\Program Files (x86)\HP\HP Support Framework\HP Support Assistant.ico") -OR (Test-Path "C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe")) {
-                    Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    if ($Automated_Setup) {New-Item "$StepStatus-HP.txt" -ItemType File -Force | Out-Null}
-                } else {
-                    Write-Host "$SoftwareName is not installed" -ForegroundColor Red
-                    Write-Host "Reboot or just relog to re-attempt install"
-                }
-            }
-            3 {
-                Write-Host "Both Dell and HP Support Assistant Installations have been skipped" -ForegroundColor Green
-                if ($Automated_Setup) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
-            }
-        }
-    }
-} Export-ModuleMember -Function Install-SupportAssistant2
-
 ##########################################################################
 ############## END OF POST-IMAGE Software Install Functions ##############
 ##########################################################################
 #endregion POST-IMAGE Software Install Functions
+
 
 #region Profile-Specific Software Install Functions
 ##################################################################################
@@ -1298,6 +1166,7 @@ function Install-SupportAssistant2 {
 ############## END OF Profile-Specific Software Install Functions ##############
 ################################################################################
 #endregion Profile-Specific Software Install Functions
+
 
 ###########################################################
 ############### END OF INSTALLATION FUNCTIONS #############
