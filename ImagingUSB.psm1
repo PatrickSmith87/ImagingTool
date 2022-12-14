@@ -29,9 +29,6 @@ class ImagingUSB {
     [string]$PCSetup_SoftwareCollection_ODT_Fo
     [string]$PCSetup_SoftwareCollection_ProfileSoftware_Fo
     [string]$PCSetup_SoftwareCollection_StandardSoftware_Fo
-    [string]$ImageMaint_DOWNLOADLatestESDFile_ps1_Fi
-    [string]$ImageMaint_EXTRACTWIMfromESD_ps1_Fi
-    [string]$ImageMaint_CREATEModdedWIM_ps1_Fi
     [string]$PCMaint_AS_HomeDir_Fo
     [string]$PCMaint_AS_RegistryBackup_Fo
     [string]$PCMaint_AS_RegistryBackup_Fi
@@ -98,9 +95,6 @@ class ImagingUSB {
         $this.PCSetup_SoftwareCollection_ODT_Fo                     = "$ImagingDrive\PC_Setup\_Software_Collection\ODT"
         $this.PCSetup_SoftwareCollection_ProfileSoftware_Fo         = "$ImagingDrive\PC_Setup\_Software_Collection\Profile_Specific_Software"
         $this.PCSetup_SoftwareCollection_StandardSoftware_Fo        = "$ImagingDrive\PC_Setup\_Software_Collection\Standard_Software"
-        $this.ImageMaint_DOWNLOADLatestESDFile_ps1_Fi               = "$ImagingDrive\sources\Image-Maintenance\1. Download Latest ESD File.ps1"
-        $this.ImageMaint_EXTRACTWIMfromESD_ps1_Fi                   = "$ImagingDrive\sources\Image-Maintenance\2. Extract WIM from ESD.ps1"
-        $this.ImageMaint_CREATEModdedWIM_ps1_Fi                     = "$ImagingDrive\sources\Image-Maintenance\3. Create Modded WIM.ps1"
         $this.PCMaint_AS_HomeDir_Fo                                 = "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup"
         $this.PCMaint_AS_RegistryBackup_Fo                          = "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\_RegistryBackup"
         $this.PCMaint_AS_RegistryBackup_Fi                          = "$ImagingDrive\sources\PC-Maintenance\1. Automated Setup\Setup\_Automated_Setup\_RegistryBackup\registry-backup020622.reg"
@@ -126,9 +120,6 @@ class ImagingUSB {
         $this.PCSetup_SoftwareCollection_ODT_Fo                     = $null
         $this.PCSetup_SoftwareCollection_ProfileSoftware_Fo         = $null
         $this.PCSetup_SoftwareCollection_StandardSoftware_Fo        = $null
-        $this.ImageMaint_DOWNLOADLatestESDFile_ps1_Fi               = $null
-        $this.ImageMaint_EXTRACTWIMfromESD_ps1_Fi                   = $null
-        $this.ImageMaint_CREATEModdedWIM_ps1_Fi                     = $null
         $this.PCMaint_AS_HomeDir_Fo                                 = $null
         $this.PCMaint_AS_RegistryBackup_Fo                          = $null
         $this.PCMaint_AS_RegistryBackup_Fi                          = $null

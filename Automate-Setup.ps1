@@ -116,7 +116,7 @@ Set-ProfileDefaultSettings -AdminProfile
 # -=[ Rename PC\Image ]=-
 Rename-PC -PreImage
 # -=[ Start Updates In Background ]
-Start-Process powershell -ArgumentList '-command Update-System' -WindowStyle Minimized
+Start-Process powershell -ArgumentList '-command Update-PC' -WindowStyle Minimized
 
 If ($ClientSettings.SetupType -eq "BuildImage") {
     Start-Build_Image

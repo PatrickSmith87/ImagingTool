@@ -799,11 +799,11 @@ function Choose-VPN {
                 [int]$choice = Read-Host -Prompt "Enter a number, 0 through 4"
             } UNTIL (($choice -ge 0) -and ($choice -le 4))
         }
-        if ($choice -eq 0) {$choice = "None"}
-        if ($choice -eq 1) {$choice = "WatchGuard Mobile VPN with SSL client"}
-        if ($choice -eq 2) {$choice = "None"}
-        if ($choice -eq 3) {$choice = "Sophos Connect"}
-        if ($choice -eq 4) {$choice = "SonicWall NetExtender"}
+        if ($choice -eq 0) {[string]$choice = "None"}
+        if ($choice -eq 1) {[string]$choice = "WatchGuard Mobile VPN with SSL client"}
+        if ($choice -eq 2) {[string]$choice = "None"}
+        if ($choice -eq 3) {[string]$choice = "Sophos Connect"}
+        if ($choice -eq 4) {[string]$choice = "SonicWall NetExtender"}
         if ($Automated_Setup) {
             # Update Client Config File with choice
             Add-ClientSetting -Name VPN -Value $choice

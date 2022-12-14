@@ -295,9 +295,6 @@ $TechTool = New-TechTool
 
 # VARIABLES
 # -=[ IMAGE MAINTENANCE ]=-
-$ImageMaintenance_DOWNLOAD_Latest_ESD_File_Fi         = $USB.ImageMaint_DOWNLOADLatestESDFile_ps1_Fi
-$ImageMaintenance_EXTRACT_WIM_from_ESD_Fi             = $USB.ImageMaint_EXTRACTWIMfromESD_ps1_Fi
-$ImageMaintenance_CREATE_Modded_WIM_Fi                = $USB.ImageMaint_CREATEModdedWIM_ps1_Fi
 
 # -=[ Imaging USB MAINTENANCE ]=-
 $USBMaintenance_CREATE_AutoDeploy_Package_Fi          = $USB.USBMaint_CREATEAutoDeployPackage_bat_Fi
@@ -538,14 +535,345 @@ function Enter-ImageMaintenance_Menu {
     } UNTIL (($choice -ge 0) -and ($choice -le 4))
     Switch ($choice) {
         0 {Clear-Host; Enter-Main_Menu}
-        1 {Clear-Host; & $ImageMaintenance_DOWNLOAD_Latest_ESD_File_Fi}
-        2 {Clear-Host; & $ImageMaintenance_EXTRACT_WIM_from_ESD_Fi}
-        3 {Clear-Host; & $ImageMaintenance_CREATE_Modded_WIM_Fi}
+        1 {Clear-Host; Download-LatestESDFile}
+        2 {Clear-Host; Extract-WIMfromESD}
+        3 {Clear-Host; Create-ModdedWIM}
         4 {EXIT}
     }
     # Recursivly call the Image Maintenance Menu
     Enter-ImageMaintenance_Menu
 } Export-ModuleMember -Function Enter-ImageMaintenance_Menu
+
+function Download-LatestESDFile {
+    # Get USB Drive
+    foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+        $Test_Path = "$Drive_Letter" + ":\PC_Setup"
+        If (Test-Path $Test_Path) {
+            $USB_Drive = "$Drive_Letter" + ":"
+        }
+    }
+
+    # Inform user before continuing
+    Write-Host "`n!!!WARNINGS!!!" -ForegroundColor Red
+    Write-Host "-Most of this is a manual process."
+    Write-Host "-Also, you will need a USB device (8GB or higher) in order to create a Microsoft Windows"
+    Write-Host "  10 Installation Tool."
+    Write-Host "-You will need to do this whenever a new Windows 10 version is released"
+    Write-Host "-DO NOT " -NoNewline -ForegroundColor Red ; Write-Host "remove the Imaging Tool during this process"
+    Write-Host "[ENTER]" -NoNewline -ForegroundColor Green; Write-Host " Continue, " -NoNewline; Write-Host "[N]" -NoNewline -ForegroundColor Red; Write-Host " Exit:" -NoNewline
+    $choiceInput = Read-Host
+    switch -Regex ($choiceInput) {
+        default {
+            #do nothing
+        }
+        'N|n|x|X' {
+            Exit
+        }
+    }
+
+    # Download \ Run \ Create - Media Creation Tool
+    Write-Host "`nStep 1 of 4:" -ForegroundColor Green -NoNewline; Write-Host " We need to download the latest Windows 10 Media Creation Tool"
+    Write-Host ">Downloading now..."
+    If (!(Test-Path "C:\temp")) {New-Item -Path "C:\temp" -ItemType Directory}
+    (New-Object System.Net.WebClient).DownloadFile("https://go.microsoft.com/fwlink/?LinkId=691209", "C:\temp\MediaCreationTool.exe")
+    Write-Host ">Download complete"
+    Write-Host "`nStep 2 of 4:" -ForegroundColor Green -NoNewline; Write-Host " Plug in an extra USB that is at least 8GB"
+    Write-Host "-This USB will be erased and used to create the Microsoft Windows 10 Installation Tool"
+    Write-Host "-Make sure you backup any data on the USB or it will be lost" -ForegroundColor Yellow
+    Write-Host "-DO NOT USE THE IMAGING TOOL FOR THIS, YOU NEED A SECOND USB" -ForegroundColor Red
+    PAUSE
+    Write-Host "`nStep 3 of 4:" -ForegroundColor Green -NoNewline; Write-Host " Launch installer and create a Windows 10 Installation Tool"
+    Write-Host ">First Option:" -ForegroundColor Cyan -NoNewline; Write-Host '  Choose to "Create installation media" (NOT to "Upgrade this PC now")'
+    Write-Host ">Second Option:" -ForegroundColor Cyan -NoNewline; Write-Host " Edition=Windows 10, Architecture=64-bit"
+    Write-Host ">Third Option:" -ForegroundColor Cyan -NoNewline; Write-Host "  Choose 'USB flash drive' (NOT 'ISO file')"
+    Write-Host ">Fourth Option:" -ForegroundColor Cyan -NoNewline; Write-Host " Select the USB designated to become the Windows 10 Installation Tool"
+    Write-Host "                    !!Make sure NOT to select your Imaging Tool!!" -ForegroundColor Red
+    Write-Host "Hit enter when ready for the installer to launch" -ForegroundColor Green
+    Read-Host "-NOTE: It can take awhile to create the USB..."
+    Start-Process "C:\temp\MediaCreationTool.exe" -Wait
+
+    # Find Media Creation Tool
+    DO {
+        foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+            $Test_Path = "$Drive_Letter" + ":\sources\install.esd"
+            If (Test-Path $Test_Path) {$Media_Tool_Drive = "$Drive_Letter" + ":"}
+        }
+        If ((Test-Path $Media_Tool_Drive) -and (Test-Path $USB_Drive)) {
+            Write-Host "`nStep 4 of 4:" -ForegroundColor Green -NoNewline;Write-Host " Copying $Media_Tool_Drive\sources\install.esd to $USB_Drive\Images\ESD File\Install.esd"
+            Copy-Item -Path "$Media_Tool_Drive\sources\install.esd" -Destination "$USB_Drive\Images\ESD File\Install.esd" -Force
+            Write-Host ">Complete"
+        } Else {
+            If (Test-Path $Media_Tool_Drive) {
+                Write-Host "`nWARNING!!!" -ForegroundColor Red -NoNewline;Write-Host " Could not find the Windows 10 Installation Tool..."
+                Write-Host "Make sure the Windows 10 Installation Tool is plugged in"
+                PAUSE
+            }
+            If (Test-Path $USB_Drive) {
+                Write-Host "`nWARNING!!!" -ForegroundColor Red -NoNewline;Write-Host " Could not find the Imaging Tool..."
+                Write-Host "Make sure the Imaging Tool is plugged in"
+                PAUSE
+            }
+        }
+    } UNTIL ((Test-Path $Media_Tool_Drive) -and (Test-Path $USB_Drive))
+}
+
+function Extract-WIMfromESD {
+    # Get USB Drive
+    foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+        $Test_Path = "$Drive_Letter" + ":\PC_Setup"
+        If (Test-Path $Test_Path) {
+            $USB_Drive = "$Drive_Letter" + ":"
+        }
+    }
+
+    $ESD_File_Path = $null
+
+    Write-Host "`nStep 1 of 3:" -ForegroundColor Green -NoNewline;Write-Host " We need to find the install.esd file"
+    Write-Host ">Searching..."
+
+    Function Find_ESD_File {
+        If ($USB_Drive) {
+            $Destination = "$USB_Drive\Images\ESD File\Install.esd"
+            # Primary USB Location
+            $Test_Path = "$USB_Drive\Images\ESD File\Install.esd"
+            If (Test-Path $Test_Path) {
+                Write-Host ">Found $Test_Path"
+                $Script:ESD_File_Path = "$Test_Path"
+            }
+            If (!($Script:ESD_File_Path)) {
+                # Secondary USB Location
+                $Test_Path = "$USB_Drive\Images\Install.esd"
+                If (Test-Path $Test_Path) {
+                    Write-Host ">Found $Test_Path"
+                    Move-Item -Path $Test_Path -Destination $Destination
+                    Write-Host ">Moved file to $Destination"
+                    $Script:ESD_File_Path = $Destination
+                }
+            }
+            If (!($Script:ESD_File_Path)) {
+                # Tirchiary USB Location
+                $Test_Path = "$USB_Drive\Install.esd"
+                If (Test-Path $Test_Path) {
+                    Write-Host ">Found $Test_Path"
+                    Move-Item -Path $Test_Path -Destination $Destination
+                    Write-Host ">Moved file to $Destination"
+                    $Script:ESD_File_Path = $Destination
+                }
+            }
+        }
+        If (!($Script:ESD_File_Path)) {
+            # Only acceptable USB Location
+            $Test_Path = "C:\Install.esd"
+            If (Test-Path $Test_Path) {
+                Write-Host ">Found $Test_Path"
+                If ($USB_Drive) {
+                    Move-Item -Path $Test_Path -Destination $Destination
+                    Write-Host ">Moved file to $Destination"
+                } else {
+                    $Destination = $Test_Path   
+                }
+                $Script:ESD_File_Path = $Destination
+            }
+        }
+    }
+
+    DO {
+        Find_ESD_File
+        If (!($ESD_File_Path)) {
+            Write-Host ">Could not find the install.esd file" -ForegroundColor Red
+            Write-Host ">Please make sure it is named correctly and located in one of these folders:"
+            If ($USB_Drive) {
+                Write-Host "$USB_Drive\Images\ESD File\Install.esd"
+                Write-Host "$USB_Drive\Images\Install.esd"
+                Write-Host "$USB_Drive\Install.esd"
+            }
+            Write-Host "C:\Install.esd"
+            Write-Host "`nPlease place the Install.esd file into one of these locations then hit enter to continue" -ForegroundColor Yellow
+            PAUSE
+        }
+    } UNTIL ($ESD_File_Path)
+
+    PAUSE
+    Write-Host "`nStep 2 of 3:" -ForegroundColor Green -NoNewline;Write-Host ' We need to verify the "ImageIndex" number to be used in the next command'
+    Write-Host '   (Generally we want the "Windows 10 Pro" version)' -NoNewline
+    Get-WindowsImage -ImagePath "$ESD_File_Path"
+    $ImageIndex = Read-Host '>Please enter the desired "ImageIndex" number'
+
+    Write-Host "`nStep 3 of 3:" -ForegroundColor Green -NoNewline;Write-Host " The .wim file will now be extracted"
+    Write-Host ">Please stand by..."
+    If ($USB_Drive) {
+        Export-WindowsImage -SourceImagePath $ESD_File_Path -DestinationImagePath "$USB_Drive\Images\Install.wim" -SourceIndex $ImageIndex -CompressionType Max -CheckIntegrity
+    } else {
+        Export-WindowsImage -SourceImagePath $ESD_File_Path -DestinationImagePath "C:\Install.wim" -SourceIndex $ImageIndex -CompressionType Max -CheckIntegrity
+    }
+    Write-Host "Image has been created!" -ForegroundColor Green
+    Write-Host '>Check "ImagePath" above for the location of the new .wim file'
+}
+
+function Create-ModdedWIM {
+    # Get USB Drive
+    foreach ($Drive_Letter in (Get-PSDrive -PSProvider FileSystem).Name) {
+        $Test_Path = "$Drive_Letter" + ":\PC_Setup"
+        If (Test-Path $Test_Path) {
+            $USB_Drive = "$Drive_Letter" + ":"
+        }
+    }
+
+
+    Write-Host "`nStep 1 of 6:" -ForegroundColor Green -NoNewline;Write-Host " We need to find the Install.wim file"
+    Write-Host ">Searching..."
+    Function Find_WIM_File {
+        If ($USB_Drive) {
+            $Destination = "$USB_Drive\Images\Install.wim"
+            # Primary USB Location
+            $Test_Path2 = "$USB_Drive\Images\Install.wim"
+            If (Test-Path $Test_Path2) {
+                Write-Host ">Found $Test_Path2"
+                $Script:WIM_File_Path = "$Test_Path2"
+                $Script:mount = $USB_Drive+"\Images\mount"
+                New-Item $Script:mount -ItemType Directory -Force > $null
+            }
+        }
+        If (!($Script:WIM_File_Path)) {
+            # Only acceptable Local Location
+            $Test_Path2 = "C:\Install.wim"
+            If (Test-Path $Test_Path2) {
+                Write-Host ">Found $Test_Path2"
+                If ($USB_Drive) {
+                    Move-Item -Path $Test_Path2 -Destination $Destination
+                    Write-Host ">Moved file to $Destination"
+                    $Script:mount = "$USB_Drive\Images\mount"
+                    New-Item $Script:mount -ItemType Directory -Force
+                } else {
+                    $Destination = $Test_Path2
+                    $Script:mount = "C:\mount"
+                    New-Item $Script:mount -ItemType Directory -Force | Out-Null
+                }
+                $Script:WIM_File_Path = $Destination
+            }
+        }
+    }
+
+    DO {
+        Find_WIM_File
+        If (!($WIM_File_Path)) {
+            Write-Host ">Could not find the install.wim file" -ForegroundColor Red
+            Write-Host ">Please make sure it is named correctly and located in one of these folders:"
+            If ($USB_Drive) {
+                Write-Host "$USB_Drive\Images\Install.wim"
+            }
+            Write-Host "C:\Install.wim"
+            Write-Host "`nPlease place the Install.wim file into one of these locations then hit enter to continue" -ForegroundColor Yellow
+            PAUSE
+        }
+    } UNTIL ($WIM_File_Path)
+    # Modules Paths
+    $FilePath_Mount_AutomateSetup_Module   = "$mount\Program Files\WindowsPowerShell\Modules\Automate-Setup\Automate-Setup.psm1"
+    $FilePath_Mount_ConfigurePC_Module     = "$mount\Program Files\WindowsPowerShell\Modules\Configure-PC\Configure-PC.psm1"
+    $FilePath_Mount_InstallSoftware_Module = "$mount\Program Files\WindowsPowerShell\Modules\Install-Software\Install-Software.psm1"
+    
+    $FilePath_USB_AutomateSetup_Module     = "$USB_Drive\sources\PC-Maintenance\_modules\Automate-Setup\Automate-Setup.psm1"
+    $FilePath_USB_ConfigurePC_Module       = "$USB_Drive\sources\PC-Maintenance\_modules\Configure-PC\Configure-PC.psm1"
+    $FilePath_USB_InstallSoftware_Module   = "$USB_Drive\sources\PC-Maintenance\_modules\Install-Software\Install-Software.psm1"
+
+
+    Write-Host "`nStep 2 of 6:" -ForegroundColor Green -NoNewline; Write-Host " Please confirm that this is the correct file."
+    Write-Host "If it is not the correct wim, try moving or renaming the wim that was found, then re-run this script"
+    Write-Host "[ENTER]" -NoNewline -ForegroundColor Green; Write-Host " Confirm, " -NoNewline; Write-Host "[X]" -NoNewline -ForegroundColor Red; Write-Host " Exit:" -NoNewline
+    $choiceInput = Read-Host
+    switch -Regex ($choiceInput) {
+        default {
+            # do nothing
+        }
+        'N|n|x|X' {Exit}
+    }
+
+
+    Write-Host "`nStep 3 of 6:" -ForegroundColor Green -NoNewline; Write-Host " Copy and rename Install.wim..."
+    If (Test-Path "$USB_Drive\Images\Install-Modded.wim") {
+        $ModdedImages = Get-ChildItem -Path "$USB_Drive\Images\Install-Modded*.wim"
+        [int]$ModdedImagesCount = 0
+        $ModdedImagesCount = $ModdedImages.Count
+        $ModdedImageName = "Install-Modded$ModdedImagesCount.wim"
+    } else {$ModdedImageName = "Install-Modded.wim"}
+    $WIM_File_Path = "$USB_Drive\Images\$ModdedImageName"
+    Write-Host ">Copying and renaming Install.wim to $ModdedImageName"
+    Write-Host ">Please stand by..."
+    Copy-Item -Path "$USB_Drive\Images\Install.wim" -Destination $WIM_File_Path
+    Write-Host ">Completed"
+
+
+    Write-Host "`nStep 4 of 6:" -ForegroundColor Green -NoNewline; Write-Host " Mounting $WIM_File_Path to $mount..."
+    Write-Host ">Please stand by..."
+    Mount-WindowsImage -ImagePath $WIM_File_Path -Index 1 -Path $mount
+    Write-Host ">Completed"
+
+
+    Write-Host "`nStep 5 of 6:" -ForegroundColor Green -NoNewline; Write-Host " Modifying the Install.wim file..."
+    Write-Host ">Beggining registry edits on the Install.wim file..."
+    # Load the wim's SOFTWARE registry
+    REG LOAD HKLM\WimRegistrySOFTWARE "$mount\windows\system32\config\software"
+    # Disable Live Tiles
+    REG ADD 'HKLM\WimRegistrySOFTWARE\Policies\Microsoft\Windows\CurrentVersion\Pushnotications' /v NoTileApplictionNotification /d 1 /f /t REG_DWORD
+    # Remove Cortana button from the taskbar
+    REG ADD 'HKLM\WimRegistrySOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' /v ShowCortanaButton /d 0 /f /t REG_DWORD
+    # Remove "People" icon from taskbar
+    REG ADD 'HKLM\WimRegistrySOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People' /v PeopleBand /d 0 /f /t REG_DWORD
+    # Remove "TaskViewButton" from the taskbar
+    REG ADD 'HKLM\WimRegistrySOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' /v ShowTaskViewButton /d 0 /f /t REG_DWORD
+    # Show ALL system tray icons
+    REG ADD 'HKLM\WimRegistrySOFTWARE\Microsoft\Windows\CurrentVersion\Explorer' /v EnableAutoTray /d 0 /f /t REG_DWORD
+    # Set Searchbar as Icon rather than Search Box
+    REG ADD 'HKLM\WimRegistrySOFTWARE\Microsoft\Windows\CurrentVersion\Search' /v SearchboxTaskbarMode /d 1 /f /t REG_DWORD
+    # Do not show News & Interests button
+    REG ADD 'HKLM\WimRegistrySoftware\Microsoft\Windows\CurrentVersion\Feeds' /v ShellFeedsTaskbarViewMode /d 2 /f /t REG_DWORD
+    # Unload the wim's SOFTWARE registry
+    REG UNLOAD HKLM\WimRegistrySOFTWARE
+    Write-Host ">Registry edits completed"
+    #
+    Write-Host ">Beginning FileSystem edits on the Install.wim file..."
+    # Transfer Public Desktop
+    Copy-Item -Path "$USB_Drive\sources\PC-Maintenance\1. Automated Setup\PublicDesktop\*" -Destination "$mount\Users\Public\Desktop\" -Recurse -Force
+    # Transfer Modules
+    # Automate-Setup module
+    New-Item -Path "$mount\Program Files\WindowsPowerShell\Modules\Automate-Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    Copy-Item -Path $FilePath_USB_AutomateSetup_Module -Destination $FilePath_Mount_AutomateSetup_Module -Force
+    # Configure-PC module
+    New-Item -Path "$mount\Program Files\WindowsPowerShell\Modules\Configure-PC" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    Copy-Item -Path $FilePath_USB_ConfigurePC_Module -Destination $FilePath_Mount_ConfigurePC_Module -Force
+    # Install-Software module
+    New-Item -Path "$mount\Program Files\WindowsPowerShell\Modules\Install-Software" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    Copy-Item -Path $FilePath_USB_InstallSoftware_Module -Destination $FilePath_Mount_InstallSoftware_Module -Force
+    # Transfer Setup Folder
+    New-Item -Path "$mount\Setup" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    Copy-Item -Path "$USB_Drive\sources\PC-Maintenance\1. Automated Setup\Setup\*" -Destination "$mount\Setup" -Force -Recurse
+    # Transfer Software Collection Folders
+    New-Item -Path "$mount\Setup\_Software_Collection" -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+    Copy-Item -Path "$USB_Drive\PC_Setup\_Software_Collection\_Software_Configs" -Destination "$mount\Setup\_Software_Collection\" -Force -Recurse
+    Copy-Item -Path "$USB_Drive\PC_Setup\_Software_Collection\ODT" -Destination "$mount\Setup\_Software_Collection\" -Force -Recurse
+    Copy-Item -Path "$USB_Drive\PC_Setup\_Software_Collection\Profile_Specific_Software" -Destination "$mount\Setup\_Software_Collection\" -Force -Recurse
+    Copy-Item -Path "$USB_Drive\PC_Setup\_Software_Collection\Standard_Software" -Destination "$mount\Setup\_Software_Collection\" -Force -Recurse
+    # Transfer Driver Collection
+    Copy-Item -Path "$USB_Drive\PC_Setup\_Driver_Collection" -Destination "$mount\Setup\" -Force -Recurse
+    # Transfer Script Collection
+    Copy-Item -Path "$USB_Drive\PC_Setup\_Script_Collection" -Destination "$mount\Setup\" -Force -Recurse
+    Write-Host ">FileSystem edits completed"
+    # Install .NET 3.5
+    Write-Host ">Beginning .NET 3.5 Install on the Install.wim file..."
+    Write-Host "`nMake sure the correct sxs cab files are directly under $USB_Drive\Images\sxs before continuing"
+    Write-Host "              (Each different version of Win10 has different sxs cab files)`n" -ForegroundColor Yellow
+    PAUSE
+    Write-Host "`nInstalling .NET 3.5..."
+    DISM /image:$mount /enable-feature /featurename:NetFx3 /All /Source:$USB_Drive\Images\sxs
+    Write-Host "`n>.NET 3.5 Install completed"
+
+
+    Write-Host "`nStep 6 of 6:" -ForegroundColor Green -NoNewline; Write-Host " Un-mounting $WIM_File_Path from $mount..."
+    Write-Host ">Please stand by..."
+    Dismount-WindowsImage -Path $mount -Save
+    Remove-Item -Path "$USB_Drive\Images\mount"
+    Write-Host ">Completed"
+}
 #endregion Image Maintenance
 
 #region Imaging USB Maintenance
