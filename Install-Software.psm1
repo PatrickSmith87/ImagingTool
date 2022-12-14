@@ -194,7 +194,7 @@ class Software {
                          -Arguments "/qn"`
                          -Verification_Path "C:\Program Files (x86)\Sophos\Connect\GUI\scgui.exe"
 
-        Add-SoftwareHash -Name "NetExtender"`
+        Add-SoftwareHash -Name "SonicWall NetExtender"`
                          -Installer_Name "NetExtender.8.6.265.MSI"`
                          -Installer_Source "Standard_Software"`
                          -Manual_URL ""`
@@ -795,7 +795,7 @@ function Choose-VPN {
                 Write-Host "1. WatchGuard Mobile VPN with SSL client"
                 Write-Host "2. None" -NoNewline; Write-Host " <--- Don't choose"
                 Write-Host "3. Sophos Connect"
-                Write-Host "4. NetExtender"
+                Write-Host "4. SonicWall NetExtender"
                 [int]$choice = Read-Host -Prompt "Enter a number, 0 through 4"
             } UNTIL (($choice -ge 0) -and ($choice -le 4))
         }
@@ -803,7 +803,7 @@ function Choose-VPN {
         if ($choice -eq 1) {$choice = "WatchGuard Mobile VPN with SSL client"}
         if ($choice -eq 2) {$choice = "None"}
         if ($choice -eq 3) {$choice = "Sophos Connect"}
-        if ($choice -eq 4) {$choice = "NetExtender"}
+        if ($choice -eq 4) {$choice = "SonicWall NetExtender"}
         if ($Automated_Setup) {
             # Update Client Config File with choice
             Add-ClientSetting -Name VPN -Value $choice
@@ -841,7 +841,7 @@ function Choose-VPN {
                 $Shortcut.Save()
             }
             "Sophos Connect"  {$Software.Install("Sophos Connect","$StepStatus-SC.txt")}
-            "NetExtender" {$Software.Install("NetExtender","$StepStatus-NE.txt")}
+            "SonicWall NetExtender" {$Software.Install("SonicWall NetExtender","$StepStatus-NE.txt")}
         }
     }
 } Export-ModuleMember -Function Choose-VPN
