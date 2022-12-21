@@ -92,7 +92,7 @@ function Remove-SuggestedAppxPackages {
     $Step = "Remove Suggested Appx Packages"
     
     if ($Final) {
-        Write-Host "`nRemoving Suggested Appx Packages"
+        Write-Host "`nRemoving Suggested Appx Packages" -ForegroundColor Yellow
     } else {
         Write-Host "Removing Suggested Appx Packages"
     }
@@ -1817,20 +1817,49 @@ function CheckPoint-Client_AV {
 
 function CheckPoint-Bitlocker_Device {
     # Variables - edit as needed
-    $Step = "Bitlocker Device"
+    $Step = "Setup Drive Encryption"
 
     # Static Variables - DO NOT EDIT
     $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
+    $SkippedFile = "$StepStatus-Skipped.txt"
 
     If (Test-Path "$StepStatus*") {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+        If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
     } else {
-        Write-Host ""
-        Write-Host "If needed, Bitlocker Device"
-        PAUSE
-        if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
+        # First see if the choice has already been made
+        $choice = $null
+        If ($Global:ClientSettings.DriveEncryption) {
+            $choice = $Global:ClientSettings.DriveEncryption
+        } else {
+            # Otherwise ask tech to choose action to take
+            DO {
+                Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+                Write-Host "Does this client require drive encryption to be setup?"
+                Write-Host "1. Yes"
+                Write-Host "2. No"
+                $choice = Read-Host -Prompt "Enter a number, 1 or 2"
+            } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
+        }
+        if ($choice -eq 1) {[string]$choice = "Yes"}
+        if ($choice -eq 2) {[string]$choice = "No"}
+        if ($Automated_Setup) {
+            # Update Client Config File with choice
+            Add-ClientSetting -Name DriveEncryption -Value $choice -Force
+        }
+        switch ($choice) {
+            "Yes" {
+                Write-Host "Please $Step now and then hit enter when ready" -ForegroundColor Yellow
+                PAUSE
+                if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
+            }
+            "No" {
+                Write-Host "$Step has been skipped" -ForegroundColor Green
+                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+            }
+        }
     }
 } Export-ModuleMember -Function CheckPoint-Bitlocker_Device
 
@@ -1855,7 +1884,7 @@ function Transfer-RMM_Agent {
         } else {
         # Ask tech to move it there
             DO {
-                Write-Host "`n-=[ Automate Agent Installer Choice ]=-" -ForegroundColor Yellow
+                Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
                 Write-Host "Are you going to place the client agent under C:\Setup?"
                 Write-Host "1. Yes"
                 Write-Host "2. No"
@@ -1934,12 +1963,17 @@ function Get-Manufacturer {
     $Global:Manufacturer
 } Export-ModuleMember -Function Get-Manufacturer
 
+function Get-Model {
+    $Global:Model = (Get-WmiObject -Class:Win32_ComputerSystem).Model
+    $Global:Model
+} Export-ModuleMember -Function Get-Model
+
 function Get-Domain {
     $Global:Domain = (Get-WmiObject -Class:Win32_ComputerSystem).Domain
     $Global:Domain
 } Export-ModuleMember -Function Get-Domain
 
-function CheckPoint-Disk_Cleanup {
+function Start-DiskCleanup {
     # Variables - edit as needed
     $Step = "Run Disk Cleanup"
 
@@ -1962,23 +1996,22 @@ function CheckPoint-Disk_Cleanup {
             $choice = Read-Host -Prompt "Enter a number, 1 or 2"
         } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
         If ($choice -eq 1) {
-            Run-Disk_Cleanup
+            Start-DiskCleanup
             if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
         } else {
             if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
             Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Yellow
         }
     }
-} Export-ModuleMember -Function CheckPoint-Disk_Cleanup
+} Export-ModuleMember -Function Start-DiskCleanup
 
-function Run-Disk_Cleanup {
-    # -=[ Run Disk Cleaner Before Taking Image ]=-
-    Write-Host "`nRunning Disk Cleanup..."
+function Start-DiskCleanup {
+    Write-Host "`nRunning Disk Cleanup..."  -ForegroundColor Yellow
     $vol = Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches"
     $vol.GetSubKeyNames() | ForEach-Object { $vol.OpenSubKey($_, $true).SetValue('StateFlags0000', 2) }
     cmd.exe /c "cleanmgr /SAGERUN:0"
     Write-Host "Disk Cleanup has been completed" -ForegroundColor Green
-} Export-ModuleMember -Function Run-Disk_Cleanup
+} Export-ModuleMember -Function Start-DiskCleanup
 
 function Join-Domain {
     # Variables - edit as needed
@@ -2051,8 +2084,7 @@ function Remove-AutoLogon {
     If ((Test-Path "$StepStatus*") -and !($Force)) {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        Write-Host ""
-        Write-Host "Resetting AutoAdminLogon Registry settings"
+        Write-Host "`nResetting AutoAdminLogon Registry settings" -ForegroundColor Yellow
         Set-ItemProperty -Path $WinLogonKey -Name AutoAdminLogon -Value "0"
         Set-ItemProperty -Path $WinLogonKey -Name ForceAutoLogon -Value "0"
         Remove-ItemProperty -Path $WinLogonKey -Name DefaultUserName -Force -ErrorAction SilentlyContinue

@@ -806,7 +806,7 @@ function Choose-VPN {
         if ($choice -eq 4) {[string]$choice = "SonicWall NetExtender"}
         if ($Automated_Setup) {
             # Update Client Config File with choice
-            Add-ClientSetting -Name VPN -Value $choice
+            Add-ClientSetting -Name VPN -Value $choice -Force
         }
         
         # Act on choice
@@ -828,7 +828,7 @@ function Choose-VPN {
                 Write-Host "Verifying if the software is now installed..."
                 If (Test-Path -LiteralPath "C:\Program Files (x86)\WatchGuard\WatchGuard Mobile VPN with SSL\wgsslvpnc.exe") {
                     Write-Host "Installed - $SoftwareName" -ForegroundColor Green
-                    {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+                    if (($Automated_Setup) -or ($TuneUp_PC)) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 } else {
                     Write-Host "$SoftwareName is not installed" -ForegroundColor Red
                     Write-Host "Reboot or just relog to re-attempt install"
@@ -1142,10 +1142,10 @@ function Install-DriverUpdateAssistant {
             Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
             Write-Host "`n`$Manufacturer = $Manufacturer"
             Write-Host "Manufacturer not detected to be either HP or Dell"
-            Write-Host "Please manually install a driver update assistant before continuing with the setup"
-            DO {$choice = Read-Host -Prompt "`nType in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
+            Write-Host "`nPlease manually install a driver update assistant before continuing with the setup"
+            DO {$choice = Read-Host -Prompt "Type in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
             if ($Automated_Setup) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-            Write-Host "$Step - Marked As Completed" -ForeGroundColor Green
+            Write-Host "$Step`: " -NoNewline; Write-Host "Marked As Completed" -ForeGroundColor Green
         }
     }
 } Export-ModuleMember -Function Install-DriverUpdateAssistant

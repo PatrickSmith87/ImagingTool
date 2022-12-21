@@ -45,7 +45,7 @@ function ReUpdate-PC {
     }
 
     Update-PC
-}
+} Export-ModuleMember -Function ReUpdate-PC
 
 function Update-PC {
     [CmdletBinding()]
@@ -71,6 +71,13 @@ function Install-Driver_Updates {
         [Parameter(Mandatory = $false)]
         [switch] $Force
     )
+
+    # Variables - edit as needed
+    $Step = "Install Driver Updates"
+
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
 
     Install-DriverUpdateAssistant
 
@@ -225,6 +232,7 @@ function Install-Windows_Updates {
     If ((Test-Path $CompletionFile) -and !($Force) -and (($Automated_Setup) -or ($TuneUp_PC))) {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
+        Write-Host ""
         If (!(Test-Path $PreReqCompletionFile)) {
             New-Item $PreReqCompletionFile -ItemType File -Force | Out-Null
             Write-Host "Installing Windows Update Provider"

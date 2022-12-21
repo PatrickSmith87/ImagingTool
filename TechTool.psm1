@@ -220,7 +220,7 @@ class TechTool {
             $this.Restore($USB.PCMaint_AS_AutomateSetup_ps1_Fi,$this.Setup_AS_AutomateSetup_ps1,"Copy")
             $this.Restore($USB.TechTool_ps1_Fi,$this.TechTool_ps1_Fi,"Copy")
             $this.Restore($USB.TechTool_bat_Fi,$this.TechTool_bat_Fi,"Copy")
-            Write-Host "Push Dev Scripts: " -NoNewline; Write-Host "Complete" -ForegroundColor Green
+            Write-Host "`nPush Dev Scripts: " -NoNewline; Write-Host "Complete" -ForegroundColor Green
         } else {
             Write-Host "Imaging USB not detected - " -NoNewline; Write-Host "Not Updated" -ForegroundColor Red
         }

@@ -90,16 +90,19 @@ function Start-Single_Setup {
 #############################################################################
 #############################################################################
 Write-Host "-=[ INITIALIZING SCRIPT ]=-" -ForegroundColor DarkGray
+Write-Host "Computername: " -NoNewline; Write-Host "$ComputerName" -ForegroundColor Cyan
+Write-Host "Manufacturer: " -NoNewline; Write-Host (Get-Manufacturer) -ForegroundColor Cyan
+Write-Host "Model: " -NoNewline; Write-Host (Get-Model) -ForegroundColor Cyan
+Write-Host ">Starting Automated Setup...`n" -ForegroundColor Yellow
+
 # Make sure Automated-Setup script continues on next log-on
 Start-AutomatedSetup_AtLogon
 # If Exists, remove Start-AutomatedSetup-RAA.bat from Public Desktop
 Remove-StartAutomatedSetup_BatchFile
-Write-Host "Computername: " -NoNewline; Write-Host "$ComputerName" -ForegroundColor Cyan
-Write-Host ">Starting Automated Setup...`n" -ForegroundColor Yellow
 # -=[ Update Automated Setup Scripts ]=-
 Update-TechTool
 # -=[ LOAD CLIENT SETTINGS ]=-
-Write-Host "-=[ LOAD CLIENT SETTINGS ]=-" -ForegroundColor DarkGray
+Write-Host "`n-=[ LOAD CLIENT SETTINGS ]=-" -ForegroundColor DarkGray
 Get-ClientSettings
 #####################################
 ##     -=[ SYSTEM SETTINGS ]=-     ##

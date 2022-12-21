@@ -69,7 +69,7 @@ function Get-ClientSettings {
                 Write-Host "Imaging Tool Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
                 Do {
                     $Count = 1
-                    Write-Host "`n   -=[ Available Client Config Files ]=-"
+                    Write-Host "`n   -=[ Available Client Config Files ]=-" -ForegroundColor Yellow
                     ForEach ($Config in $ClientConfigs) {
                         $Line = "   $Count" + ": " + $Config.Name
                         Write-Host $Line
@@ -91,7 +91,7 @@ function Get-ClientSettings {
                 Write-Host "Local Client Config Repository found. Loading Client Config files.." -ForegroundColor Green
                 Do {
                     $Count = 1
-                    Write-Host "`n   -=[ Available Client Config Files ]=-"
+                    Write-Host "`n   -=[ Available Client Config Files ]=-" -ForegroundColor Yellow
                     ForEach ($Config in $ClientConfigs) {
                         $Line = "   $Count" + ": " + $Config.Name
                         Write-Host $Line
@@ -212,10 +212,15 @@ function Add-ClientSetting {
         [string] $Name,
 
         [Parameter(Mandatory = $true)]
-        [string] $Value
+        [string] $Value,
+
+        [Parameter(Mandatory = $false)]
+        [Switch] $Force
     )
 
-    $Global:ClientSettings | Add-Member -MemberType NoteProperty -Name $Name -Value $Value
+    if ($Force) { $Global:ClientSettings | Add-Member -MemberType NoteProperty -Name $Name -Value $Value -Force}
+    else {$Global:ClientSettings | Add-Member -MemberType NoteProperty -Name $Name -Value $Value}
+    
     Save-ClientSettings
 } Export-ModuleMember -Function Add-ClientSetting
 
@@ -309,7 +314,7 @@ function CheckPoint-Capture_Image {
             $choice = Read-Host -Prompt "When ready, type in 'ready'"
         } UNTIL ($choice -eq "ready")
 
-        Run-Disk_Cleanup
+        Start-DiskCleanup
         Remove-SuggestedAppxPackages -Final
         Write-Host "`nRemoving unnecessary files to shrink image size"
         Remove-Folder -Folder $Setup_SoftwareCollection_ODTSoftware_Fo
@@ -327,14 +332,9 @@ function Cleanup-AutomatedSetup {
     Write-Host "`n-=[ Cleanup Automated-Setup ]=-" -ForegroundColor DarkGray -NoNewline; Write-Host " !!Last Steps!!" -ForegroundColor Red
     Write-Host "This is the end of the AutomatedSetup script. After this last question, all of the AutomatedSetup related scripts and settings will be removed" -ForegroundColor Yellow
     Save-ClientSettings -Final
-    CheckPoint-Disk_Cleanup
+    Start-DiskCleanup
     Remove-AutoLogon -Force
     Remove-SuggestedAppxPackages -Final
-    Write-Host ""
-    Remove-Folder -Folder $Setup_SoftwareCollection_Fo
-    Remove-Folder -Folder $Setup_SCOPEImageSetup_Fo
-    Remove-Folder -Folder $Setup_SCOPEPostImageSetup_Fo
-    #Remove-Folder -Folder $Setup_SCOPEUserProfile_Fo
     Remove-Automated_Setup_Files
     Stop-AutomatedSetup
     New-Item "$Setup_Fo\AutomatedSetup-Complete.txt" -ItemType File -Value "Auto-Setup completed and system has been cleaned up" -Force | Out-Null
@@ -520,15 +520,19 @@ function Start-AutomatedSetup {
 
 function Stop-AutomatedSetup {
     Write-Host "`nStopping Automated Setup program" -ForegroundColor Yellow
-    Write-Host "-When you relog, the Automated Setup program will no longer run automatically like before" -ForegroundColor Green
+    Write-Host "When you relog, the Automated Setup program will no longer run automatically like before" -ForegroundColor Green
     Remove-ItemProperty -Path $RunOnceKey -Name SetupComputer -Force -ErrorAction SilentlyContinue | Out-Null
 } Export-ModuleMember -Function Stop-AutomatedSetup
 
 function Remove-Automated_Setup_Files {
-        Write-Host "`nStarting cleanup of Automated Setup Files" -ForegroundColor Yellow
+        Write-Host "`nRemoving Automated Setup Files" -ForegroundColor Yellow
+        Remove-Folder -Folder $Setup_SoftwareCollection_Fo
+        Remove-Folder -Folder $Setup_SCOPEImageSetup_Fo
+        Remove-Folder -Folder $Setup_SCOPEPostImageSetup_Fo
+        #Remove-Folder -Folder $Setup_SCOPEUserProfile_Fo
         #Remove-Item $UnAttend -ErrorAction SilentlyContinue | Out-Null
-        Remove-Item $Setup_AS_RegistryBackup_Fo -Recurse | Out-Null
-        Remove-Item $Setup_AS_Client_Config_Fo -Recurse | Out-Null
+        Remove-Folder -Folder $Setup_AS_RegistryBackup_Fo
+        Remove-Folder -Folder $Setup_AS_Client_Config_Fo
         Remove-Folder -Folder $Setup_SoftwareCollection_Configs_Fo
         Write-Host "Automated Setup files have been removed from the PC" -ForegroundColor Green
 } Export-ModuleMember -Function Remove-Automated_Setup_Files
