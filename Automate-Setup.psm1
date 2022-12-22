@@ -274,10 +274,10 @@ function Determine-SetupType {
     }
     
     If ($global:ClientSettings.SetupType -eq "SingleSetup") {
-        Write-Host "Setting up a single PC" -ForeGroundColor Green
+        Write-Host "Setup Type: " -NoNewline; Write-Host "Single PC" -ForegroundColor Green
     }
     If ($global:ClientSettings.SetupType -eq "BuildImage") {
-        Write-Host "Building an image" -ForeGroundColor Green
+        Write-Host "Setup Type: " -NoNewline; Write-Host "Build Image" -ForegroundColor Green
     }
 } Export-ModuleMember -Function Determine-SetupType
 
@@ -329,7 +329,7 @@ function CheckPoint-Capture_Image {
 } Export-ModuleMember -Function CheckPoint-Capture_Image
 
 function Cleanup-AutomatedSetup {
-    Write-Host "`n-=[ Cleanup Automated-Setup ]=-" -ForegroundColor DarkGray -NoNewline; Write-Host " !!Last Steps!!" -ForegroundColor Red
+    Write-Host "`n!!Last Steps!! -=[ Cleanup Automated-Setup ]=- !!Last Steps!!" -ForegroundColor Red
     Write-Host "This is the end of the AutomatedSetup script. After this last question, all of the AutomatedSetup related scripts and settings will be removed" -ForegroundColor Yellow
     Save-ClientSettings -Final
     Start-DiskCleanup
@@ -493,7 +493,7 @@ function Get-DomainJoinInfo {
                     }
                     Write-Host "$Step has been completed" -ForegroundColor Green
                 }
-                if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                if ($Automated_Setup -or $TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host ""
             } # End of Switch("No")
         } # End of Switch($choice)
