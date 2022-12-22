@@ -602,8 +602,7 @@ function Choose-PDF_Viewer {
         } else {
         # Otherwise ask tech to choose action to take
             DO {
-                Write-Host ""
-                Write-Host "-=[ PDF Viewer Choice ]=-" -ForegroundColor Yellow
+                Write-Host "`n-=[ PDF Viewer Choice ]=-" -ForegroundColor Yellow
                 Write-Host "Which PDF Viewer(s) do you want to install?"
                 Write-Host "1. Adobe Acrobat Reader DC"
                 Write-Host "2. Adobe Acrobat Pro DC - Trial Installer"

@@ -285,7 +285,7 @@ function Standard-Checks {
     If ($ClientSettings.SetupType -eq "BuildImage") {Write-Host "`n-=[ PRE-Image Tasks ]=-" -ForegroundColor DarkGray}
     If ($ClientSettings.SetupType -eq "SingleSetup") {Write-Host "`n-=[ Standard Checks ]=-" -ForegroundColor DarkGray}
     Get-DomainJoinInfo
-    If ($global:ClientSettings.SetupType -eq "SingleSetup") {Join-Domain}
+    If ($ClientSettings.SetupType -eq "SingleSetup") {Join-Domain}
     CheckPoint-Client_Software
     Set-DefaultApps
     CheckPoint-Client_WiFi
@@ -367,27 +367,28 @@ function Get-DomainJoinInfo {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
         If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
     } else {
-        DO {
-            # Load setting from Client Config if available
-            If ($global:ClientSettings.DomainJoin) {
-                $choice = $global:ClientSettings.DomainJoin
-            } else {
-            # Otherwise ask tech
+        # Load setting from Client Config if available
+        If ($global:ClientSettings.DomainJoin) {
+            $choice = $global:ClientSettings.DomainJoin
+        } else {
+            DO {
+                # Otherwise ask tech
                 Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
                 If ($Global:ClientSettings.SetupType -eq "SingleSetup") {Write-Host "Will you be joining this PC to a domain?"}
                 If ($Global:ClientSettings.SetupType -eq "BuildImage") {Write-Host "After applying this image to PCs, will you be joining them to the domain?"}
                 Write-Host "1. Yes"
                 Write-Host "2. No" 
                 $choice = Read-Host -Prompt "Enter a number, 1 or 2"
-            }
-        } UNTIL (($choice -eq 1) -OR ($choice -eq 2))
+            } UNTIL (($choice -ge 1) -and ($choice -le 2))
+        }
+        if ($choice -eq 1) {$choice = "Yes"}
+        if ($choice -eq 2) {$choice = "No"}
+        if ($Automated_Setup) {
+            # Update Client Config File with choice
+            Add-ClientSetting -Name "DomainJoin" -Value $choice -Force
+        }
         switch ($choice) {
-            1 {
-                # Save the fact that we DO want to join the domain (either now or later)
-                If (!($global:ClientSettings.DomainJoin -and $Automated_Setup)) {
-                    Add-ClientSetting -Name "DomainJoin" -Value "Yes"
-                }
-                
+            "Yes" {
                 # Get NETBIOS
                 $choice = $null
                 If ($global:ClientSettings.NETBIOS) {
@@ -458,12 +459,8 @@ function Get-DomainJoinInfo {
                 # Mark this section as completed
                 if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
                 Write-Host "$Step has been completed" -ForegroundColor Green
-            } # End of Switch(1)
-            2 {
-                # Save the fact that we do NOT want to join the domain
-                If (!($global:ClientSettings.DomainJoin) -and $Automated_Setup) {
-                    Add-ClientSetting -Name "DomainJoin" -Value "No"
-                }
+            } # End of Switch("Yes")
+            "No" {
                 Write-Host "$Step has been skipped" -ForegroundColor Green
                 
                 # If building an image, still need to get naming convention and example
@@ -498,7 +495,7 @@ function Get-DomainJoinInfo {
                 }
                 if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
                 Write-Host ""
-            } # End of Switch(2)
+            } # End of Switch("No")
         } # End of Switch($choice)
     }
 } Export-ModuleMember -Function Get-DomainJoinInfo
