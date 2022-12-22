@@ -58,6 +58,7 @@ function Update-PC {
 
     if (!($Manufacturer)) {$Global:Manufacturer = Get-Manufacturer}
 
+    Write-Host "`n-=[ Update PC ]=-" -ForegroundColor DarkGray
     Install-Windows_Updates
     Install-Driver_Updates
 } Export-ModuleMember -Function Update-PC

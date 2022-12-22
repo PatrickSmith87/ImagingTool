@@ -1698,7 +1698,6 @@ function CheckPoint-CreateScansFolder {
     $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $SkippedFile = "$StepStatus-Skipped.txt"
-
     
     If (Test-Path "$StepStatus*") {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
@@ -1711,7 +1710,7 @@ function CheckPoint-CreateScansFolder {
                 $choice = $global:ClientSettings.ScansFolder
             } else {
             # Otherwise ask tech
-                Write-Host "`n-=[ $Step ]=-" -ForegroundColor DarkGray
+                Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
                 Write-Host "Do you want to create a Scans folder?"
                 Write-Host "1. Yes"
                 Write-Host "2. No" 
@@ -1731,8 +1730,7 @@ function CheckPoint-CreateScansFolder {
                     Write-Host "Scans folder name obtained from client config: "$global:ClientSettings.ScansFolderName -ForegroundColor Green
                 } else {
                     DO {
-                        Write-Host ""
-                        Write-Host "What is the desired name for the Scans folder?" -ForegroundColor Yellow
+                        Write-Host "`nWhat is the desired name for the Scans folder?" -ForegroundColor Yellow
                         Write-Host "Example: Scans"
                         [string]$choice = Read-Host -Prompt "Enter the Scans folder name"
                     } UNTIL ($null -ne $choice)
@@ -1791,7 +1789,6 @@ function CheckPoint-CreateScansFolder {
                 Write-Host "$Step has been skipped" -ForegroundColor Green
                 
                 if ($Automated_Setup -or $global:TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
-                Write-Host ""
             } # End of Switch(2)
         } # End of Switch($choice)
     }
@@ -2112,7 +2109,7 @@ function Activate-Windows {
     If ((Test-Path "$StepStatus*") -and !($Force)) {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        Write-Host "`n-=[ $Step ]=-" -ForegroundColor DarkGray
+        Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
         $service = get-wmiObject -query 'select * from SoftwareLicensingService'
         if($key = $service.OA3xOriginalProductKey){
             Write-Host "Activating using product Key: $key"
