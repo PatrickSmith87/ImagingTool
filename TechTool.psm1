@@ -19,6 +19,7 @@ class TechTool {
     [string]$Module_ImagingUSB_Fi                               = $this.Modules_Fo +                        "\ImagingUSB\ImagingUSB.psm1"
     [string]$Module_AutomateSetup_Fi                            = $this.Modules_Fo +                        "\Automate-Setup\Automate-Setup.psm1"
     [string]$Module_ConfigurePC_Fi                              = $this.Modules_Fo +                        "\Configure-PC\Configure-PC.psm1"
+    [string]$Module_ConfigureProfile_Fi                         = $this.Modules_Fo +                        "\Configure-Profile\Configure-Profile.psm1"
     [string]$Module_InstallSoftware_Fi                          = $this.Modules_Fo +                        "\Install-Software\Install-Software.psm1"
     [string]$Module_TuneUpPC_Fi                                 = $this.Modules_Fo +                        "\TuneUp-PC\TuneUp-PC.psm1"
     [string]$Module_TechTool_Fi                                 = $this.Modules_Fo +                        "\TechTool\TechTool.psm1"
@@ -116,6 +117,7 @@ class TechTool {
         $this.Restore("$Source\Automate-Setup.ps1",$this.Setup_AS_AutomateSetup_ps1,"Copy")
         $this.Restore("$Source\Automate-Setup.psm1",$this.Module_AutomateSetup_Fi,"Copy")
         $this.Restore("$Source\Configure-PC.psm1",$this.Module_ConfigurePC_Fi,"Copy")
+        $this.Restore("$Source\Configure-Profile.psm1",$this.Module_ConfigureProfile_Fi,"Copy")
         $this.Restore("$Source\Install-Software.psm1",$this.Module_InstallSoftware_Fi,"Copy")
         $this.Restore("$Source\TuneUp-PC.psm1",$this.Module_TuneUpPC_Fi,"Copy")
         $this.Restore("$Source\TechTool.psm1",$this.Module_TechTool_Fi,"Copy")
@@ -165,6 +167,7 @@ class TechTool {
         Import-Module ImagingUSB -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module Automate-Setup -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module Configure-PC -WarningAction SilentlyContinue -Force | Out-Null
+        Import-Module Configure-Profile -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module Install-Software -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module TuneUp-PC -WarningAction SilentlyContinue -Force | Out-Null
         Import-Module TechTool -WarningAction SilentlyContinue -Force | Out-Null
@@ -191,6 +194,7 @@ class TechTool {
             $this.Restore("$GitHubRepo\Automate-Setup.ps1",$USB.PCMaint_AS_AutomateSetup_ps1_Fi,"Move")
             $this.Restore("$GitHubRepo\Automate-Setup.psm1",$USB.Module_AutomateSetup_Fi,"Move")
             $this.Restore("$GitHubRepo\Configure-PC.psm1",$USB.Module_ConfigurePC_Fi,"Move")
+            $this.Restore("$GitHubRepo\Configure-Profile.psm1",$USB.Module_ConfigureProfile_Fi,"Move")
             $this.Restore("$GitHubRepo\Install-Software.psm1",$USB.Module_InstallSoftware_Fi,"Move")
             $this.Restore("$GitHubRepo\TuneUp-PC.psm1",$USB.Module_TuneUpPC_Fi,"Move")
             $this.Restore("$GitHubRepo\Update-PC.psm1",$USB.Module_UpdatePC_Fi,"Move")
@@ -212,6 +216,7 @@ class TechTool {
             #$this.Restore($USB.WinPE_Menu_ps1_Fi,"$this.,"Copy")
             $this.Restore($USB.Module_AutomateSetup_Fi,$this.Module_AutomateSetup_Fi,"Copy")
             $this.Restore($USB.Module_ConfigurePC_Fi,$this.Module_ConfigurePC_Fi,"Copy")
+            $this.Restore($USB.Module_ConfigureProfile_Fi,$this.Module_ConfigureProfile_Fi,"Copy")
             $this.Restore($USB.Module_InstallSoftware_Fi,$this.Module_InstallSoftware_Fi,"Copy")
             $this.Restore($USB.Module_TuneUpPC_Fi,$this.Module_TuneUpPC_Fi,"Copy")
             $this.Restore($USB.Module_TechTool_Fi,$this.Module_TechTool_Fi,"Copy")
@@ -242,6 +247,7 @@ class TechTool {
                 $this.Restore($USB.PCMaint_AS_AutomateSetup_ps1_Fi,"$GitHubRepo\Automate-Setup.ps1","Copy")
                 $this.Restore($USB.Module_AutomateSetup_Fi,"$GitHubRepo\Automate-Setup.psm1","Copy")
                 $this.Restore($USB.Module_ConfigurePC_Fi,"$GitHubRepo\Configure-PC.psm1","Copy")
+                $this.Restore($USB.Module_ConfigureProfile_Fi,"$GitHubRepo\Configure-Profile.psm1","Copy")
                 $this.Restore($USB.Module_InstallSoftware_Fi,"$GitHubRepo\Install-Software.psm1","Copy")
                 $this.Restore($USB.Module_TuneUpPC_Fi,"$GitHubRepo\TuneUp-PC.psm1","Copy")
                 $this.Restore($USB.Module_TechTool_Fi,"$GitHubRepo\TechTool.psm1","Copy")

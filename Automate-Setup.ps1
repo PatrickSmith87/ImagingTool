@@ -127,6 +127,8 @@ If ($ClientSettings.SetupType -eq "BuildImage") {
     Start-Single_Setup
 }
 
+
+
 ########################################
 ##     -=[ User Profile Setup ]=-     ##
 ########################################

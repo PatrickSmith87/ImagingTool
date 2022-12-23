@@ -17,6 +17,7 @@ class ImagingUSB {
     [string[]]$Drive_Letter = @()
     [string]$Module_AutomateSetup_Fi
     [string]$Module_ConfigurePC_Fi
+    [string]$Module_ConfigureProfile_Fi
     [string]$Module_InstallSoftware_Fi
     [string]$Module_TuneUpPC_Fi
     [string]$Module_TechTool_Fi
@@ -83,6 +84,7 @@ class ImagingUSB {
         }
         $this.Module_AutomateSetup_Fi                               = "$ImagingDrive\sources\PC-Maintenance\_modules\Automate-Setup\Automate-Setup.psm1"
         $this.Module_ConfigurePC_Fi                                 = "$ImagingDrive\sources\PC-Maintenance\_modules\Configure-PC\Configure-PC.psm1"
+        $this.Module_ConfigureProfile_Fi                            = "$ImagingDrive\sources\PC-Maintenance\_modules\Configure-Profile\Configure-Profile.psm1"
         $this.Module_InstallSoftware_Fi                             = "$ImagingDrive\sources\PC-Maintenance\_modules\Install-Software\Install-Software.psm1"
         $this.Module_TuneUpPC_Fi                                    = "$ImagingDrive\sources\PC-Maintenance\_modules\TuneUp-PC\TuneUp-PC.psm1"
         $this.Module_TechTool_Fi                                    = "$ImagingDrive\sources\TechTool-Maintenance\_modules\TechTool\TechTool.psm1"
@@ -107,6 +109,7 @@ class ImagingUSB {
         $this.DevTool                                               = $false
         $this.Module_AutomateSetup_Fi                               = $null
         $this.Module_ConfigurePC_Fi                                 = $null
+        $this.Module_ConfigureProfile_Fi                            = $null
         $this.Module_InstallSoftware_Fi                             = $null
         $this.Module_TuneUpPC_Fi                                    = $null
         $this.Module_TechTool_Fi                                    = $null
