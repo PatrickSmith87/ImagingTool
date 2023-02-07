@@ -9,10 +9,157 @@
 
 #>
 
+#region Module Variables
+$TechTool = New-TechTool
+
+$Setup_AS_Status_Fo                             = $TechTool.Setup_AS_Status_Fo
+
 #region Profile Related Functions
 ########################################################
 ############## START Of Profile Functions ##############
 ########################################################
+function Start-UserProfileSetup {
+    # Variables - edit as needed
+    $Step = "User Profile Setup"
+    Write-Host "`n-=[ $Step ]=-" -ForegroundColor DarkGray
+
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
+    $SkippedFile = "$StepStatus-Skipped.txt"
+    $InProgressFile = "$StepStatus-InProgress.txt"
+
+    If (Test-Path "$StepStatus*") {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+        If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
+    } else {
+        if (!(Test-Path $InProgressFile)) {
+            DO {
+                Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+                Write-Host "At this point, the PC should be configured as much as possible before"
+                Write-Host "  setting up the user profile of the person assigned to it"
+                Write-Host "`nYou can now enter the $Step phase of the Automated Setup"
+                Write-Host "  program " -NoNewline; Write-Host "(which is still under development and maybe buggy)" -ForegroundColor Red -NoNewline; Write-Host ", or skip"
+                Write-Host "  that phase and end the program now"
+                Write-Host "`nDo you want to enter the $Step phase?"
+                Write-Host "  0. Skip $Step phase and end the Automated Setup program"
+                Write-Host "  1. Yes, enter the $Step phase"
+                $choice = Read-Host -Prompt "Enter a number, 0 or 1"
+            } UNTIL (($choice -ge 0) -and ($choice -le 1))
+            switch ($choice) {
+                0 {
+                    Write-Host "$Step has been skipped" -ForegroundColor Green
+                    if ($Automated_Setup -or $TuneUp_PC) {New-Item $SkippedFile -ItemType File -Force | Out-Null}
+                }
+                1 {
+                    Write-Host "Entering $Step" -ForegroundColor Green
+                    if ($Automated_Setup -or $TuneUp_PC) {New-Item $InProgressFile -ItemType File -Force | Out-Null}
+                }
+            }
+        }
+
+        if (Test-Path $InProgressFile) {
+            Create-LocalUser
+            Login-AsUser
+            Grant-LocalAdminRights
+            Setup-RDP
+            Redirect-Profile
+            Checkpoint-LicenseOffice
+            Checkpoint-ConfigureOneDrive
+            Checkpoint-SignIntoOutlook
+            Migrate-UserProfileData
+            Install-ProfileSpecificSoftware
+            if ($Automated_Setup -or $TuneUp_PC) {
+                New-Item $CompletionFile -ItemType File -Force | Out-Null
+            }
+            Remove-Item $InProgressFile -Force | Out-Null
+            Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        }
+    }
+
+    
+    
+    
+    <#
+    OLD PC Checklist:
+        1. STOP, sign into OneDrive, Enable Backup, Verify sync has started, Monitor progress (OneDrive Sync tends to get stuck if a large number of files are syncing and\or Files are being moved around at the same time).
+        2. Sign into browsers? or not needed?
+        3. Take screenshot of taskbar icons, printers, mapped drives, desktop icons, quick access in file explorer > save to desktop  
+    #>
+}
+
+function Create-LocalUser {
+    # Variables - edit as needed
+    $Step = "Create Local User"
+
+    # Static Variables - DO NOT EDIT
+    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
+    $CompletionFile = "$StepStatus-Completed.txt"
+
+    If (Test-Path "$StepStatus*") {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
+        If (Test-Path $SkippedFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Skipped" -ForegroundColor Green}
+    } else {
+    }
+}
+
+function Login-AsUser {
+    <#
+    Check for complete file
+            If not already noted, should take note of the currently logged on user. 
+            When script runs again (After loging in as new user [ideally], or if just signs into same account), it will compare usernames again and if it is different, continues to next step
+                log completion
+    #>
+}
+
+function Grant-LocalAdminRights {
+    <#
+    make user a local admin...
+    #>
+}
+
+function Setup-RDP {
+    <#
+    enable RDP and add user\group to allowed list?
+    #>
+}
+
+function Redirect-Profile {
+    <#
+    Configure redirected profiles?
+    #>
+}
+
+function Checkpoint-LicenseOffice {
+    #STOP, sign into Word (launch word) and sign in to license Office
+}
+
+function Checkpoint-ConfigureOneDrive {
+    #STOP, sign into OneDrive, Enable Backup, Verify sync has started, Monitor progress (OneDrive Sync tends to get stuck if a large number of files are syncing and\or Files are being moved around at the same time).
+}
+
+function Checkpoint-SignIntoOutlook {
+    # STOP, sign into Outlook (or should we transfer the profile data first?)
+}
+
+function Migrate-UserProfileData {
+    <#
+    check for complete file
+    Should run the migrate user script
+    log completion
+    #>
+}
+
+function Install-ProfileSpecificSoftware { # This function should go to Install-Software module most likely...
+    <#
+    Install-Profile_Specific_Software
+        Install profile specific softwares located under 
+        This will likely call several other functions to:
+            Install-DropBox
+            Install-OneNote (Is this actually profile specific? If not, needs added to script during PC Imaging)
+    #>
+}
+
 function Set-ProfileDefaultSettings {
     [CmdletBinding()]
     param(
@@ -437,28 +584,34 @@ function Sync-UserProfile {
     $SourcePC = Read-Host -Prompt "Source PC"
     if ($SourcePC -eq "") {$SourcePC = $Computername}
 
-    # Display Source PC, Get Source User
+    # Display Source PC
     Clear-Host
     Write-Host "`nSource PC: " -NoNewline; Write-Host "$SourcePC" -ForegroundColor Cyan
+
+    # Get Source User
     $Username = Read-Host -Prompt "Enter the username for the source PC. Example: psmith"
     $SourceProfile = "\\$SourcePC\C$\Users\$Username"
     
-    # Display Source Info, Get Dest PC
+    # Display Source Info
     Clear-Host
     Write-Host "`nSource PC: " -NoNewline; Write-Host "$SourcePC" -ForegroundColor Cyan
     Write-Host "Source Username: " -NoNewline; Write-Host "$Username" -ForegroundColor Cyan
     Write-Host "Source Profile: " -NoNewline; Write-Host "$SourceProfile" -ForegroundColor Cyan
+    
+    # Get Dest PC
     Write-Host "`nEnter the name of the destination PC. Example Laptop-05"
     Write-Host "Or if it is this PC, just hit enter"
     $DestPC = Read-Host -Prompt "Destination PC"
     if ($DestPC -eq "") {$DestPC = $Computername}
 
-    # Display Source Info, Get Dest User
+    # Display Known Info
     Clear-Host
     Write-Host "`nSource PC: " -NoNewline; Write-Host "$SourcePC" -ForegroundColor Cyan
     Write-Host "Source Username: " -NoNewline; Write-Host "$Username" -ForegroundColor Cyan
     Write-Host "Source Profile: " -NoNewline; Write-Host "$SourceProfile" -ForegroundColor Cyan
     Write-Host "`nDestination PC: " -NoNewline; Write-Host "$DestPC" -ForegroundColor Cyan
+
+    #Get Dest User
     Write-Host "`nEnter the username for the destination PC. If it is the same, just leave blank and hit enter"
     $Username2 = Read-Host -Prompt "Example: psmith.ATI"
     if ($Username2 -eq "") {$Username2 = $Username}
@@ -544,6 +697,7 @@ function Sync-UserProfile {
         } else {
             $Source = (Get-ChildItem "$SourceProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release").FullName
         }
+        
         if (Test-Path "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*") {
             $Dest = (Get-ChildItem "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*").FullName
         } else {
