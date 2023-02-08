@@ -234,12 +234,16 @@ function Install-Windows_Updates {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
         Write-Host ""
-        If (!(Test-Path $PreReqCompletionFile)) {
+        <#If (!(Test-Path $PreReqCompletionFile)) {
             New-Item $PreReqCompletionFile -ItemType File -Force | Out-Null
             Write-Host "Installing Windows Update Provider"
             Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
             Install-Module PSWindowsUpdate -Force
-        }
+        }#>
+
+        Write-Host "Installing Windows Update Provider"
+        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+        Install-Module PSWindowsUpdate -Force
 
         Write-Host "Checking for available Windows Updates..."
         $Updates = Get-WindowsUpdate
