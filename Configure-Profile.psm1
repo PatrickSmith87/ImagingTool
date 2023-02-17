@@ -86,7 +86,7 @@ function Start-UserProfileSetup {
         2. Sign into browsers? or not needed?
         3. Take screenshot of taskbar icons, printers, mapped drives, desktop icons, quick access in file explorer > save to desktop  
     #>
-}
+} Export-ModuleMember -Function Start-UserProfileSetup
 
 function Create-LocalUser {
     # Variables - edit as needed
@@ -697,38 +697,68 @@ function Sync-UserProfile {
         } else {
             $Source = (Get-ChildItem "$SourceProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release").FullName
         }
-        
-        if (Test-Path "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*") {
-            $Dest = (Get-ChildItem "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*").FullName
-        } else {
-            $Dest = (Get-ChildItem "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release").FullName
-        }
-        if ($null -eq $Dest) {
+
+        if ($Source) {
+            # Firefox Profile found in source profile
+            # Now verify Firefox Profile exists in destination profile
             DO {
-                Clear-Host
-                Write-Host "`nWARNING!! " -NoNewline -ForegroundColor Red; Write-Host "Firefox profile folder on destination PC not found.."
-                Write-Host "On the destination PC, please open and then close firefox to automatically create the Firefox profile folder`n"
-                Pause
-            } Until ($null -ne $Dest)
+                if (Test-Path "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*") {
+                    $Dest = (Get-ChildItem "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release-*").FullName
+                } else {
+                    $Dest = (Get-ChildItem "$DestProfile\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release").FullName
+                }
+                if ($null -eq $Dest) {
+                    DO {
+                        Clear-Host
+                        Write-Host "`nWARNING!! " -NoNewline -ForegroundColor Red; Write-Host "Firefox profile folder on destination PC not found.."
+                        Write-Host "On the destination PC, please open and then close firefox to automatically create the Firefox profile folder`n"
+                        Write-Host "1. Continue (Will check again to make sure the Firefox profile in the destination now exists)"
+                        Write-Host "2. Skip (Will NOT migrate the Firefox profile that was found on the source profile)"
+                        [int]$choice = Read-Host -Prompt "Enter a number, 1 or 2"
+                    } Until (($choice -ge 1) -and ($choice -le 2))
+                }
+            } Until (($null -ne $Dest) -or ($choice -eq 2))
+            # Finally, Migrate Firefox Profile if not skipping
+            if ($null -ne $Dest) {
+                $cmdArgs = @("$Source","$Dest",$what,$options)
+                Robocopy @cmdArgs
+            }
+        } else {
+            # Firefox Profile NOT found in source profile
+            # Do nothing and move on to the next item to migrate
         }
-        $cmdArgs = @("$Source","$Dest",$what,$options)
-        Robocopy @cmdArgs
         
         # MIGRATE - Chrome Profile
         $what = @("/COPYALL","/E")
         $options = @("/R:2","/W:3","/LOG:$DestProfile\MigrateUser_ChromeProfile.txt","/TEE","/V","/MT:16")
+        $Source = "$SourceProfile\AppData\Local\Google\Chrome"
         $Destination = "$DestProfile\AppData\Local\Google\Chrome"
-        if (!(Test-Path $Destination)) {
+
+        if (Test-Path $Source) {
+            # Chrome Profile found in source profile
+            # Now verify Chrome Profile exists in destination profile
             DO {
-                Clear-Host
-                Write-Host "`n!!WARNING!! " -NoNewline -ForegroundColor Red; Write-Host "Chrome profile folder on destination PC not found..."
-	            Write-Host "On the destination PC, open and then close Chrome for it to automatically create the Chrome profile folder`n"
-                Pause
-            } Until (Test-Path $Destination)
+                if (!(Test-Path $Destination)) {
+                    DO {
+                        Clear-Host
+                        Write-Host "`nWARNING!! " -NoNewline -ForegroundColor Red; Write-Host "Chrome profile folder on destination PC not found.."
+                        Write-Host "On the destination PC, please open and then close Chrome to automatically create the Chrome profile folder`n"
+                        Write-Host "1. Continue (Will check again to make sure the Chrome profile in the destination now exists)"
+                        Write-Host "2. Skip (Will NOT migrate the Chrome profile that was found on the source profile)"
+                        [int]$choice = Read-Host -Prompt "Enter a number, 1 or 2"
+                    } Until (($choice -ge 1) -and ($choice -le 2))
+                }
+            } Until ((Test-Path $Destination) -or ($choice -eq 2))
+            # Finally, Migrate Chrome Profile if not skipping
+            if (Test-Path $Destination) {
+                $cmdArgs = @("$Source","$Destination",$what,$options)
+                Robocopy @cmdArgs
+            }
+        } else {
+            # Chrome Profile NOT found in source profile
+            # Do nothing and move on to the next item to migrate
         }
-        $cmdArgs = @("$SourceProfile\AppData\Local\Google\Chrome","$Destination",$what,$options)
-        Robocopy @cmdArgs
-        
+        #test
         # Complete!
         Write-Host "`nUser Migration is complete!!" -ForegroundColor Cyan
         Write-Host "`nWhat would you like to do now?"
