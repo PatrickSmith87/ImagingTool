@@ -293,7 +293,7 @@ function Start-Updates {
     }
 
     Update-PC -RebootAllowed
-}
+} Export-ModuleMember -Function Start-Updates
 
 function Standard-Checks {
     If ($ClientSettings.SetupType -eq "BuildImage") {Write-Host "`n-=[ PRE-Image Tasks ]=-" -ForegroundColor DarkGray}
