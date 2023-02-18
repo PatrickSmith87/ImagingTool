@@ -1061,12 +1061,12 @@ function Install-DriverUpdateAssistant {
     $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
     $Manufacturer = Get-Manufacturer
-
-    Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
-    Write-Host "Manufacturer = $Manufacturer"
+    
     If (Test-Path $CompletionFile) {
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     } else {
+        Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+        Write-Host "Manufacturer = $Manufacturer"
         $Software = New-Software
         If ($Manufacturer -match "HP") {
             # Install HP Image Assistant if not already installed

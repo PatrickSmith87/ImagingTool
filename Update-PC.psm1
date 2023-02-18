@@ -81,8 +81,7 @@ function Install-Driver_Updates {
     $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
-    Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
-    Write-Host "Manufacturer = $Manufacturer"
+    
     If (Test-Path "$StepStatus*") {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
@@ -91,7 +90,9 @@ function Install-Driver_Updates {
         } elseif ($Manufacturer -match "Dell") {
             Install-Dell_Drivers
         } else {
-            Write-Host "Manufacturer not detected to be either HP or Dell"
+            Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+            Write-Host "Manufacturer = $Manufacturer"
+            Write-Host "`nManufacturer not detected to be either HP or Dell"
             Write-Host "Please manually install driver updates before continuing with the setup"
             DO {$choice = Read-Host -Prompt "`nType in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
             if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
@@ -121,9 +122,11 @@ function Install-HP_Drivers {
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
         # If task is not completed...
+        Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+        Write-Host "Manufacturer = $Manufacturer"
 
         # Keep installing updates and rebooting when needed until fully up to date
-        Write-Host "Checking for and Installing HP Softpaq BIOS, Drivers, & Firmware Updates..."
+        Write-Host "`nChecking for and Installing HP Softpaq BIOS, Drivers, & Firmware Updates..."
 
         # Get USB Paths
         $USB = New-ImagingUSB
@@ -185,9 +188,12 @@ function Install-Dell_Drivers {
         # If task is completed or skipped...
         If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
+        Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+        Write-Host "Manufacturer = $Manufacturer"
+
         $AvailableUpdates = Get-DellDriverUpdates
         if ($AvailableUpdates -gt 0) {
-            Write-Output "Starting Dell Command Update Process. "
+            Write-Output "`nStarting Dell Command Update Process. "
             if ($RebootAllowed) {
                 Start-Process -FilePath "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe" -ArgumentList "/ApplyUpdates","-reboot=enable" -Wait
                 Write-Host "Completed" -ForegroundColor Green
