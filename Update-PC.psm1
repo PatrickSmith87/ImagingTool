@@ -7,12 +7,11 @@
 ##################################################################################################################################################################
 
 #region Module Variables
-$Software = New-Software
+#$Software = New-Software
 $TechTool = New-TechTool
 
 # -=[ Static Variables ]=-
 # Variables may be defined from parent script. If not, they will be defined from here.
-[string]$DellDriverUpdaterSoftware                      = $null
 $Setup_AS_Status_Fo                             = $TechTool.Setup_AS_Status_Fo
 #endregion Module Variables
 
