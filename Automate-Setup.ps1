@@ -35,7 +35,7 @@ function Start-Build_Image {
 #############################
 ##     -=[ UPDATES ]=-     ##
 #############################
-    Update-PC -RebootAllowed
+    Start-Updates
 
 ###################################
 ##     -=[ Capture Image ]=-     ##
@@ -77,7 +77,7 @@ function Start-Single_Setup {
 #############################
 ##     -=[ UPDATES ]=-     ##
 #############################
-    Update-PC -RebootAllowed
+    Start-Updates
 }
 #endregion Functions
 
@@ -89,11 +89,11 @@ function Start-Single_Setup {
 ###                                                                       ###
 #############################################################################
 #############################################################################
-Write-Host "-=[ INITIALIZING SCRIPT ]=-" -ForegroundColor DarkGray
+Write-Host "-=[ INITIALIZING AUTOMATED SETUP ]=-" -ForegroundColor DarkGray
 Write-Host "Computername: " -NoNewline; Write-Host "$ComputerName" -ForegroundColor Cyan
 Write-Host "Manufacturer: " -NoNewline; Write-Host (Get-Manufacturer) -ForegroundColor Cyan
 Write-Host "Model: " -NoNewline; Write-Host (Get-Model) -ForegroundColor Cyan
-Write-Host ">Starting Automated Setup...`n" -ForegroundColor Yellow
+Write-Host "`n>Starting Automated Setup..." -ForegroundColor Yellow
 
 # Make sure Automated-Setup script continues on next log-on
 Start-AutomatedSetup_AtLogon
@@ -119,14 +119,13 @@ Set-ProfileDefaultSettings -AdminProfile
 # -=[ Rename PC\Image ]=-
 Rename-PC -PreImage
 # -=[ Start Updates In Background ]
-Start-Process powershell -ArgumentList '-command Update-PC' -WindowStyle Minimized
+Start-BackgroundUpdates
 
 If ($ClientSettings.SetupType -eq "BuildImage") {
     Start-Build_Image
 } elseif ($ClientSettings.SetupType -eq "SingleSetup") {
     Start-Single_Setup
 }
-
 
 ########################################
 ##     -=[ User Profile Setup ]=-     ##

@@ -281,6 +281,20 @@ function Determine-SetupType {
     }
 } Export-ModuleMember -Function Determine-SetupType
 
+function Start-BackgroundUpdates {
+    if (!(Test-Path "$Setup_AS_Status_Fo\Updates-Started.txt")) {
+        Start-Process powershell -ArgumentList '-command Update-PC' -WindowStyle Minimized
+    }
+} Export-ModuleMember -Function Start-BackgroundUpdates
+
+function Start-Updates {
+    if (!(Test-Path "$Setup_AS_Status_Fo\Updates-Started.txt")) {
+        if ($Automated_Setup) {New-Item "$Setup_AS_Status_Fo\Updates-Started.txt" -ItemType File -Force | Out-Null}
+    }
+
+    Update-PC -RebootAllowed
+}
+
 function Standard-Checks {
     If ($ClientSettings.SetupType -eq "BuildImage") {Write-Host "`n-=[ PRE-Image Tasks ]=-" -ForegroundColor DarkGray}
     If ($ClientSettings.SetupType -eq "SingleSetup") {Write-Host "`n-=[ Standard Checks ]=-" -ForegroundColor DarkGray}
