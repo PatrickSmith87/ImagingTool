@@ -1060,11 +1060,13 @@ function Install-DriverUpdateAssistant {
     # Static Variables - DO NOT EDIT
     $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
-    
+    $Manufacturer = Get-Manufacturer
+
+    Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+    Write-Host "Manufacturer = $Manufacturer"
     If (Test-Path $CompletionFile) {
         Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
     } else {
-        $Manufacturer = Get-Manufacturer
         $Software = New-Software
         If ($Manufacturer -match "HP") {
             # Install HP Image Assistant if not already installed
@@ -1138,8 +1140,6 @@ function Install-DriverUpdateAssistant {
                 Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
             }
         } else {
-            Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
-            Write-Host "`n`$Manufacturer = $Manufacturer"
             Write-Host "Manufacturer not detected to be either HP or Dell"
             Write-Host "`nPlease manually install a driver update assistant before continuing with the setup"
             DO {$choice = Read-Host -Prompt "Type in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")

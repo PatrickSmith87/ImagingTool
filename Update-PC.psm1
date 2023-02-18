@@ -60,6 +60,7 @@ function Update-PC {
 
     Write-Host "`n-=[ Update PC ]=-" -ForegroundColor DarkGray
     Install-Windows_Updates
+    Install-DriverUpdateAssistant
     Install-Driver_Updates
 } Export-ModuleMember -Function Update-PC
 
@@ -80,20 +81,22 @@ function Install-Driver_Updates {
     $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
     $CompletionFile = "$StepStatus-Completed.txt"
 
-    Install-DriverUpdateAssistant
-
-    If ($Manufacturer -match "HP") {
-        Install-HP_Drivers
-    } elseif ($Manufacturer -match "Dell") {
-        Install-Dell_Drivers
+    Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
+    Write-Host "Manufacturer = $Manufacturer"
+    If (Test-Path "$StepStatus*") {
+        If (Test-Path $CompletionFile) {Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green}
     } else {
-        Write-Host "`n-=[ $Step ]=-" -ForegroundColor Yellow
-        Write-Host "`n`$Manufacturer = $Manufacturer"
-        Write-Host "Manufacturer not detected to be either HP or Dell"
-        Write-Host "Please manually install driver updates before continuing with the setup"
-        DO {$choice = Read-Host -Prompt "`nType in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
-        if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
-        Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        If ($Manufacturer -match "HP") {
+            Install-HP_Drivers
+        } elseif ($Manufacturer -match "Dell") {
+            Install-Dell_Drivers
+        } else {
+            Write-Host "Manufacturer not detected to be either HP or Dell"
+            Write-Host "Please manually install driver updates before continuing with the setup"
+            DO {$choice = Read-Host -Prompt "`nType in 'continue' to move on to the next step"} UNTIL ($choice -eq "continue")
+            if ($Automated_Setup -or $TuneUp_PC) {New-Item $CompletionFile -ItemType File -Force | Out-Null}
+            Write-Host "$Step`: " -NoNewline; Write-Host "Completed" -ForegroundColor Green
+        }
     }
 } #end of Install-Driver_Updates function
 
@@ -266,14 +269,3 @@ function Install-Windows_Updates {
     }
 } #end of Install-Windows_Updates
 #endregion windows update functions
-
-#region shared functions
-function NewCheck-CompletionFile {
-    $StepStatus = "$Setup_AS_Status_Fo\"+$Step.Replace(" ","_")
-    $CompletionFile = "$StepStatus-Completed.txt"
-}
-
-function NewCreate-CompletionFile {
-
-}
-#endregion shared functions
